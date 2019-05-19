@@ -1,0 +1,34 @@
+
+language: rust
+git:
+  quiet: true
+
+rust:
+  - stable
+
+cache:
+  cargo
+
+os:
+  - linux
+  - osx
+
+before_script:
+  - |
+    if [[ $TRAVIS_OS == "osx" ]]
+    then
+      # https://formulae.brew.sh/formula/sdl2#default
+      brew install sdl2
+    else
+      # the package managers often have very old versions of SDL2, we just build
+      # the correct version from source
+      sudo ./install-sdl2.sh
+    fi
+  - sdl2-config --cflags
+  - sdl2-config --libs
+  - sdl2-config --static-libs
+
+test_script:
+  cargo build
+  cargo build --examples
+  cargo test

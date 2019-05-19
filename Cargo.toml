@@ -1,0 +1,18 @@
+[package]
+name = "beryllium"
+description = "An opinionated set of high level wrappers for the `fermium` SDL2 bindings."
+repository = "https://github.com/Lokathor/beryllium"
+version = "0.0.1"
+authors = ["Lokathor <zefria@gmail.com>"]
+edition = "2018"
+license = "Zlib"
+
+[dependencies]
+fermium = "0.0.11"
+
+[package.metadata.docs.rs]
+features = ["use_bindgen_lib"]
+
+[badges]
+appveyor = { repository = "Lokathor/beryllium" }
+travis-ci = { repository = "Lokathor/beryllium" }
