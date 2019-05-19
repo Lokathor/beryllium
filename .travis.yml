@@ -29,6 +29,6 @@ before_script:
   - sdl2-config --static-libs
 
 test_script:
-  cargo build
-  cargo build --examples
-  cargo test
+  - cargo build
+  - cargo build --examples
+  - cargo test
