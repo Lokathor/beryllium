@@ -7,3 +7,5 @@
 # beryllium
 An opinionated set of "high level" wrappers for the
 [fermium](https://github.com/Lokathor/fermium) SDL2 bindings.
+
+crate squatted, more to come soon!
