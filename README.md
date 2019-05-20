@@ -31,16 +31,19 @@ Obviously this uses SDL2. You need version 2.0.9 or later:
     Either run it as is with `sudo` for a default install (to `/usr/local/lib`)
     or adjust it to fit your needs. Linux programmer are all pros, right?
 
-Also, somewhat related, you'll probably want to the the
+Also, somewhat related, you'll probably want to set the
 [window_subsystem](https://doc.rust-lang.org/reference/attributes.html#crate-only-attributes)
-to "windows" in your programs. Just add this to the top of your program:
+to "windows" in your beryllium programs. Just add this to the top of the main
+file of any binary or example:
 
 ```rust
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 ```
 
-We only want it enabled without `debug_assertions` though, because when it's
-configured you don't have a default console so you can't print debug messages.
+Note that we only want it enabled when `debug_assertions` are not active. If
+it's configured you don't have a default console _at all_ so you can't print
+debug messages. We only need to set it with the version we plan to ship to
+users.
 
 ## License
 
