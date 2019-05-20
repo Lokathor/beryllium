@@ -9,7 +9,7 @@ use beryllium::*;
 fn main() {
   let sdl = unsafe { beryllium::init() }.unwrap();
 
-  let window = sdl
+  let _window = sdl
     .create_window(
       "Window Demo",
       None,
@@ -21,7 +21,7 @@ fn main() {
 
   'game_loop: loop {
     // At the top of every frame you process your events. You MUST process
-    // events or you can hang the operating system's UI.
+    // events promptly or you can hang the operating system's UI.
     while let Some(event) = sdl.poll_event() {
       match event {
         Event::Quit { timestamp } => {
