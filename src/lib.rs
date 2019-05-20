@@ -61,12 +61,12 @@ fn test_sdl_token_zero_size() {
 impl SDLToken {
   /// Creates a new window, or gives an error message.
   ///
-  /// If no position is specified it's simply centered on screen.
+  /// See [SDL_CreateWindow](https://wiki.libsdl.org/SDL_CreateWindow) for
+  /// guidance.
   pub fn create_window<'sdl>(
-    &'sdl self, title: &str, position: Option<(i32, i32)>, w: i32, h: i32, flags: WindowFlags,
+    &'sdl self, title: &str, x: i32, y: i32, w: i32, h: i32, flags: WindowFlags,
   ) -> Result<Window<'sdl>, String> {
     let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
-    let (x, y) = position.unwrap_or((WINDOW_POSITION_CENTERED, WINDOW_POSITION_CENTERED));
     let ptr = unsafe {
       SDL_CreateWindow(
         title_null.as_ptr() as *const c_char,
@@ -152,6 +152,11 @@ impl WindowFlags {
 ///
 /// See [create_window](SDLToken::create_window).
 pub const WINDOW_POSITION_CENTERED: i32 = SDL_WINDOWPOS_CENTERED_MASK as i32;
+
+/// Gives the window an undefined position on this axis.
+///
+/// See [create_window](SDLToken::create_window).
+pub const WINDOW_POSITION_UNDEFINED: i32 = SDL_WINDOWPOS_UNDEFINED_MASK as i32;
 
 /// Handle to a window on the screen.
 #[derive(Debug)]

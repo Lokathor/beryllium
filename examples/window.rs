@@ -7,15 +7,18 @@
 use beryllium::*;
 
 fn main() {
+  // Safety Rules: You must only init SDL2 from the main thread, and you must
+  // not double initialize it.
   let sdl = unsafe { beryllium::init() }.unwrap();
 
   let _window = sdl
     .create_window(
-      "Window Demo",
-      None,
-      800,
-      600,
-      WindowFlags::default().with_shown(true),
+      "Window Demo",                           // title
+      WINDOW_POSITION_CENTERED,                // x
+      WINDOW_POSITION_CENTERED,                // y
+      800,                                     // width
+      600,                                     // height
+      WindowFlags::default().with_shown(true), // flags
     )
     .unwrap();
 
