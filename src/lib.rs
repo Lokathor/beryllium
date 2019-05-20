@@ -111,11 +111,13 @@ impl SDLToken {
 /// other methods that examine the state of a window.
 #[derive(Debug, Default, Clone, Copy)]
 #[repr(transparent)]
-pub struct WindowFlags(i32);
+pub struct WindowFlags(SDL_WindowFlags::Type);
+#[allow(bad_style)]
+type SDL_WindowFlags_Type = SDL_WindowFlags::Type;
 #[allow(missing_docs)]
 impl WindowFlags {
   phantom_fields! {
-    self.0: i32,
+    self.0: SDL_WindowFlags_Type,
     fullscreen: SDL_WINDOW_FULLSCREEN,
     opengl: SDL_WINDOW_OPENGL,
     shown: SDL_WINDOW_SHOWN,
