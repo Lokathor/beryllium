@@ -31,6 +31,17 @@ Obviously this uses SDL2. You need version 2.0.9 or later:
     Either run it as is with `sudo` for a default install (to `/usr/local/lib`)
     or adjust it to fit your needs. Linux programmer are all pros, right?
 
+Also, somewhat related, you'll probably want to the the
+[window_subsystem](https://doc.rust-lang.org/reference/attributes.html#crate-only-attributes)
+to "windows" in your programs. Just add this to the top of your program:
+
+```rust
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+```
+
+We only want it enabled without `debug_assertions` though, because when it's
+configured you don't have a default console so you can't print debug messages.
+
 ## License
 
 This crate uses the Zlib license, the same license that SDL2 itself uses.

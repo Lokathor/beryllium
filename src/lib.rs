@@ -4,11 +4,11 @@
 //! [fermium](https://github.com/Lokathor/fermium) SDL2 bindings.
 
 use core::{marker::PhantomData, slice::from_raw_parts};
-use fermium::{SDL_WindowFlags::*, *};
+use fermium::{SDL_EventType::*, SDL_WindowFlags::*, *};
 use libc::c_char;
 use phantom_fields::phantom_fields;
 
-/// TODO: version()
+// TODO: version()
 
 /// Obtains the current SDL2 error string.
 ///
@@ -27,8 +27,9 @@ pub fn get_error() -> String {
 ///
 /// # Safety
 ///
-/// This can only be called from the main thread, and you cannot double
-/// initialize SDL2.
+/// * This can only be called from the main thread (that's just a
+///   [macOS](https://tinyurl.com/y5bv7g4v) limit built into Cocoa)
+/// * you cannot double initialize SDL2.
 pub unsafe fn init() -> Result<SDLToken, String> {
   if SDL_Init(SDL_INIT_EVERYTHING) == 0 {
     Ok(SDLToken {
@@ -86,7 +87,22 @@ impl SDLToken {
     }
   }
 
-  // TODO: poll_event
+  /// Polls for an event, getting it out of the queue if one is there.
+  pub fn poll_event(&self) -> Option<Event> {
+    unsafe {
+      let mut event = SDL_Event::default();
+      if SDL_PollEvent(&mut event) == 1 {
+        match event.type_ as SDL_EventType::Type {
+          SDL_QUIT => Some(Event::Quit {
+            timestamp: event.quit.timestamp,
+          }),
+          _ => Some(Event::UnknownSoItWasIgnored),
+        }
+      } else {
+        None
+      }
+    }
+  }
 }
 
 /// Flags that a window might have.
@@ -141,4 +157,20 @@ pub const WINDOW_POSITION_CENTERED: i32 = SDL_WINDOWPOS_CENTERED_MASK as i32;
 pub struct Window<'sdl> {
   ptr: *mut SDL_Window,
   _marker: PhantomData<&'sdl SDLToken>,
+}
+impl<'sdl> Drop for Window<'sdl> {
+  fn drop(&mut self) {
+    unsafe { SDL_DestroyWindow(self.ptr) }
+  }
+}
+
+/// The various events that can happen.
+pub enum Event {
+  /// Quit was requested by the user
+  Quit {
+    /// Time, in milliseconds, since SDL2 was initialized.
+    timestamp: u32,
+  },
+  /// TODO: keep adding events until this can go away.
+  UnknownSoItWasIgnored,
 }
