@@ -4,21 +4,19 @@
 
 use beryllium::*;
 
-fn main() {
+fn main() -> Result<(), String> {
   // Safety Rules: You must only init SDL2 from the main thread, and you must
   // not double initialize it.
-  let sdl = unsafe { beryllium::init() }.unwrap();
+  let sdl = unsafe { beryllium::init() }?;
 
-  let _window = sdl
-    .create_window(
-      "Window Demo",                           // title
-      WINDOW_POSITION_CENTERED,                // x
-      WINDOW_POSITION_CENTERED,                // y
-      800,                                     // width
-      600,                                     // height
-      WindowFlags::default().with_shown(true), // flags
-    )
-    .unwrap();
+  let _window = sdl.create_window(
+    "Window Demo",                           // title
+    WINDOW_POSITION_CENTERED,                // x
+    WINDOW_POSITION_CENTERED,                // y
+    800,                                     // width
+    600,                                     // height
+    WindowFlags::default().with_shown(true), // flags
+  )?;
 
   'game_loop: loop {
     // At the top of every frame you process your events. You MUST process
@@ -34,4 +32,6 @@ fn main() {
     }
     // then you _would_ do the rest of your program here.
   }
+
+  Ok(())
 }
