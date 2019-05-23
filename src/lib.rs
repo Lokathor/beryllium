@@ -8,7 +8,35 @@ use fermium::{SDL_EventType::*, SDL_WindowFlags::*, *};
 use libc::c_char;
 use phantom_fields::phantom_fields;
 
-// TODO: version()
+/// A version number.
+#[derive(Debug, Default, Clone, Copy)]
+#[allow(missing_docs)]
+pub struct Version {
+  pub major: u8,
+  pub minor: u8,
+  pub patch: u8,
+}
+
+/// Gets the version of SDL2 being used at runtime.
+///
+/// This might be later than the one you compiled with, but it will be fully
+/// SemVer compatible.
+///
+/// ```rust
+/// let v = beryllium::version();
+/// assert_eq!(v.major, 2);
+/// assert!(v.minor >= 0);
+/// assert!(v.patch >= 9);
+/// ```
+pub fn version() -> Version {
+  let mut sdl_version = SDL_version::default();
+  unsafe { SDL_GetVersion(&mut sdl_version) };
+  Version {
+    major: sdl_version.major,
+    minor: sdl_version.minor,
+    patch: sdl_version.patch,
+  }
+}
 
 /// Obtains the current SDL2 error string.
 ///
