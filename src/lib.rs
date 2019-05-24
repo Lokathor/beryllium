@@ -66,6 +66,10 @@ pub enum MessageBox {
 ///
 /// The "parent" option allows you to make the message box modal over a window
 /// of your choosing.
+///
+/// This doesn't require SDL2 to be initialized. If initialization was attempted
+/// and then failed because of no possible video target then this call is very
+/// likely to also fail.
 pub fn show_simple_message_box(
   box_type: MessageBox, title: &str, message: &str, parent: Option<&Window>,
 ) -> Result<(), String> {
