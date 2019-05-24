@@ -18,5 +18,4 @@ build: false
 
 test_script:
   - cargo build
-  - cargo build --examples
   - cargo test

@@ -8,8 +8,6 @@
 An opinionated set of "high level" wrappers for the
 [fermium](https://github.com/Lokathor/fermium) SDL2 bindings.
 
-crate squatted, more to come soon!
-
 ## Mindset
 
 I attempt to make things as safe as is _reasonable_, without actually doing
@@ -30,6 +28,9 @@ Obviously this uses SDL2. You need version 2.0.9 or later:
   * On Linux you can use the [installer script](install-sdl2.sh) in this repo.
     Either run it as is with `sudo` for a default install (to `/usr/local/lib`)
     or adjust it to fit your needs. Linux programmer are all pros, right?
+
+`fermium` does a static binding by default, so once you build your program it
+won't depend on SDL2 files any longer.
 
 Also, somewhat related, you'll probably want to set the
 [window_subsystem](https://doc.rust-lang.org/reference/attributes.html#crate-only-attributes)
