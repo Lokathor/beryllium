@@ -5,10 +5,33 @@
 use beryllium::*;
 
 fn main() -> Result<(), String> {
-  show_simple_message_box(
+  // Safety Rules: We can only affect the GUI from the main thread (a macOS
+  // limitation), and this affects the GUI, so we can only call this from the
+  // main thread.
+  unsafe {
+    show_simple_message_box(
+      MessageBox::Information,
+      "Example: Simple Message Box",
+      "This message box stands alone.",
+    )?
+  }
+
+  let sdl = unsafe { beryllium::init() }?;
+
+  let window = sdl.create_window(
+    "Simple Message Box Window",             // title
+    WINDOW_POSITION_CENTERED,                // x
+    WINDOW_POSITION_CENTERED,                // y
+    800,                                     // width
+    600,                                     // height
+    WindowFlags::default().with_shown(true), // flags
+  )?;
+
+  // We can make a message box as a Window method, which makes message boxes
+  // that are modal to the window.
+  window.show_simple_message_box(
     MessageBox::Information,
-    "Example: Simple Message Box",
-    "This is the message box you asked for.",
-    None,
+    "Example: Modal Simple Message Box",
+    "This message box is modal to the parent window.",
   )
 }

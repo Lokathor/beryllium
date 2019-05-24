@@ -62,31 +62,26 @@ pub enum MessageBox {
   Information = fermium::SDL_MessageBoxFlags::SDL_MESSAGEBOX_INFORMATION,
 }
 
-/// Shows a message box with just a title, message, and "okay" button.
-///
-/// The "parent" option allows you to make the message box modal over a window
-/// of your choosing.
+/// Shows a simple stand alone message box.
 ///
 /// This doesn't require SDL2 to be initialized. If initialization was attempted
 /// and then failed because of no possible video target then this call is very
 /// likely to also fail.
-pub fn show_simple_message_box(
-  box_type: MessageBox, title: &str, message: &str, parent: Option<&Window>,
+///
+/// # Safety
+///
+/// As with all GUI things, you must only call this from the main thread.
+pub unsafe fn show_simple_message_box(
+  box_type: MessageBox, title: &str, message: &str,
 ) -> Result<(), String> {
   let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
   let message_null: Vec<u8> = message.bytes().chain(Some(0)).collect();
-  let parent_ptr: *mut SDL_Window = match parent {
-    Some(win) => win.ptr,
-    None => null_mut(),
-  };
-  let output = unsafe {
-    SDL_ShowSimpleMessageBox(
-      box_type as u32,
-      title_null.as_ptr() as *const c_char,
-      message_null.as_ptr() as *const c_char,
-      parent_ptr,
-    )
-  };
+  let output = SDL_ShowSimpleMessageBox(
+    box_type as u32,
+    title_null.as_ptr() as *const c_char,
+    message_null.as_ptr() as *const c_char,
+    null_mut(),
+  );
   if output == 0 {
     Ok(())
   } else {
@@ -239,6 +234,28 @@ pub struct Window<'sdl> {
 impl<'sdl> Drop for Window<'sdl> {
   fn drop(&mut self) {
     unsafe { SDL_DestroyWindow(self.ptr) }
+  }
+}
+impl<'sdl> Window<'sdl> {
+  /// This is like [show_simple_message_box](show_simple_message_box), but modal to the `Window`.
+  pub fn show_simple_message_box(
+    &self, box_type: MessageBox, title: &str, message: &str,
+  ) -> Result<(), String> {
+    let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
+    let message_null: Vec<u8> = message.bytes().chain(Some(0)).collect();
+    let output = unsafe {
+      SDL_ShowSimpleMessageBox(
+        box_type as u32,
+        title_null.as_ptr() as *const c_char,
+        message_null.as_ptr() as *const c_char,
+        self.ptr,
+      )
+    };
+    if output == 0 {
+      Ok(())
+    } else {
+      Err(get_error())
+    }
   }
 }
 
