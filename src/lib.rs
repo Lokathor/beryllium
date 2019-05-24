@@ -3,7 +3,7 @@
 //! An opinionated set of "high level" wrappers for the
 //! [fermium](https://github.com/Lokathor/fermium) SDL2 bindings.
 
-use core::{marker::PhantomData, slice::from_raw_parts};
+use core::{marker::PhantomData, ptr::null_mut, slice::from_raw_parts};
 use fermium::{SDL_EventType::*, SDL_WindowFlags::*, *};
 use libc::c_char;
 use phantom_fields::phantom_fields;
@@ -51,6 +51,45 @@ pub fn get_error() -> String {
   }
 }
 
+/// The kind of message box you wish to show.
+#[derive(Debug, Clone, Copy)]
+#[cfg_attr(windows, repr(i32))]
+#[cfg_attr(not(windows), repr(u32))]
+#[allow(missing_docs)]
+pub enum MessageBox {
+  Error = fermium::SDL_MessageBoxFlags::SDL_MESSAGEBOX_ERROR,
+  Warning = fermium::SDL_MessageBoxFlags::SDL_MESSAGEBOX_WARNING,
+  Information = fermium::SDL_MessageBoxFlags::SDL_MESSAGEBOX_INFORMATION,
+}
+
+/// Shows a message box with just a title, message, and "okay" button.
+///
+/// The "parent" option allows you to make the message box modal over a window
+/// of your choosing.
+pub fn show_simple_message_box(
+  box_type: MessageBox, title: &str, message: &str, parent: Option<&Window>,
+) -> Result<(), String> {
+  let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
+  let message_null: Vec<u8> = message.bytes().chain(Some(0)).collect();
+  let parent_ptr: *mut SDL_Window = match parent {
+    Some(win) => win.ptr,
+    None => null_mut(),
+  };
+  let output = unsafe {
+    SDL_ShowSimpleMessageBox(
+      box_type as u32,
+      title_null.as_ptr() as *const c_char,
+      message_null.as_ptr() as *const c_char,
+      parent_ptr,
+    )
+  };
+  if output == 0 {
+    Ok(())
+  } else {
+    Err(get_error())
+  }
+}
+
 /// Initializes SDL2 and gives you a token as proof, or an error message.
 ///
 /// # Safety
@@ -89,8 +128,8 @@ fn test_sdl_token_zero_size() {
 impl SDLToken {
   /// Creates a new window, or gives an error message.
   ///
-  /// See [SDL_CreateWindow](https://wiki.libsdl.org/SDL_CreateWindow) for
-  /// guidance.
+  /// Note that not all possible flags have an effect! See
+  /// [SDL_CreateWindow](https://wiki.libsdl.org/SDL_CreateWindow) for guidance.
   pub fn create_window<'sdl>(
     &'sdl self, title: &str, x: i32, y: i32, w: i32, h: i32, flags: WindowFlags,
   ) -> Result<Window<'sdl>, String> {
