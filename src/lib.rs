@@ -237,7 +237,11 @@ impl<'sdl> Drop for Window<'sdl> {
   }
 }
 impl<'sdl> Window<'sdl> {
-  /// This is like [show_simple_message_box](show_simple_message_box), but modal to the `Window`.
+  /// Like the [show_simple_message_box](show_simple_message_box) function, but
+  /// modal to the `Window`.
+  ///
+  /// Because you need a valid `Window` to call this method, we don't need to
+  /// mark it as `unsafe`.
   pub fn show_simple_message_box(
     &self, box_type: MessageBox, title: &str, message: &str,
   ) -> Result<(), String> {

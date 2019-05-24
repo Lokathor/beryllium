@@ -1,6 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-//! This is an "Opening a window" demo.
+//! A demo that shows off simple message boxes.
 
 use beryllium::*;
 
@@ -16,8 +16,8 @@ fn main() -> Result<(), String> {
     )?
   }
 
+  // This is the same as the `window` example
   let sdl = unsafe { beryllium::init() }?;
-
   let window = sdl.create_window(
     "Simple Message Box Window",             // title
     WINDOW_POSITION_CENTERED,                // x
@@ -27,8 +27,8 @@ fn main() -> Result<(), String> {
     WindowFlags::default().with_shown(true), // flags
   )?;
 
-  // We can make a message box as a Window method, which makes message boxes
-  // that are modal to the window.
+  // We can also make a message box as a Window method, which makes message
+  // boxes that are modal to the window.
   window.show_simple_message_box(
     MessageBox::Information,
     "Example: Modal Simple Message Box",
