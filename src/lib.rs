@@ -1,9 +1,10 @@
 #![warn(missing_docs)]
+#![deny(missing_debug_implementations)]
 
 //! An opinionated set of "high level" wrappers for the
 //! [fermium](https://github.com/Lokathor/fermium) SDL2 bindings.
 
-use core::{marker::PhantomData, ptr::null_mut, slice::from_raw_parts};
+use core::{convert::TryFrom, marker::PhantomData, ptr::null_mut, slice::from_raw_parts};
 use fermium::{SDL_EventType::*, SDL_WindowFlags::*, *};
 use libc::c_char;
 use phantom_fields::phantom_fields;
@@ -158,12 +159,7 @@ impl SDLToken {
     unsafe {
       let mut event = SDL_Event::default();
       if SDL_PollEvent(&mut event) == 1 {
-        match event.type_ as SDL_EventType::Type {
-          SDL_QUIT => Some(Event::Quit {
-            timestamp: event.quit.timestamp,
-          }),
-          _ => Some(Event::UnknownSoItWasIgnored),
-        }
+        Some(Event::try_from(event).unwrap_or(Event::UnknownEventType))
       } else {
         None
       }
@@ -263,13 +259,132 @@ impl<'sdl> Window<'sdl> {
   }
 }
 
+/// TODO: make this a proper newtype
+pub type MouseButtonState = u32;
+/// TODO: make this a proper newtype
+pub type MouseButton = u8;
+
 /// The various events that can happen.
+#[derive(Debug, Clone, Copy)]
 pub enum Event {
   /// Quit was requested by the user
   Quit {
     /// Time, in milliseconds, since SDL2 was initialized.
     timestamp: u32,
   },
-  /// TODO: keep adding events until this can go away.
-  UnknownSoItWasIgnored,
+  /// Event for any time the user moves the mouse within a window, or if
+  /// `warp_mouse_in_window` is called.
+  MouseMotion {
+    /// Time, in milliseconds, since SDL2 was initialized.
+    timestamp: u32,
+    /// Window with mouse focus, if any
+    window_id: u32,
+    /// The mouse that generated this event. If `None` it was a touch event.
+    mouse_id: Option<u32>,
+    /// State of the mouse buttons during this event
+    state: MouseButtonState,
+    /// X, relative to the window
+    x: i32,
+    /// Y, relative to the window
+    y: i32,
+    /// Change in X position
+    delta_x: i32,
+    /// Change in Y position
+    delta_y: i32,
+  },
+  /// Generated whenever a mouse button is pressed or released.
+  MouseButtonEvent {
+    /// Time, in milliseconds, since SDL2 was initialized.
+    timestamp: u32,
+    /// Window with mouse focus, if any
+    window_id: u32,
+    /// The mouse that generated this event. If `None` it was a touch event.
+    mouse_id: Option<u32>,
+    /// The button that changed
+    button: MouseButton,
+    /// If the button is now pressed or released
+    is_pressed: bool,
+    /// 1 for single-click, 2 for double-click, etc
+    clicks: u8,
+    /// X, relative to the window
+    x: i32,
+    /// Y, relative to the window
+    y: i32,
+  },
+  /// Generated whenever the user moves the mouse wheel.
+  MouseWheel {
+    /// Time, in milliseconds, since SDL2 was initialized.
+    timestamp: u32,
+    /// Window with mouse focus, if any
+    window_id: u32,
+    /// The mouse that generated this event. If `None` it was a touch event.
+    mouse_id: Option<u32>,
+    /// Horizontal scroll, negative Left or positive Right
+    x: i32,
+    /// Vertical scroll, negative to User or positive away from User
+    y: i32,
+    /// Mouse wheel isn't consistent on all platforms. If this bool is set, the
+    /// meaning of the `x` and `y` field is inverted compared to normal.
+    is_flipped: bool,
+  },
+  /// It's always possible that we'll load some future version which will have
+  /// event variants we don't understand, which we have to just ignore.
+  UnknownEventType,
+}
+impl TryFrom<SDL_Event> for Event {
+  // TODO: a real error type here?
+  type Error = ();
+
+  /// Fails if the input has an unknown `type_` value.
+  fn try_from(event: SDL_Event) -> Result<Self, Self::Error> {
+    unsafe {
+      match event.type_ as SDL_EventType::Type {
+        SDL_QUIT => Ok(Event::Quit {
+          timestamp: event.quit.timestamp,
+        }),
+        SDL_MOUSEMOTION => Ok(Event::MouseMotion {
+          timestamp: event.motion.timestamp,
+          window_id: event.motion.windowID,
+          mouse_id: if event.motion.which == SDL_TOUCH_MOUSEID {
+            None
+          } else {
+            Some(event.motion.which)
+          },
+          state: event.motion.state,
+          x: event.motion.x,
+          y: event.motion.y,
+          delta_x: event.motion.xrel,
+          delta_y: event.motion.yrel,
+        }),
+        SDL_MOUSEBUTTONDOWN | SDL_MOUSEBUTTONUP => Ok(Event::MouseButtonEvent {
+          timestamp: event.button.timestamp,
+          window_id: event.button.windowID,
+          mouse_id: if event.button.which == SDL_TOUCH_MOUSEID {
+            None
+          } else {
+            Some(event.button.which)
+          },
+          button: event.button.button,
+          is_pressed: u32::from(event.button.state) == SDL_PRESSED,
+          clicks: event.button.clicks,
+          x: event.button.x,
+          y: event.button.y,
+        }),
+        SDL_MOUSEWHEEL => Ok(Event::MouseWheel {
+          timestamp: event.wheel.timestamp,
+          window_id: event.wheel.windowID,
+          mouse_id: if event.wheel.which == SDL_TOUCH_MOUSEID {
+            None
+          } else {
+            Some(event.wheel.which)
+          },
+          x: event.wheel.x,
+          y: event.wheel.y,
+          is_flipped: event.wheel.direction as fermium::SDL_MouseWheelDirection::Type
+            == fermium::SDL_MouseWheelDirection::SDL_MOUSEWHEEL_FLIPPED,
+        }),
+        _ => Err(()),
+      }
+    }
+  }
 }
