@@ -128,8 +128,8 @@ fn test_sdl_token_zero_size() {
 impl SDLToken {
   /// Creates a new window, or gives an error message.
   ///
-  /// Note that not all possible flags have an effect! See
-  /// [SDL_CreateWindow](https://wiki.libsdl.org/SDL_CreateWindow) for guidance.
+  /// Note that not all possible flags have an effect! See [the
+  /// wiki](https://wiki.libsdl.org/SDL_CreateWindow) for guidance.
   pub fn create_window<'sdl>(
     &'sdl self, title: &str, x: i32, y: i32, w: i32, h: i32, flags: WindowFlags,
   ) -> Result<Window<'sdl>, String> {
@@ -159,7 +159,7 @@ impl SDLToken {
     unsafe {
       let mut event = SDL_Event::default();
       if SDL_PollEvent(&mut event) == 1 {
-        Some(Event::try_from(event).unwrap_or(Event::UnknownEventType))
+        Some(Event::from(event))
       } else {
         None
       }
@@ -331,18 +331,14 @@ pub enum Event {
   /// event variants we don't understand, which we have to just ignore.
   UnknownEventType,
 }
-impl TryFrom<SDL_Event> for Event {
-  // TODO: a real error type here?
-  type Error = ();
-
-  /// Fails if the input has an unknown `type_` value.
-  fn try_from(event: SDL_Event) -> Result<Self, Self::Error> {
+impl From<SDL_Event> for Event {
+  fn from(event: SDL_Event) -> Self {
     unsafe {
       match event.type_ as SDL_EventType::Type {
-        SDL_QUIT => Ok(Event::Quit {
+        SDL_QUIT => Event::Quit {
           timestamp: event.quit.timestamp,
-        }),
-        SDL_MOUSEMOTION => Ok(Event::MouseMotion {
+        },
+        SDL_MOUSEMOTION => Event::MouseMotion {
           timestamp: event.motion.timestamp,
           window_id: event.motion.windowID,
           mouse_id: if event.motion.which == SDL_TOUCH_MOUSEID {
@@ -355,8 +351,8 @@ impl TryFrom<SDL_Event> for Event {
           y: event.motion.y,
           delta_x: event.motion.xrel,
           delta_y: event.motion.yrel,
-        }),
-        SDL_MOUSEBUTTONDOWN | SDL_MOUSEBUTTONUP => Ok(Event::MouseButtonEvent {
+        },
+        SDL_MOUSEBUTTONDOWN | SDL_MOUSEBUTTONUP => Event::MouseButtonEvent {
           timestamp: event.button.timestamp,
           window_id: event.button.windowID,
           mouse_id: if event.button.which == SDL_TOUCH_MOUSEID {
@@ -369,8 +365,8 @@ impl TryFrom<SDL_Event> for Event {
           clicks: event.button.clicks,
           x: event.button.x,
           y: event.button.y,
-        }),
-        SDL_MOUSEWHEEL => Ok(Event::MouseWheel {
+        },
+        SDL_MOUSEWHEEL => Event::MouseWheel {
           timestamp: event.wheel.timestamp,
           window_id: event.wheel.windowID,
           mouse_id: if event.wheel.which == SDL_TOUCH_MOUSEID {
@@ -382,8 +378,8 @@ impl TryFrom<SDL_Event> for Event {
           y: event.wheel.y,
           is_flipped: event.wheel.direction as fermium::SDL_MouseWheelDirection::Type
             == fermium::SDL_MouseWheelDirection::SDL_MOUSEWHEEL_FLIPPED,
-        }),
-        _ => Err(()),
+        },
+        _ => Event::UnknownEventType,
       }
     }
   }
