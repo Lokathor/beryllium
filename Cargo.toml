@@ -9,7 +9,7 @@ license = "Zlib"
 
 [dependencies]
 fermium = "0.0.11"
-phantom-fields = "0.1.0"
+phantom-fields = "^0.1.2"
 libc = "0.2"
 
 [package.metadata.docs.rs]

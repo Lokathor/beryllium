@@ -3,12 +3,40 @@
 //! An opinionated set of "high level" wrappers for the
 //! [fermium](https://github.com/Lokathor/fermium) SDL2 bindings.
 
-use core::{marker::PhantomData, slice::from_raw_parts};
+use core::{marker::PhantomData, ptr::null_mut, slice::from_raw_parts};
 use fermium::{SDL_EventType::*, SDL_WindowFlags::*, *};
 use libc::c_char;
 use phantom_fields::phantom_fields;
 
-// TODO: version()
+/// A version number.
+#[derive(Debug, Default, Clone, Copy)]
+#[allow(missing_docs)]
+pub struct Version {
+  pub major: u8,
+  pub minor: u8,
+  pub patch: u8,
+}
+
+/// Gets the version of SDL2 being used at runtime.
+///
+/// This might be later than the one you compiled with, but it will be fully
+/// SemVer compatible.
+///
+/// ```rust
+/// let v = beryllium::version();
+/// assert_eq!(v.major, 2);
+/// assert!(v.minor >= 0);
+/// assert!(v.patch >= 9);
+/// ```
+pub fn version() -> Version {
+  let mut sdl_version = SDL_version::default();
+  unsafe { SDL_GetVersion(&mut sdl_version) };
+  Version {
+    major: sdl_version.major,
+    minor: sdl_version.minor,
+    patch: sdl_version.patch,
+  }
+}
 
 /// Obtains the current SDL2 error string.
 ///
@@ -20,6 +48,44 @@ pub fn get_error() -> String {
     let len = SDL_strlen(base);
     let useful_bytes = from_raw_parts(base as *const u8, len);
     String::from_utf8_lossy(useful_bytes).into_owned()
+  }
+}
+
+/// The kind of message box you wish to show.
+#[derive(Debug, Clone, Copy)]
+#[cfg_attr(windows, repr(i32))]
+#[cfg_attr(not(windows), repr(u32))]
+#[allow(missing_docs)]
+pub enum MessageBox {
+  Error = fermium::SDL_MessageBoxFlags::SDL_MESSAGEBOX_ERROR,
+  Warning = fermium::SDL_MessageBoxFlags::SDL_MESSAGEBOX_WARNING,
+  Information = fermium::SDL_MessageBoxFlags::SDL_MESSAGEBOX_INFORMATION,
+}
+
+/// Shows a simple stand alone message box.
+///
+/// This doesn't require SDL2 to be initialized. If initialization was attempted
+/// and then failed because of no possible video target then this call is very
+/// likely to also fail.
+///
+/// # Safety
+///
+/// As with all GUI things, you must only call this from the main thread.
+pub unsafe fn show_simple_message_box(
+  box_type: MessageBox, title: &str, message: &str,
+) -> Result<(), String> {
+  let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
+  let message_null: Vec<u8> = message.bytes().chain(Some(0)).collect();
+  let output = SDL_ShowSimpleMessageBox(
+    box_type as u32,
+    title_null.as_ptr() as *const c_char,
+    message_null.as_ptr() as *const c_char,
+    null_mut(),
+  );
+  if output == 0 {
+    Ok(())
+  } else {
+    Err(get_error())
   }
 }
 
@@ -61,8 +127,8 @@ fn test_sdl_token_zero_size() {
 impl SDLToken {
   /// Creates a new window, or gives an error message.
   ///
-  /// See [SDL_CreateWindow](https://wiki.libsdl.org/SDL_CreateWindow) for
-  /// guidance.
+  /// Note that not all possible flags have an effect! See
+  /// [SDL_CreateWindow](https://wiki.libsdl.org/SDL_CreateWindow) for guidance.
   pub fn create_window<'sdl>(
     &'sdl self, title: &str, x: i32, y: i32, w: i32, h: i32, flags: WindowFlags,
   ) -> Result<Window<'sdl>, String> {
@@ -168,6 +234,32 @@ pub struct Window<'sdl> {
 impl<'sdl> Drop for Window<'sdl> {
   fn drop(&mut self) {
     unsafe { SDL_DestroyWindow(self.ptr) }
+  }
+}
+impl<'sdl> Window<'sdl> {
+  /// Like the [show_simple_message_box](show_simple_message_box) function, but
+  /// modal to the `Window`.
+  ///
+  /// Because you need a valid `Window` to call this method, we don't need to
+  /// mark it as `unsafe`.
+  pub fn show_simple_message_box(
+    &self, box_type: MessageBox, title: &str, message: &str,
+  ) -> Result<(), String> {
+    let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
+    let message_null: Vec<u8> = message.bytes().chain(Some(0)).collect();
+    let output = unsafe {
+      SDL_ShowSimpleMessageBox(
+        box_type as u32,
+        title_null.as_ptr() as *const c_char,
+        message_null.as_ptr() as *const c_char,
+        self.ptr,
+      )
+    };
+    if output == 0 {
+      Ok(())
+    } else {
+      Err(get_error())
+    }
   }
 }
 
