@@ -457,8 +457,6 @@ impl<'sdl> Surface<'sdl> {
   pub fn pitch(&self) -> i32 {
     unsafe { (*self.ptr).pitch }
   }
-
-  //TODO: clip_rect
 }
 
 /// Handle to some SDL2 rendering state.
@@ -552,9 +550,7 @@ impl<'sdl, 'win, 'ren> Drop for Texture<'sdl, 'win, 'ren> {
   }
 }
 
-/// TODO: make this a proper newtype
 pub type MouseButtonState = u32;
-/// TODO: make this a proper newtype
 pub type MouseButton = u8;
 
 /// The various events that can happen.

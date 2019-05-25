@@ -53,11 +53,11 @@ fn main() -> Result<(), String> {
       }
     }
     // Safety Rules: We have to lock the surface before it's safe to edit the
-    // pixel data directly. We can't pass store this pointer past the closure's
-    // use, we also must follow standard 2D pixel buffer editing rules, not go
-    // out of bounds, etc. The biggest problem is that the ptr has to be a byte
-    // pointer since the pixel format can't easily be known at the type level (I
-    // mean it's possible, but would make a huge type-explosion thing that's not
+    // pixel data directly. We can't store this pointer past the closure's use,
+    // we also must follow standard 2D pixel buffer editing rules, not go out of
+    // bounds, etc. The biggest problem is that the ptr has to be a byte pointer
+    // since the pixel format can't easily be known at the type level (I mean
+    // it's possible, but would make a huge type-explosion thing that's not
     // really worth it).
     unsafe {
       surface.lock_edit(|ptr| {
