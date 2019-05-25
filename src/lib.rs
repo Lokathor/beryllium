@@ -518,10 +518,10 @@ impl<'sdl, 'win> Renderer<'sdl, 'win> {
     unsafe {
       let src_ptr = core::mem::transmute::<Option<&Rect>, *const SDL_Rect>(src.as_ref());
       let dst_ptr = core::mem::transmute::<Option<&Rect>, *const SDL_Rect>(dst.as_ref());
-      if SDL_RenderCopy(self.ptr, t.ptr, src_ptr, dst_ptr) != 0 {
-        Err(get_error())
-      } else {
+      if SDL_RenderCopy(self.ptr, t.ptr, src_ptr, dst_ptr) == 0 {
         Ok(())
+      } else {
+        Err(get_error())
       }
     }
   }
