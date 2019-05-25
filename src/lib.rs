@@ -4,8 +4,8 @@
 //! An opinionated set of "high level" wrappers for the
 //! [fermium](https://github.com/Lokathor/fermium) SDL2 bindings.
 
-use core::{convert::TryFrom, marker::PhantomData, ptr::null_mut, slice::from_raw_parts};
-use fermium::{SDL_EventType::*, SDL_WindowFlags::*, *};
+use core::{marker::PhantomData, ptr::null_mut, slice::from_raw_parts};
+use fermium::{SDL_EventType::*, SDL_RendererFlags::*, SDL_WindowFlags::*, *};
 use libc::c_char;
 use phantom_fields::phantom_fields;
 
@@ -154,6 +154,46 @@ impl SDLToken {
     }
   }
 
+  /// Creates a new [Surface](Surface) with the desired format, or error.
+  ///
+  /// See [the wiki page](https://wiki.libsdl.org/SDL_CreateRGBSurface)
+  pub fn create_rgb_surface<'sdl>(
+    &'sdl self, width: i32, height: i32, format: SurfaceFormat,
+  ) -> Result<Surface<'sdl>, String> {
+    let (depth, r_mask, g_mask, b_mask, a_mask) = match format {
+      SurfaceFormat::Indexed4 => (4, 0, 0, 0, 0),
+      SurfaceFormat::Indexed8 => (8, 0, 0, 0, 0),
+      SurfaceFormat::Direct16 {
+        r_mask,
+        g_mask,
+        b_mask,
+        a_mask,
+      } => (16, r_mask, g_mask, b_mask, a_mask),
+      SurfaceFormat::Direct24 {
+        r_mask,
+        g_mask,
+        b_mask,
+        a_mask,
+      } => (24, r_mask, g_mask, b_mask, a_mask),
+      SurfaceFormat::Direct32 {
+        r_mask,
+        g_mask,
+        b_mask,
+        a_mask,
+      } => (32, r_mask, g_mask, b_mask, a_mask),
+    };
+    let ptr: *mut SDL_Surface =
+      unsafe { SDL_CreateRGBSurface(0, width, height, depth, r_mask, g_mask, b_mask, a_mask) };
+    if ptr.is_null() {
+      Err(get_error())
+    } else {
+      Ok(Surface {
+        ptr,
+        _marker: PhantomData,
+      })
+    }
+  }
+
   /// Polls for an event, getting it out of the queue if one is there.
   pub fn poll_event(&self) -> Option<Event> {
     unsafe {
@@ -210,6 +250,25 @@ impl WindowFlags {
   }
 }
 
+/// Flags for renderer creation.
+///
+/// See [Window::create_renderer](Window::create_renderer]
+#[derive(Debug, Default, Clone, Copy)]
+#[repr(transparent)]
+pub struct RendererFlags(SDL_RendererFlags::Type);
+#[allow(bad_style)]
+type SDL_RendererFlags_Type = SDL_RendererFlags::Type;
+#[allow(missing_docs)]
+impl RendererFlags {
+  phantom_fields! {
+    self.0: SDL_RendererFlags_Type,
+    accelerated: SDL_RENDERER_ACCELERATED,
+    present_vsync: SDL_RENDERER_PRESENTVSYNC,
+    software: SDL_RENDERER_SOFTWARE,
+    target_texture: SDL_RENDERER_TARGETTEXTURE,
+  }
+}
+
 /// Centers the window along the axis used.
 ///
 /// See [create_window](SDLToken::create_window).
@@ -256,6 +315,238 @@ impl<'sdl> Window<'sdl> {
     } else {
       Err(get_error())
     }
+  }
+
+  /// Makes a renderer for the window.
+  ///
+  /// # Safety
+  ///
+  /// * Each renderer must only be used with its own window
+  /// * Each renderer must only be used with textures that it created
+  ///
+  /// If you only have a single renderer then this is trivially proved, if you
+  /// make more than one renderer it's up to you to verify this.
+  pub unsafe fn create_renderer<'win>(
+    &'win self, driver_index: Option<usize>, flags: RendererFlags,
+  ) -> Result<Renderer<'sdl, 'win>, String> {
+    let index = driver_index.map(|u| u as i32).unwrap_or(-1);
+    let ptr = SDL_CreateRenderer(self.ptr, index, flags.0 as u32);
+    if ptr.is_null() {
+      Err(get_error())
+    } else {
+      Ok(Renderer {
+        ptr,
+        _marker: PhantomData,
+      })
+    }
+  }
+}
+
+/// The desired format for a surface you are creating.
+///
+/// * `Indexed` formats store their pixel data as indexes into the Surface's
+///   palette of [Color](Color) values.
+/// * `Direct` formats store their pixel data "inline", according to the masks
+///   specified. You can specify a mask of 0 to get a default mask position, but
+///   if you give an Alpha mask of 0 you won't have Alpha support in that
+///   Surface.
+#[derive(Debug, Clone, Copy)]
+#[allow(missing_docs)]
+pub enum SurfaceFormat {
+  /// 4 bits per pixel paletted.
+  Indexed4,
+  /// 8 bits per pixel paletted.
+  Indexed8,
+  /// 16 bits per pixel direct color.
+  Direct16 {
+    r_mask: u32,
+    g_mask: u32,
+    b_mask: u32,
+    a_mask: u32,
+  },
+  /// 24 bits per pixel direct color.
+  Direct24 {
+    r_mask: u32,
+    g_mask: u32,
+    b_mask: u32,
+    a_mask: u32,
+  },
+  /// 32 bits per pixel direct color.
+  Direct32 {
+    r_mask: u32,
+    g_mask: u32,
+    b_mask: u32,
+    a_mask: u32,
+  },
+}
+impl SurfaceFormat {
+  /// Alias for the default Direct16 surface format.
+  pub const DIRECT16_DEFAULT: Self = SurfaceFormat::Direct16 {
+    r_mask: 0,
+    g_mask: 0,
+    b_mask: 0,
+    a_mask: 0,
+  };
+  /// Alias for the default Direct24 surface format.
+  pub const DIRECT24_DEFAULT: Self = SurfaceFormat::Direct24 {
+    r_mask: 0,
+    g_mask: 0,
+    b_mask: 0,
+    a_mask: 0,
+  };
+  /// Alias for the default Direct32 surface format.
+  pub const DIRECT32_DEFAULT: Self = SurfaceFormat::Direct32 {
+    r_mask: 0,
+    g_mask: 0,
+    b_mask: 0,
+    a_mask: 0,
+  };
+}
+
+/// Handle to a "surface", a CPU-side image.
+///
+/// This is fairly easy to edit, but you have to upload it to the GPU before you
+/// can get it on the screen.
+#[derive(Debug)]
+#[repr(transparent)]
+pub struct Surface<'sdl> {
+  ptr: *mut SDL_Surface,
+  _marker: PhantomData<&'sdl SDLToken>,
+}
+impl<'sdl> Drop for Surface<'sdl> {
+  fn drop(&mut self) {
+    unsafe { SDL_FreeSurface(self.ptr) }
+  }
+}
+impl<'sdl> Surface<'sdl> {
+  /// Lock, edit, unlock, as one easy cycle.
+  ///
+  /// If the Surface cannot be locked you'll get an error, otherwise your
+  /// closure will be called with the base pointer to the Surface's pixel data.
+  ///
+  /// # Safety
+  ///
+  /// * You can't store the pointer and use it past the closure
+  /// * You have to follow standard 2D raw pixel editing rules.
+  ///   * `y * pitch + x * size_of::<PixelType>()`
+  ///   * Stay in bounds and all that jazz
+  pub unsafe fn lock_edit<'surface, F: FnMut(*mut u8)>(
+    &'surface mut self, mut op: F,
+  ) -> Result<(), String> {
+    let lock_output = SDL_LockSurface(self.ptr);
+    if lock_output == 0 {
+      op((*self.ptr).pixels as *mut u8);
+      SDL_UnlockSurface(self.ptr);
+      Ok(())
+    } else {
+      Err(get_error())
+    }
+  }
+
+  /// Width in pixels
+  pub fn width(&self) -> i32 {
+    unsafe { (*self.ptr).w }
+  }
+
+  /// Height in pixels
+  pub fn height(&self) -> i32 {
+    unsafe { (*self.ptr).h }
+  }
+
+  /// Pitch in **bytes**
+  pub fn pitch(&self) -> i32 {
+    unsafe { (*self.ptr).pitch }
+  }
+
+  //TODO: clip_rect
+}
+
+/// Handle to some SDL2 rendering state.
+///
+/// Helps you do things like upload data to the GPU and blit image data around.
+#[derive(Debug)]
+#[repr(transparent)]
+pub struct Renderer<'sdl, 'win> {
+  ptr: *mut SDL_Renderer,
+  _marker: PhantomData<&'win Window<'sdl>>,
+}
+impl<'sdl, 'win> Drop for Renderer<'sdl, 'win> {
+  fn drop(&mut self) {
+    unsafe { SDL_DestroyRenderer(self.ptr) }
+  }
+}
+impl<'sdl, 'win> Renderer<'sdl, 'win> {
+  /// Makes a texture with the contents of the surface specified.
+  ///
+  /// The TextureAccess hint for textures from this is "static".
+  ///
+  /// The pixel format might be different from the surface's pixel format.
+  pub fn create_texture_from_surface<'ren>(
+    &'ren self, surf: &Surface,
+  ) -> Result<Texture<'sdl, 'win, 'ren>, String> {
+    let ptr: *mut SDL_Texture = unsafe { SDL_CreateTextureFromSurface(self.ptr, surf.ptr) };
+    if ptr.is_null() {
+      Err(get_error())
+    } else {
+      Ok(Texture {
+        ptr,
+        _marker: PhantomData,
+      })
+    }
+  }
+
+  /// Clears the entire target, ignoring the viewport and clip rect.
+  pub fn clear(&self) -> Result<(), String> {
+    if unsafe { SDL_RenderClear(self.ptr) } == 0 {
+      Ok(())
+    } else {
+      Err(get_error())
+    }
+  }
+
+  /// Copies the texture into the rendering context.
+  ///
+  /// * `src`: Optional clip rect of where to copy _from_. If None, the whole
+  ///   texture is used.
+  /// * `dst`: Optional clip rect of where to copy data _to_. If None, the whole
+  ///   render target is used.
+  ///
+  /// The image is stretched as necessary.
+  pub fn copy(&self, t: &Texture, src: Option<Rect>, dst: Option<Rect>) -> Result<(), String> {
+    unsafe {
+      let src_ptr = core::mem::transmute::<Option<&Rect>, *const SDL_Rect>(src.as_ref());
+      let dst_ptr = core::mem::transmute::<Option<&Rect>, *const SDL_Rect>(dst.as_ref());
+      if SDL_RenderCopy(self.ptr, t.ptr, src_ptr, dst_ptr) != 0 {
+        Err(get_error())
+      } else {
+        Ok(())
+      }
+    }
+  }
+
+  /// Presents the backbuffer to the user.
+  ///
+  /// After a present, all backbuffer data should be assumed to be invalid, and
+  /// you should also clear the backbuffer before doing the next render pass
+  /// even if you intend to write to every pixel.
+  pub fn present(&self) {
+    unsafe { SDL_RenderPresent(self.ptr) };
+  }
+}
+
+/// Handle to a "texture", a GPU-side image.
+///
+/// This is harder to directly edit, but operations are faster, and you can
+/// display it in the Window.
+#[derive(Debug)]
+#[repr(transparent)]
+pub struct Texture<'sdl, 'win, 'ren> {
+  ptr: *mut SDL_Texture,
+  _marker: PhantomData<&'ren Renderer<'sdl, 'win>>,
+}
+impl<'sdl, 'win, 'ren> Drop for Texture<'sdl, 'win, 'ren> {
+  fn drop(&mut self) {
+    unsafe { SDL_DestroyTexture(self.ptr) }
   }
 }
 
@@ -332,6 +623,9 @@ pub enum Event {
   UnknownEventType,
 }
 impl From<SDL_Event> for Event {
+  /// Parses "without fail", but will turn unknown events into `UnknownEventType`.
+  ///
+  /// So, it's not lossless I guess. Whatever.
   fn from(event: SDL_Event) -> Self {
     unsafe {
       match event.type_ as SDL_EventType::Type {
@@ -381,6 +675,53 @@ impl From<SDL_Event> for Event {
         },
         _ => Event::UnknownEventType,
       }
+    }
+  }
+}
+
+/// A standard color, separate from any format.
+///
+/// Use [PixelFormat::map_rgb](PixelFormat::map_rgb) to turn this into color
+/// data in a particular pixel format.
+#[derive(Debug, Clone, Copy, Default)]
+#[repr(C)]
+pub struct Color {
+  r: u8,
+  g: u8,
+  b: u8,
+  a: u8,
+}
+impl From<SDL_Color> for Color {
+  fn from(other: SDL_Color) -> Self {
+    Self {
+      r: other.r,
+      g: other.g,
+      b: other.b,
+      a: other.a,
+    }
+  }
+}
+
+/// Rectangle struct, origin at the upper left.
+///
+/// Naturally, having the origin at the upper left is a terrible and heretical
+/// coordinate system to use but that's what SDL2 does so that's what we're
+/// stuck with.
+#[derive(Debug, Clone, Copy, Default)]
+#[repr(C)]
+pub struct Rect {
+  x: i32,
+  y: i32,
+  w: i32,
+  h: i32,
+}
+impl From<SDL_Rect> for Rect {
+  fn from(other: SDL_Rect) -> Self {
+    Self {
+      x: other.x,
+      y: other.y,
+      w: other.w,
+      h: other.h,
     }
   }
 }
