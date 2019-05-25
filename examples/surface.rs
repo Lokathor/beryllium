@@ -1,6 +1,9 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 //! A demo about how to use a Surface.
+//!
+//! Our "demo" is that we'll store where the mouse goes, and turn those pixels
+//! white, so you see a "trail" of sorts.
 
 use beryllium::*;
 
@@ -17,6 +20,7 @@ fn main() -> Result<(), String> {
   )?;
 
   let mut surface = sdl.create_rgb_surface(800, 600, SurfaceFormat::DIRECT32_DEFAULT)?;
+  let pitch = surface.pitch();
 
   // Safety Rules: Each renderer goes with exactly one Window, and you can't use
   // them with the wrong Window. Similarly, Textures come from a Renderer, and
@@ -37,7 +41,6 @@ fn main() -> Result<(), String> {
   'game_loop: loop {
     mouse_points.clear();
     while let Some(event) = sdl.poll_event() {
-      // process our event queue
       match event {
         Event::Quit { timestamp } => {
           println!("Quitting the program after {} milliseconds.", timestamp);
@@ -49,8 +52,6 @@ fn main() -> Result<(), String> {
         _ => (),
       }
     }
-    // draw those points into the surface
-    let pitch = surface.pitch();
     // Safety Rules: We have to lock the surface before it's safe to edit the
     // pixel data directly. We can't pass store this pointer past the closure's
     // use, we also must follow standard 2D pixel buffer editing rules, not go
@@ -66,7 +67,6 @@ fn main() -> Result<(), String> {
         }
       })?;
     }
-    // upload our surface data to the GPU by making a texture
     renderer.clear()?;
     {
       let texture = renderer.create_texture_from_surface(&surface)?;
