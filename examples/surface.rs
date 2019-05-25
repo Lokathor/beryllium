@@ -1,6 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-//! This is an "Opening a window" demo.
+//! A demo about how to use a Surface.
 
 use beryllium::*;
 
@@ -15,7 +15,7 @@ fn main() -> Result<(), String> {
     600,                                     // height
     WindowFlags::default().with_shown(true), // flags
   )?;
-  
+
   let mut surface = sdl.create_rgb_surface(800, 600, SurfaceFormat::DIRECT32_DEFAULT)?;
 
   // Safety Rules: Each renderer goes with exactly one Window, and you can't use
