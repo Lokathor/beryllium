@@ -504,14 +504,16 @@ impl<'sdl, 'win> Renderer<'sdl, 'win> {
     }
   }
 
-  /// Copies the texture into the rendering context.
+  /// Blits the texture to the rendering target.
   ///
   /// * `src`: Optional clip rect of where to copy _from_. If None, the whole
   ///   texture is used.
   /// * `dst`: Optional clip rect of where to copy data _to_. If None, the whole
   ///   render target is used.
   ///
-  /// The image is stretched as necessary.
+  /// The image is stretched as necessary if the `src` and `dst` are different
+  /// sizes. This is a GPU operation, so it's fast no matter how much upscale or
+  /// downscale you do.
   pub fn copy(&self, t: &Texture, src: Option<Rect>, dst: Option<Rect>) -> Result<(), String> {
     unsafe {
       let src_ptr = core::mem::transmute::<Option<&Rect>, *const SDL_Rect>(src.as_ref());
