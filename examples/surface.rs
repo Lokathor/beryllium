@@ -15,10 +15,8 @@ fn main() -> Result<(), String> {
     600,                                     // height
     WindowFlags::default().with_shown(true), // flags
   )?;
-  println!("window!");
+  
   let mut surface = sdl.create_rgb_surface(800, 600, SurfaceFormat::DIRECT32_DEFAULT)?;
-
-  println!("surface!");
 
   // Safety Rules: Each renderer goes with exactly one Window, and you can't use
   // them with the wrong Window. Similarly, Textures come from a Renderer, and
@@ -33,7 +31,6 @@ fn main() -> Result<(), String> {
         .with_present_vsync(true),
     )?
   };
-  println!("renderer!");
 
   let mut mouse_points = vec![];
 
