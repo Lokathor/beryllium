@@ -54,14 +54,15 @@ fn main() -> Result<(), String> {
     }
     // Safety Rules: We have to lock the surface before it's safe to edit the
     // pixel data directly. We can't store this pointer past the closure's use,
-    // we also must follow standard 2D pixel buffer editing rules, not go out of
-    // bounds, etc. The biggest problem is that the ptr has to be a byte pointer
-    // since the pixel format can't easily be known at the type level (I mean
-    // it's possible, but would make a huge type-explosion thing that's not
-    // really worth it).
+    // and we also must follow standard 2D pixel buffer editing rules to not go
+    // out of bounds, etc. This method doesn't know your target pixel format,
+    // you just get a byte pointer and you have to cast it to the type for the
+    // size of pixel data you're working with.
     unsafe {
       surface.lock_edit(|ptr| {
         for (x, y) in mouse_points.drain(..) {
+          // Note: pitch values are provided **in bytes**, so cast to the pixel
+          // type after you offset to the start of the target row.
           let row_ptr = ptr.offset((y * pitch) as isize) as *mut u32;
           row_ptr.offset(x as isize).write(core::u32::MAX);
         }
