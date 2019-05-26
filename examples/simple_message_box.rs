@@ -9,6 +9,10 @@ fn main() -> Result<(), String> {
   // limitation), and this affects the GUI, so we can only call this from the
   // main thread.
   unsafe {
+    // If you use the top level function for it you get a message box that is
+    // not modal to any window. However, it's still a blocking operation. This
+    // ability is intended for if you need to display a message to the user
+    // without yet having a window.
     show_simple_message_box(
       MessageBox::Information,
       "Example: Simple Message Box",
@@ -28,7 +32,7 @@ fn main() -> Result<(), String> {
   )?;
 
   // We can also make a message box as a Window method, which makes message
-  // boxes that are modal to the window.
+  // boxes that are modal to that window.
   window.show_simple_message_box(
     MessageBox::Information,
     "Example: Modal Simple Message Box",
