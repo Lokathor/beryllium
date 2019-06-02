@@ -84,7 +84,7 @@ pub enum MessageBox {
   Information = fermium::SDL_MessageBoxFlags::SDL_MESSAGEBOX_INFORMATION,
 }
 
-/// Shows a simple stand alone message box.
+/// Shows a basic, stand alone message box.
 ///
 /// This doesn't require SDL2 to be initialized. If initialization was attempted
 /// and then failed because of no possible video target then this call is very
@@ -93,7 +93,7 @@ pub enum MessageBox {
 /// # Safety
 ///
 /// As with all GUI things, you must only call this from the main thread.
-pub unsafe fn show_simple_message_box(
+pub unsafe fn lone_message_box(
   box_type: MessageBox, title: &str, message: &str,
 ) -> Result<(), String> {
   let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
@@ -354,12 +354,12 @@ impl<'sdl> Drop for Window<'sdl> {
   }
 }
 impl<'sdl> Window<'sdl> {
-  /// Like the [show_simple_message_box](show_simple_message_box) function, but
-  /// modal to the `Window`.
+  /// Like the [lone_message_box](lone_message_box) function, but
+  /// modal to this `Window`.
   ///
   /// Because you need a valid `Window` to call this method, we don't need to
   /// mark it as `unsafe`.
-  pub fn show_simple_message_box(
+  pub fn modal_message_box(
     &self, box_type: MessageBox, title: &str, message: &str,
   ) -> Result<(), String> {
     let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
