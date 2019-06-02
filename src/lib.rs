@@ -6,11 +6,30 @@
 
 use core::{marker::PhantomData, ptr::null_mut, slice::from_raw_parts};
 use fermium::{
-  SDL_EventType::*, SDL_RendererFlags::*, SDL_WindowFlags::*, _bindgen_ty_1::*, _bindgen_ty_2::*,
-  _bindgen_ty_3::*, _bindgen_ty_4::*, _bindgen_ty_5::*, _bindgen_ty_6::*, *,
+  SDL_EventType::*, SDL_GameControllerAxis::*, SDL_GameControllerButton::*, SDL_RendererFlags::*,
+  SDL_WindowFlags::*, SDL_bool::*, _bindgen_ty_1::*, _bindgen_ty_2::*, _bindgen_ty_3::*,
+  _bindgen_ty_4::*, _bindgen_ty_5::*, _bindgen_ty_6::*, *,
 };
+
+
 use libc::c_char;
 use phantom_fields::phantom_fields;
+
+mod surface;
+pub use surface::*;
+
+mod event;
+pub use event::*;
+
+mod controller;
+pub use controller::*;
+
+/// Grabs up the data from a null terminated string pointer.
+unsafe fn gather_string(ptr: *const c_char) -> String {
+  let len = SDL_strlen(ptr);
+  let useful_bytes = from_raw_parts(ptr as *const u8, len);
+  String::from_utf8_lossy(useful_bytes).into_owned()
+}
 
 /// A version number.
 #[derive(Debug, Default, Clone, Copy)]
@@ -19,6 +38,15 @@ pub struct Version {
   pub major: u8,
   pub minor: u8,
   pub patch: u8,
+}
+impl From<SDL_version> for Version {
+  fn from(input: SDL_version) -> Self {
+    Self {
+      major: input.major,
+      minor: input.minor,
+      patch: input.patch,
+    }
+  }
 }
 
 /// Gets the version of SDL2 being used at runtime.
@@ -35,11 +63,7 @@ pub struct Version {
 pub fn version() -> Version {
   let mut sdl_version = SDL_version::default();
   unsafe { SDL_GetVersion(&mut sdl_version) };
-  Version {
-    major: sdl_version.major,
-    minor: sdl_version.minor,
-    patch: sdl_version.patch,
-  }
+  Version::from(sdl_version)
 }
 
 /// Obtains the current SDL2 error string.
@@ -47,12 +71,7 @@ pub fn version() -> Version {
 /// You should never need to call this yourself, but I guess you can if you
 /// really want.
 pub fn get_error() -> String {
-  unsafe {
-    let base = SDL_GetError();
-    let len = SDL_strlen(base);
-    let useful_bytes = from_raw_parts(base as *const u8, len);
-    String::from_utf8_lossy(useful_bytes).into_owned()
-  }
+  unsafe { gather_string(SDL_GetError()) }
 }
 
 /// The kind of message box you wish to show.
@@ -97,7 +116,7 @@ pub unsafe fn show_simple_message_box(
 ///
 /// # Safety
 ///
-/// * This can only be called from the main thread (that's just a
+/// * This can only be called from the main thread (because of a
 ///   [macOS](https://tinyurl.com/y5bv7g4v) limit built into Cocoa)
 /// * you cannot double initialize SDL2.
 pub unsafe fn init() -> Result<SDLToken, String> {
@@ -206,6 +225,47 @@ impl SDLToken {
       } else {
         None
       }
+    }
+  }
+
+  /// Obtains the number of joysticks connected to the system.
+  pub fn number_of_joysticks(&self) -> Result<u32, String> {
+    let out = unsafe { SDL_NumJoysticks() };
+    if out < 0 {
+      Err(get_error())
+    } else {
+      // Note(Lokathor): since it's supposed to be an "index" we'll pretend that
+      // the ID values are unsigned values, since that's more like the Rust
+      // index convention.
+      Ok(out as u32)
+    }
+  }
+
+  /// Says if the joystick index supports the Controller API.
+  pub fn joystick_is_game_controller(&self, index: u32) -> bool {
+    SDL_TRUE == unsafe { SDL_IsGameController(index as i32) }
+  }
+
+  /// Given a joystick index, attempts to get the Controller name, if any.
+  pub fn controller_name(&self, index: u32) -> Option<String> {
+    let ptr = unsafe { SDL_GameControllerNameForIndex(index as i32) };
+    if ptr.is_null() {
+      None
+    } else {
+      unsafe { Some(gather_string(ptr)) }
+    }
+  }
+
+  /// Attempts to open the given index as a Controller.
+  pub fn open_controller<'sdl>(&'sdl self, index: u32) -> Result<Controller<'sdl>, String> {
+    let ptr = unsafe { SDL_GameControllerOpen(index as i32) };
+    if ptr.is_null() {
+      Err(get_error())
+    } else {
+      Ok(Controller {
+        ptr,
+        _marker: PhantomData,
+      })
     }
   }
 }
@@ -345,123 +405,6 @@ impl<'sdl> Window<'sdl> {
   }
 }
 
-/// The desired format for a surface you are creating.
-///
-/// * `Indexed` formats store their pixel data as indexes into the Surface's
-///   palette of [Color](Color) values.
-/// * `Direct` formats store their pixel data "inline", according to the masks
-///   specified. You can specify a mask of 0 to get a default mask position, but
-///   if you give an Alpha mask of 0 you won't have Alpha support in that
-///   Surface.
-#[derive(Debug, Clone, Copy)]
-#[allow(missing_docs)]
-pub enum SurfaceFormat {
-  /// 4 bits per pixel paletted.
-  Indexed4,
-  /// 8 bits per pixel paletted.
-  Indexed8,
-  /// 16 bits per pixel direct color.
-  Direct16 {
-    r_mask: u32,
-    g_mask: u32,
-    b_mask: u32,
-    a_mask: u32,
-  },
-  /// 24 bits per pixel direct color.
-  Direct24 {
-    r_mask: u32,
-    g_mask: u32,
-    b_mask: u32,
-    a_mask: u32,
-  },
-  /// 32 bits per pixel direct color.
-  Direct32 {
-    r_mask: u32,
-    g_mask: u32,
-    b_mask: u32,
-    a_mask: u32,
-  },
-}
-impl SurfaceFormat {
-  /// Alias for the default Direct16 surface format.
-  pub const DIRECT16_DEFAULT: Self = SurfaceFormat::Direct16 {
-    r_mask: 0,
-    g_mask: 0,
-    b_mask: 0,
-    a_mask: 0,
-  };
-  /// Alias for the default Direct24 surface format.
-  pub const DIRECT24_DEFAULT: Self = SurfaceFormat::Direct24 {
-    r_mask: 0,
-    g_mask: 0,
-    b_mask: 0,
-    a_mask: 0,
-  };
-  /// Alias for the default Direct32 surface format.
-  pub const DIRECT32_DEFAULT: Self = SurfaceFormat::Direct32 {
-    r_mask: 0,
-    g_mask: 0,
-    b_mask: 0,
-    a_mask: 0,
-  };
-}
-
-/// Handle to a "surface", a CPU-side image.
-///
-/// This is fairly easy to edit, but you have to upload it to the GPU before you
-/// can get it on the screen.
-#[derive(Debug)]
-#[repr(transparent)]
-pub struct Surface<'sdl> {
-  ptr: *mut SDL_Surface,
-  _marker: PhantomData<&'sdl SDLToken>,
-}
-impl<'sdl> Drop for Surface<'sdl> {
-  fn drop(&mut self) {
-    unsafe { SDL_FreeSurface(self.ptr) }
-  }
-}
-impl<'sdl> Surface<'sdl> {
-  /// Lock, edit, unlock, as one easy cycle.
-  ///
-  /// If the Surface cannot be locked you'll get an error, otherwise your
-  /// closure will be called with the base pointer to the Surface's pixel data.
-  ///
-  /// # Safety
-  ///
-  /// * You can't store the pointer and use it past the closure
-  /// * You have to follow standard 2D raw pixel editing rules.
-  ///   * `y * pitch + x * size_of::<PixelType>()`
-  ///   * Stay in bounds and all that jazz
-  pub unsafe fn lock_edit<'surface, F: FnMut(*mut u8)>(
-    &'surface mut self, mut op: F,
-  ) -> Result<(), String> {
-    let lock_output = SDL_LockSurface(self.ptr);
-    if lock_output == 0 {
-      op((*self.ptr).pixels as *mut u8);
-      SDL_UnlockSurface(self.ptr);
-      Ok(())
-    } else {
-      Err(get_error())
-    }
-  }
-
-  /// Width in pixels
-  pub fn width(&self) -> i32 {
-    unsafe { (*self.ptr).w }
-  }
-
-  /// Height in pixels
-  pub fn height(&self) -> i32 {
-    unsafe { (*self.ptr).h }
-  }
-
-  /// Pitch in **bytes**
-  pub fn pitch(&self) -> i32 {
-    unsafe { (*self.ptr).pitch }
-  }
-}
-
 /// Handle to some SDL2 rendering state.
 ///
 /// Helps you do things like upload data to the GPU and blit image data around.
@@ -553,184 +496,6 @@ impl<'sdl, 'win, 'ren> Drop for Texture<'sdl, 'win, 'ren> {
   }
 }
 
-macro_rules! sdl_button {
-  ($x:expr) => {
-    1 << ($x - 1)
-  };
-}
-const SDL_BUTTON_LMASK: u32 = sdl_button!(SDL_BUTTON_LEFT);
-const SDL_BUTTON_MMASK: u32 = sdl_button!(SDL_BUTTON_MIDDLE);
-const SDL_BUTTON_RMASK: u32 = sdl_button!(SDL_BUTTON_RIGHT);
-const SDL_BUTTON_X1MASK: u32 = sdl_button!(SDL_BUTTON_X1);
-const SDL_BUTTON_X2MASK: u32 = sdl_button!(SDL_BUTTON_X2);
-
-/// Holds flags for the state of all mouse buttons at any given moment.
-#[derive(Debug, Clone, Copy)]
-pub struct MouseButtonState(u32);
-impl MouseButtonState {
-  phantom_fields! {
-    self.0: u32,
-    left: SDL_BUTTON_LMASK,
-    middle: SDL_BUTTON_MMASK,
-    right: SDL_BUTTON_RMASK,
-    x1: SDL_BUTTON_X1MASK,
-    x2: SDL_BUTTON_X2MASK,
-  }
-}
-
-/// The possible mouse buttons.
-#[derive(Debug, Clone, Copy)]
-pub enum MouseButton {
-  /// Left side
-  Left,
-  /// Middle, usually a mouse wheel click
-  Middle,
-  /// Right side
-  Right,
-  /// Extra button 1
-  X1,
-  /// Extra button 2
-  X2,
-  /// Unknown mouse button
-  Unknown,
-}
-impl From<u8> for MouseButton {
-  fn from(button_byte: u8) -> Self {
-    match u32::from(button_byte) {
-      SDL_BUTTON_LEFT => MouseButton::Left,
-      SDL_BUTTON_MIDDLE => MouseButton::Middle,
-      SDL_BUTTON_RIGHT => MouseButton::Right,
-      SDL_BUTTON_X1 => MouseButton::X1,
-      SDL_BUTTON_X2 => MouseButton::X1,
-      _ => MouseButton::Unknown,
-    }
-  }
-}
-
-/// The various events that can happen.
-#[derive(Debug, Clone, Copy)]
-pub enum Event {
-  /// Quit was requested by the user
-  Quit {
-    /// Time, in milliseconds, since SDL2 was initialized.
-    timestamp: u32,
-  },
-  /// Event for any time the user moves the mouse within a window, or if
-  /// `warp_mouse_in_window` is called.
-  MouseMotion {
-    /// Time, in milliseconds, since SDL2 was initialized.
-    timestamp: u32,
-    /// Window with mouse focus, if any
-    window_id: u32,
-    /// The mouse that generated this event. If `None` it was a touch event.
-    mouse_id: Option<u32>,
-    /// State of the mouse buttons during this event
-    state: MouseButtonState,
-    /// X, relative to the window
-    x: i32,
-    /// Y, relative to the window
-    y: i32,
-    /// Change in X position
-    delta_x: i32,
-    /// Change in Y position
-    delta_y: i32,
-  },
-  /// Generated whenever a mouse button is pressed or released.
-  MouseButtonEvent {
-    /// Time, in milliseconds, since SDL2 was initialized.
-    timestamp: u32,
-    /// Window with mouse focus, if any
-    window_id: u32,
-    /// The mouse that generated this event. If `None` it was a touch event.
-    mouse_id: Option<u32>,
-    /// The button that changed
-    button: MouseButton,
-    /// If the button is now pressed or released
-    is_pressed: bool,
-    /// 1 for single-click, 2 for double-click, etc
-    clicks: u8,
-    /// X, relative to the window
-    x: i32,
-    /// Y, relative to the window
-    y: i32,
-  },
-  /// Generated whenever the user moves the mouse wheel.
-  MouseWheel {
-    /// Time, in milliseconds, since SDL2 was initialized.
-    timestamp: u32,
-    /// Window with mouse focus, if any
-    window_id: u32,
-    /// The mouse that generated this event. If `None` it was a touch event.
-    mouse_id: Option<u32>,
-    /// Horizontal scroll, negative Left or positive Right
-    x: i32,
-    /// Vertical scroll, negative to User or positive away from User
-    y: i32,
-    /// Mouse wheel isn't consistent on all platforms. If this bool is set, the
-    /// meaning of the `x` and `y` field is inverted compared to normal.
-    is_flipped: bool,
-  },
-  /// It's always possible that we'll load some future version which will have
-  /// event variants we don't understand, which we have to just ignore.
-  UnknownEventType,
-}
-impl From<SDL_Event> for Event {
-  /// Parses "without fail", but will turn unknown events into `UnknownEventType`.
-  ///
-  /// So, it's not lossless I guess. Whatever.
-  fn from(event: SDL_Event) -> Self {
-    unsafe {
-      match event.type_ as SDL_EventType::Type {
-        SDL_QUIT => Event::Quit {
-          timestamp: event.quit.timestamp,
-        },
-        SDL_MOUSEMOTION => Event::MouseMotion {
-          timestamp: event.motion.timestamp,
-          window_id: event.motion.windowID,
-          mouse_id: if event.motion.which == SDL_TOUCH_MOUSEID {
-            None
-          } else {
-            Some(event.motion.which)
-          },
-          state: MouseButtonState(event.motion.state),
-          x: event.motion.x,
-          y: event.motion.y,
-          delta_x: event.motion.xrel,
-          delta_y: event.motion.yrel,
-        },
-        SDL_MOUSEBUTTONDOWN | SDL_MOUSEBUTTONUP => Event::MouseButtonEvent {
-          timestamp: event.button.timestamp,
-          window_id: event.button.windowID,
-          mouse_id: if event.button.which == SDL_TOUCH_MOUSEID {
-            None
-          } else {
-            Some(event.button.which)
-          },
-          button: MouseButton::from(event.button.button),
-          is_pressed: u32::from(event.button.state) == SDL_PRESSED,
-          clicks: event.button.clicks,
-          x: event.button.x,
-          y: event.button.y,
-        },
-        SDL_MOUSEWHEEL => Event::MouseWheel {
-          timestamp: event.wheel.timestamp,
-          window_id: event.wheel.windowID,
-          mouse_id: if event.wheel.which == SDL_TOUCH_MOUSEID {
-            None
-          } else {
-            Some(event.wheel.which)
-          },
-          x: event.wheel.x,
-          y: event.wheel.y,
-          is_flipped: event.wheel.direction as fermium::SDL_MouseWheelDirection::Type
-            == fermium::SDL_MouseWheelDirection::SDL_MOUSEWHEEL_FLIPPED,
-        },
-        _ => Event::UnknownEventType,
-      }
-    }
-  }
-}
-
 /// A standard color, separate from any format.
 ///
 /// Use [PixelFormat::map_rgb](PixelFormat::map_rgb) to turn this into color
@@ -757,7 +522,7 @@ impl From<SDL_Color> for Color {
 /// Rectangle struct, origin at the upper left.
 ///
 /// Naturally, having the origin at the upper left is a terrible and heretical
-/// coordinate system to use but that's what SDL2 does so that's what we're
+/// coordinate system to use, but that's what SDL2 does so that's what we're
 /// stuck with.
 #[derive(Debug, Clone, Copy, Default)]
 #[repr(C)]
