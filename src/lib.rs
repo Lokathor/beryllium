@@ -11,7 +11,6 @@ use fermium::{
   _bindgen_ty_4::*, _bindgen_ty_5::*, _bindgen_ty_6::*, *,
 };
 
-
 use libc::c_char;
 use phantom_fields::phantom_fields;
 
