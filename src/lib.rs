@@ -4,7 +4,7 @@
 //! An opinionated set of "high level" wrappers for the
 //! [fermium](https://github.com/Lokathor/fermium) SDL2 bindings.
 
-use core::{marker::PhantomData, ptr::null_mut, slice::from_raw_parts};
+use core::{ffi::c_void, marker::PhantomData, ptr::null_mut, slice::from_raw_parts};
 use fermium::{
   SDL_EventType::*, SDL_GameControllerAxis::*, SDL_GameControllerButton::*, SDL_RendererFlags::*,
   SDL_WindowFlags::*, SDL_bool::*, _bindgen_ty_1::*, _bindgen_ty_2::*, _bindgen_ty_3::*,
@@ -400,6 +400,132 @@ impl<'sdl> Window<'sdl> {
         ptr,
         _marker: PhantomData,
       })
+    }
+  }
+
+  /// Gets the logical size of the window (in screen coordinates).
+  ///
+  /// Use the GL Drawable Size or Renderer Output Size checks to get the
+  /// physical pixel count, if you need that.
+  pub fn size(&self) -> (i32, i32) {
+    let mut w = 0;
+    let mut h = 0;
+    unsafe { SDL_GetWindowSize(self.ptr, &mut w, &mut h) };
+    (w, h)
+  }
+
+  /// Sets the logical size of the window.
+  ///
+  /// Note that fullscreen windows automatically match the size of the display
+  /// mode, so use [set_display_mode](set_display_mode) instead.
+  pub fn set_size(&self, width: i32, height: i32) {
+    unsafe { SDL_SetWindowSize(self.ptr, width, height) }
+  }
+
+  /// Obtains info about the fullscreen settings of the window.
+  pub fn display_mode(&self) -> Result<DisplayMode, String> {
+    let mut mode = SDL_DisplayMode::default();
+    let out = unsafe { SDL_GetWindowDisplayMode(self.ptr, &mut mode) };
+    if out == 0 {
+      Ok(DisplayMode::from(mode))
+    } else {
+      Err(get_error())
+    }
+  }
+
+  /// Assigns the fullscreen display mode for the window.
+  ///
+  /// * If `Some(mode)`, attempts to set the mode given.
+  /// * If `None`, it will use the window's dimensions, and the desktop's
+  ///   current format and refresh rate.
+  pub fn set_display_mode(&self, opt_mode: Option<DisplayMode>) -> Result<(), String> {
+    let out = match opt_mode {
+      Some(mode) => {
+        let sdl_mode: SDL_DisplayMode = mode.into();
+        unsafe { SDL_SetWindowDisplayMode(self.ptr, &sdl_mode) }
+      }
+      None => unsafe { SDL_SetWindowDisplayMode(self.ptr, null_mut()) },
+    };
+    if out == 0 {
+      Ok(())
+    } else {
+      Err(get_error())
+    }
+  }
+
+  /// Sets the window's fullscreen style.
+  ///
+  /// * Fullscreen: Performs an actual video mode change.
+  /// * Fullscreen Desktop: "fake" fullscreen with full resolution but no video
+  ///   mode change.
+  /// * Windowed: Don't use fullscreen.
+  pub fn set_fullscreen_style(&self, style: FullscreenStyle) -> Result<(), String> {
+    let out = unsafe { SDL_SetWindowFullscreen(self.ptr, style as u32) };
+    if out == 0 {
+      Ok(())
+    } else {
+      Err(get_error())
+    }
+  }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(windows, repr(i32))]
+#[cfg_attr(not(windows), repr(u32))]
+#[allow(missing_docs)]
+pub enum FullscreenStyle {
+  Fullscreen = SDL_WINDOW_FULLSCREEN,
+  FullscreenDesktop = SDL_WINDOW_FULLSCREEN_DESKTOP,
+  Windowed = 0,
+}
+
+/// A description of a fullscreen display mode.
+#[derive(Debug, Clone, Copy)]
+pub struct DisplayMode {
+  /// The screen's format
+  pub format: PixelFormat,
+  /// Width, in logical units
+  pub width: i32,
+  /// Height, in logical units
+  pub height: i32,
+  /// Refresh rate in Hz, or 0 if unspecified.
+  pub refresh_rate: i32,
+  driver_data: *mut c_void,
+}
+impl From<SDL_DisplayMode> for DisplayMode {
+  fn from(sdl_mode: SDL_DisplayMode) -> Self {
+    Self {
+      format: PixelFormat::from(sdl_mode.format as fermium::_bindgen_ty_6::Type),
+      width: sdl_mode.w,
+      height: sdl_mode.h,
+      refresh_rate: sdl_mode.refresh_rate,
+      driver_data: sdl_mode.driverdata,
+    }
+  }
+}
+impl From<DisplayMode> for SDL_DisplayMode {
+  fn from(mode: DisplayMode) -> Self {
+    Self {
+      format: mode.format as u32,
+      w: mode.width,
+      h: mode.height,
+      refresh_rate: mode.refresh_rate,
+      driverdata: mode.driver_data,
+    }
+  }
+}
+impl DisplayMode {
+  /// Constructs a new display mode as specified.
+  ///
+  /// This is necessary because the display mode has a hidden driver data
+  /// pointer which must be initialized to null and not altered by outside users.
+  pub const fn new(format: PixelFormat, width: i32, height: i32, refresh_rate: i32) -> Self {
+    Self {
+      format,
+      width,
+      height,
+      refresh_rate,
+      driver_data: null_mut(),
     }
   }
 }
