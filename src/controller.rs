@@ -66,8 +66,7 @@ impl<'sdl> Controller<'sdl> {
 
 /// The types of axises that a Controller has.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[cfg_attr(windows, repr(i32))]
-#[cfg_attr(not(windows), repr(u32))]
+#[repr(i32)]
 #[allow(missing_docs)]
 pub enum ControllerAxis {
   Invalid = SDL_CONTROLLER_AXIS_INVALID,
@@ -90,8 +89,7 @@ pub enum ControllerAxis {
 /// this leads to annoyance and confusion. The middle ground is that this enum
 /// names the face buttons using _compass directions_ as the button names.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[cfg_attr(windows, repr(i32))]
-#[cfg_attr(not(windows), repr(u32))]
+#[repr(i32)]
 #[allow(missing_docs)]
 pub enum ControllerButton {
   Invalid = SDL_CONTROLLER_BUTTON_INVALID,
