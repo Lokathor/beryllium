@@ -39,7 +39,6 @@ fn main() -> Result<(), String> {
   let mut mouse_points = vec![];
 
   'game_loop: loop {
-    mouse_points.clear();
     while let Some(event) = sdl.poll_event() {
       match event {
         Event::Quit { timestamp } => {

@@ -4,11 +4,14 @@
 //! An opinionated set of "high level" wrappers for the
 //! [fermium](https://github.com/Lokathor/fermium) SDL2 bindings.
 
-use core::{ffi::c_void, marker::PhantomData, ptr::null_mut, slice::from_raw_parts};
+use core::{
+  convert::TryFrom, ffi::c_void, marker::PhantomData, ptr::null_mut, slice::from_raw_parts,
+};
 use fermium::{
-  SDL_EventType::*, SDL_GameControllerAxis::*, SDL_GameControllerButton::*, SDL_RendererFlags::*,
-  SDL_WindowFlags::*, SDL_bool::*, _bindgen_ty_1::*, _bindgen_ty_2::*, _bindgen_ty_3::*,
-  _bindgen_ty_4::*, _bindgen_ty_5::*, _bindgen_ty_6::*, *,
+  SDL_EventType::*, SDL_GameControllerAxis::*, SDL_GameControllerButton::*, SDL_Keymod::*,
+  SDL_RendererFlags::*, SDL_Scancode::*, SDL_WindowFlags::*, SDL_bool::*, _bindgen_ty_1::*,
+  _bindgen_ty_2::*, _bindgen_ty_3::*, _bindgen_ty_4::*, _bindgen_ty_5::*, _bindgen_ty_6::*,
+  _bindgen_ty_7::*, *,
 };
 
 use libc::c_char;
@@ -417,7 +420,7 @@ impl<'sdl> Window<'sdl> {
   /// Sets the logical size of the window.
   ///
   /// Note that fullscreen windows automatically match the size of the display
-  /// mode, so use [set_display_mode](set_display_mode) instead.
+  /// mode, so use [set_display_mode](Window::set_display_mode) instead.
   pub fn set_size(&self, width: i32, height: i32) {
     unsafe { SDL_SetWindowSize(self.ptr, width, height) }
   }
@@ -469,13 +472,19 @@ impl<'sdl> Window<'sdl> {
   }
 }
 
+/// The window's fullscreen style.
+///
+/// * Windowed size is controlled with [set_size](Window::set_size)
+/// * Fullscreen and FullscreenDesktop size is controlled with [set_display_mode](Window::set_display_mode)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(windows, repr(i32))]
 #[cfg_attr(not(windows), repr(u32))]
-#[allow(missing_docs)]
 pub enum FullscreenStyle {
+  /// Performs an actual video mode change.
   Fullscreen = SDL_WINDOW_FULLSCREEN,
+  /// "fakes" a fullscreen window without a video mode change.
   FullscreenDesktop = SDL_WINDOW_FULLSCREEN_DESKTOP,
+  /// Makes the window actually work like a window.
   Windowed = 0,
 }
 
@@ -622,9 +631,6 @@ impl<'sdl, 'win, 'ren> Drop for Texture<'sdl, 'win, 'ren> {
 }
 
 /// A standard color, separate from any format.
-///
-/// Use [PixelFormat::map_rgb](PixelFormat::map_rgb) to turn this into color
-/// data in a particular pixel format.
 #[derive(Debug, Clone, Copy, Default)]
 #[repr(C)]
 pub struct Color {
@@ -668,12 +674,12 @@ impl From<SDL_Rect> for Rect {
   }
 }
 
-/// The various pixel formats that SDL2 supports.
+/// The various named pixel formats that SDL2 supports.
 ///
 /// There's various checks you can perform on each pixel format.
 ///
 /// Note that the "fourcc" formats, anything that gives `true` from the
-/// [is_fourcc](PixelFormat:is_fourcc) method, are industry specified special
+/// [is_fourcc](PixelFormat::is_fourcc) method, are industry specified special
 /// values, and do not follow SDL2's bit packing scheme. In other words, the
 /// output they produce for any of the other check methods is not to really be
 /// trusted.
@@ -681,7 +687,7 @@ impl From<SDL_Rect> for Rect {
 #[cfg_attr(windows, repr(i32))]
 #[cfg_attr(not(windows), repr(u32))]
 #[allow(missing_docs)]
-pub enum PixelFormat {
+pub enum PixelFormatEnum {
   Unknown = SDL_PIXELFORMAT_UNKNOWN,
   Index1lsb = SDL_PIXELFORMAT_INDEX1LSB,
   Index1msb = SDL_PIXELFORMAT_INDEX1MSB,
