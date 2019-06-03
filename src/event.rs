@@ -479,11 +479,11 @@ pub enum Keycode {
   Y = SDLK_y,
   Z = SDLK_z,
 }
-impl TryFrom<fermium::_bindgen_ty_7::Type> for Keycode {
+impl TryFrom<i32> for Keycode {
   type Error = ();
-  fn try_from(t: fermium::_bindgen_ty_7::Type) -> Result<Self, Self::Error> {
+  fn try_from(t: i32) -> Result<Self, Self::Error> {
     #[allow(non_upper_case_globals)]
-    match t {
+    match t as fermium::_bindgen_ty_7::Type {
       SDLK_0 => Ok(Keycode::_0),
       SDLK_1 => Ok(Keycode::_1),
       SDLK_2 => Ok(Keycode::_2),
