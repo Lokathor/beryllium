@@ -731,7 +731,7 @@ impl TryFrom<i32> for Keycode {
 #[test]
 pub fn test_sdlk_a() {
   assert_eq!(
-    Keycode::try_from(fermium::_bindgen_ty_7::SDLK_a),
+    Keycode::try_from(fermium::_bindgen_ty_7::SDLK_a as i32),
     Ok(Keycode::A)
   );
 }
