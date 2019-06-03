@@ -492,7 +492,7 @@ pub enum FullscreenStyle {
 #[derive(Debug, Clone, Copy)]
 pub struct DisplayMode {
   /// The screen's format
-  pub format: PixelFormat,
+  pub format: PixelFormatEnum,
   /// Width, in logical units
   pub width: i32,
   /// Height, in logical units
@@ -504,7 +504,7 @@ pub struct DisplayMode {
 impl From<SDL_DisplayMode> for DisplayMode {
   fn from(sdl_mode: SDL_DisplayMode) -> Self {
     Self {
-      format: PixelFormat::from(sdl_mode.format as fermium::_bindgen_ty_6::Type),
+      format: PixelFormatEnum::from(sdl_mode.format as fermium::_bindgen_ty_6::Type),
       width: sdl_mode.w,
       height: sdl_mode.h,
       refresh_rate: sdl_mode.refresh_rate,
@@ -528,7 +528,7 @@ impl DisplayMode {
   ///
   /// This is necessary because the display mode has a hidden driver data
   /// pointer which must be initialized to null and not altered by outside users.
-  pub const fn new(format: PixelFormat, width: i32, height: i32, refresh_rate: i32) -> Self {
+  pub const fn new(format: PixelFormatEnum, width: i32, height: i32, refresh_rate: i32) -> Self {
     Self {
       format,
       width,
@@ -679,7 +679,7 @@ impl From<SDL_Rect> for Rect {
 /// There's various checks you can perform on each pixel format.
 ///
 /// Note that the "fourcc" formats, anything that gives `true` from the
-/// [is_fourcc](PixelFormat::is_fourcc) method, are industry specified special
+/// [is_fourcc](PixelFormatEnum::is_fourcc) method, are industry specified special
 /// values, and do not follow SDL2's bit packing scheme. In other words, the
 /// output they produce for any of the other check methods is not to really be
 /// trusted.
@@ -737,73 +737,73 @@ pub enum PixelFormatEnum {
   ExternalOES = SDL_PIXELFORMAT_EXTERNAL_OES,
 }
 #[cfg(target_endian = "big")]
-impl PixelFormat {
+impl PixelFormatEnum {
   /// Platform specific alias for RGBA
-  pub const RGBA32: Self = PixelFormat::RGBA8888;
+  pub const RGBA32: Self = PixelFormatEnum::RGBA8888;
   /// Platform specific alias for ARGB
-  pub const ARGB32: Self = PixelFormat::ARGB8888;
+  pub const ARGB32: Self = PixelFormatEnum::ARGB8888;
   /// Platform specific alias for BGRA
-  pub const BGRA32: Self = PixelFormat::BGRA8888;
+  pub const BGRA32: Self = PixelFormatEnum::BGRA8888;
   /// Platform specific alias for ABGR
-  pub const ABGR32: Self = PixelFormat::ABGR8888;
+  pub const ABGR32: Self = PixelFormatEnum::ABGR8888;
 }
 #[cfg(target_endian = "little")]
-impl PixelFormat {
+impl PixelFormatEnum {
   /// Platform specific alias for RGBA
-  pub const RGBA32: Self = PixelFormat::ABGR8888;
+  pub const RGBA32: Self = PixelFormatEnum::ABGR8888;
   /// Platform specific alias for ARGB
-  pub const ARGB32: Self = PixelFormat::BGRA8888;
+  pub const ARGB32: Self = PixelFormatEnum::BGRA8888;
   /// Platform specific alias for BGRA
-  pub const BGRA32: Self = PixelFormat::ARGB8888;
+  pub const BGRA32: Self = PixelFormatEnum::ARGB8888;
   /// Platform specific alias for ABGR
-  pub const ABGR32: Self = PixelFormat::RGBA8888;
+  pub const ABGR32: Self = PixelFormatEnum::RGBA8888;
 }
-impl From<fermium::_bindgen_ty_6::Type> for PixelFormat {
+impl From<fermium::_bindgen_ty_6::Type> for PixelFormatEnum {
   fn from(pf: fermium::_bindgen_ty_6::Type) -> Self {
     match pf {
-      SDL_PIXELFORMAT_INDEX1LSB => PixelFormat::Index1lsb,
-      SDL_PIXELFORMAT_INDEX1MSB => PixelFormat::Index1msb,
-      SDL_PIXELFORMAT_INDEX4LSB => PixelFormat::Index4lsb,
-      SDL_PIXELFORMAT_INDEX4MSB => PixelFormat::Index4msb,
-      SDL_PIXELFORMAT_INDEX8 => PixelFormat::Index8,
-      SDL_PIXELFORMAT_RGB332 => PixelFormat::RGB332,
-      SDL_PIXELFORMAT_RGB444 => PixelFormat::RGB444,
-      SDL_PIXELFORMAT_RGB555 => PixelFormat::RGB555,
-      SDL_PIXELFORMAT_BGR555 => PixelFormat::BGR555,
-      SDL_PIXELFORMAT_ARGB4444 => PixelFormat::ARGB4444,
-      SDL_PIXELFORMAT_RGBA4444 => PixelFormat::RGBA4444,
-      SDL_PIXELFORMAT_ABGR4444 => PixelFormat::ABGR4444,
-      SDL_PIXELFORMAT_BGRA4444 => PixelFormat::BGRA4444,
-      SDL_PIXELFORMAT_ARGB1555 => PixelFormat::ARGB1555,
-      SDL_PIXELFORMAT_RGBA5551 => PixelFormat::RGBA5551,
-      SDL_PIXELFORMAT_ABGR1555 => PixelFormat::ABGR1555,
-      SDL_PIXELFORMAT_BGRA5551 => PixelFormat::BGRA5551,
-      SDL_PIXELFORMAT_RGB565 => PixelFormat::RGB565,
-      SDL_PIXELFORMAT_BGR565 => PixelFormat::BGR565,
-      SDL_PIXELFORMAT_RGB24 => PixelFormat::RGB24,
-      SDL_PIXELFORMAT_BGR24 => PixelFormat::BGR24,
-      SDL_PIXELFORMAT_RGB888 => PixelFormat::RGB888,
-      SDL_PIXELFORMAT_RGBX8888 => PixelFormat::RGBX8888,
-      SDL_PIXELFORMAT_BGR888 => PixelFormat::BGR888,
-      SDL_PIXELFORMAT_BGRX8888 => PixelFormat::BGRX8888,
-      SDL_PIXELFORMAT_ARGB8888 => PixelFormat::ARGB8888,
-      SDL_PIXELFORMAT_RGBA8888 => PixelFormat::RGBA8888,
-      SDL_PIXELFORMAT_ABGR8888 => PixelFormat::ABGR8888,
-      SDL_PIXELFORMAT_BGRA8888 => PixelFormat::BGRA8888,
-      SDL_PIXELFORMAT_ARGB2101010 => PixelFormat::ARGB2101010,
-      SDL_PIXELFORMAT_YV12 => PixelFormat::YV12,
-      SDL_PIXELFORMAT_IYUV => PixelFormat::IYUV,
-      SDL_PIXELFORMAT_YUY2 => PixelFormat::YUY2,
-      SDL_PIXELFORMAT_UYVY => PixelFormat::UYVY,
-      SDL_PIXELFORMAT_YVYU => PixelFormat::YVYU,
-      SDL_PIXELFORMAT_NV12 => PixelFormat::NV12,
-      SDL_PIXELFORMAT_NV21 => PixelFormat::NV21,
-      SDL_PIXELFORMAT_EXTERNAL_OES => PixelFormat::ExternalOES,
-      _ => PixelFormat::Unknown,
+      SDL_PIXELFORMAT_INDEX1LSB => PixelFormatEnum::Index1lsb,
+      SDL_PIXELFORMAT_INDEX1MSB => PixelFormatEnum::Index1msb,
+      SDL_PIXELFORMAT_INDEX4LSB => PixelFormatEnum::Index4lsb,
+      SDL_PIXELFORMAT_INDEX4MSB => PixelFormatEnum::Index4msb,
+      SDL_PIXELFORMAT_INDEX8 => PixelFormatEnum::Index8,
+      SDL_PIXELFORMAT_RGB332 => PixelFormatEnum::RGB332,
+      SDL_PIXELFORMAT_RGB444 => PixelFormatEnum::RGB444,
+      SDL_PIXELFORMAT_RGB555 => PixelFormatEnum::RGB555,
+      SDL_PIXELFORMAT_BGR555 => PixelFormatEnum::BGR555,
+      SDL_PIXELFORMAT_ARGB4444 => PixelFormatEnum::ARGB4444,
+      SDL_PIXELFORMAT_RGBA4444 => PixelFormatEnum::RGBA4444,
+      SDL_PIXELFORMAT_ABGR4444 => PixelFormatEnum::ABGR4444,
+      SDL_PIXELFORMAT_BGRA4444 => PixelFormatEnum::BGRA4444,
+      SDL_PIXELFORMAT_ARGB1555 => PixelFormatEnum::ARGB1555,
+      SDL_PIXELFORMAT_RGBA5551 => PixelFormatEnum::RGBA5551,
+      SDL_PIXELFORMAT_ABGR1555 => PixelFormatEnum::ABGR1555,
+      SDL_PIXELFORMAT_BGRA5551 => PixelFormatEnum::BGRA5551,
+      SDL_PIXELFORMAT_RGB565 => PixelFormatEnum::RGB565,
+      SDL_PIXELFORMAT_BGR565 => PixelFormatEnum::BGR565,
+      SDL_PIXELFORMAT_RGB24 => PixelFormatEnum::RGB24,
+      SDL_PIXELFORMAT_BGR24 => PixelFormatEnum::BGR24,
+      SDL_PIXELFORMAT_RGB888 => PixelFormatEnum::RGB888,
+      SDL_PIXELFORMAT_RGBX8888 => PixelFormatEnum::RGBX8888,
+      SDL_PIXELFORMAT_BGR888 => PixelFormatEnum::BGR888,
+      SDL_PIXELFORMAT_BGRX8888 => PixelFormatEnum::BGRX8888,
+      SDL_PIXELFORMAT_ARGB8888 => PixelFormatEnum::ARGB8888,
+      SDL_PIXELFORMAT_RGBA8888 => PixelFormatEnum::RGBA8888,
+      SDL_PIXELFORMAT_ABGR8888 => PixelFormatEnum::ABGR8888,
+      SDL_PIXELFORMAT_BGRA8888 => PixelFormatEnum::BGRA8888,
+      SDL_PIXELFORMAT_ARGB2101010 => PixelFormatEnum::ARGB2101010,
+      SDL_PIXELFORMAT_YV12 => PixelFormatEnum::YV12,
+      SDL_PIXELFORMAT_IYUV => PixelFormatEnum::IYUV,
+      SDL_PIXELFORMAT_YUY2 => PixelFormatEnum::YUY2,
+      SDL_PIXELFORMAT_UYVY => PixelFormatEnum::UYVY,
+      SDL_PIXELFORMAT_YVYU => PixelFormatEnum::YVYU,
+      SDL_PIXELFORMAT_NV12 => PixelFormatEnum::NV12,
+      SDL_PIXELFORMAT_NV21 => PixelFormatEnum::NV21,
+      SDL_PIXELFORMAT_EXTERNAL_OES => PixelFormatEnum::ExternalOES,
+      _ => PixelFormatEnum::Unknown,
     }
   }
 }
-impl PixelFormat {
+impl PixelFormatEnum {
   /// The type of the pixel format.
   ///
   /// All unknown types convert to `PixelType::Unknown`, of course.
@@ -889,7 +889,7 @@ impl PixelFormat {
   pub fn bytes_per_pixel(self) -> u32 {
     if self.is_fourcc() {
       match self {
-        PixelFormat::YUY2 | PixelFormat::UYVY | PixelFormat::YVYU => 2,
+        PixelFormatEnum::YUY2 | PixelFormatEnum::UYVY | PixelFormatEnum::YVYU => 2,
         _ => 1,
       }
     } else {
