@@ -22,9 +22,11 @@ fn main() -> Result<(), String> {
   // We'll play for 3 seconds.
   let out_sample_count = FREQUENCY as usize * 3;
   let mut v: Vec<i16> = Vec::with_capacity(out_sample_count);
-  let mut angle: f32 = 0.0;
-  // this gives us a "Middle C" sound, http://pages.mtu.edu/~suits/notefreqs.html
+
+  // We fill the buffer with a basic "middle C" sound wave. Frequency taken from
+  // http://pages.mtu.edu/~suits/notefreqs.html
   let angle_per_sample = 261.63 * ONE_HZ_OF_SOUND;
+  let mut angle: f32 = 0.0;
   for _ in 0..out_sample_count {
     v.push((angle.sin() * 3000.0) as i16);
     angle += angle_per_sample;
@@ -35,7 +37,7 @@ fn main() -> Result<(), String> {
 
   let byte_slice: &[u8] = unsafe {
     core::slice::from_raw_parts(
-      v.as_ptr() as *const _,
+      v.as_ptr() as *const u8,
       v.len() * core::mem::size_of::<i16>(),
     )
   };
