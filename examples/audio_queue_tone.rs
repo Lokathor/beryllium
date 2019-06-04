@@ -19,11 +19,11 @@ fn main() -> Result<(), String> {
     allow_channels_change: false,
   })?;
 
-  /// We'll play for 3 seconds.
+  // We'll play for 3 seconds.
   let out_sample_count = FREQUENCY as usize * 3;
   let mut v: Vec<i16> = Vec::with_capacity(out_sample_count);
   let mut angle: f32 = 0.0;
-  /// this gives us a "Middle C" sound, http://pages.mtu.edu/~suits/notefreqs.html
+  // this gives us a "Middle C" sound, http://pages.mtu.edu/~suits/notefreqs.html
   let angle_per_sample = 261.63 * ONE_HZ_OF_SOUND;
   for _ in 0..out_sample_count {
     v.push((angle.sin() * 3000.0) as i16);
@@ -39,7 +39,7 @@ fn main() -> Result<(), String> {
       v.len() * core::mem::size_of::<i16>(),
     )
   };
-  audio.queue_audio(byte_slice);
+  audio.queue_audio(byte_slice)?;
   audio.set_paused(false);
   std::thread::sleep(std::time::Duration::from_secs(3));
   Ok(())
