@@ -47,6 +47,9 @@ fn main() -> Result<(), String> {
     }
   }
 
+  // Regardless of the actual sample data format, you always convert your sample
+  // buffer into a &[u8] and just throw the bytes into the queue. It's a C API
+  // after all, they have a flexible concept of how types work.
   let byte_slice: &[u8] = unsafe {
     core::slice::from_raw_parts(
       v.as_ptr() as *const u8,
