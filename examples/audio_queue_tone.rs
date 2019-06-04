@@ -9,6 +9,11 @@ fn main() -> Result<(), String> {
   const TWO_PI: f32 = core::f32::consts::PI * 2.0;
   const ONE_HZ_OF_SOUND: f32 = TWO_PI / FREQUENCY as f32;
 
+  // We give the API an audio queue request, and we tell it to _not_ change
+  // anything in the device we get back. What this means is that if the hardware
+  // cannot accommodate our request in some way, SDL2 will act as a middle man
+  // and silently convert between the format we want and the closest match that
+  // the sound card actually supports.
   let audio = sdl.open_default_audio_queue(DefaultAudioQueueRequest {
     frequency: FREQUENCY,
     format: AudioFormat::S16SYS,
@@ -18,6 +23,13 @@ fn main() -> Result<(), String> {
     allow_format_change: false,
     allow_channels_change: false,
   })?;
+  // Alternately, if your code is able to adapt, you can allow a change and
+  // you'll still get the closest possible match, but perhaps not exactly what
+  // you wanted. You'd want to do this if you think that you're better able to
+  // cope with any format conversion considerations than SDL2 is (eg, if you've
+  // written a high quality synth program that can target any sample format, you
+  // might as well target the sound card's native format and avoid an extra
+  // conversion).
 
   // We'll play for 3 seconds.
   let out_sample_count = FREQUENCY as usize * 3;
@@ -43,6 +55,7 @@ fn main() -> Result<(), String> {
   };
   audio.queue_audio(byte_slice)?;
   audio.set_paused(false);
+  // We just sleep while that sound plays out
   std::thread::sleep(std::time::Duration::from_secs(3));
   Ok(())
 }
