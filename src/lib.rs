@@ -13,10 +13,10 @@ use core::{
   slice::from_raw_parts,
 };
 use fermium::{
-  SDL_EventType::*, SDL_GameControllerAxis::*, SDL_GameControllerButton::*, SDL_Keymod::*,
-  SDL_RendererFlags::*, SDL_Scancode::*, SDL_WindowFlags::*, SDL_bool::*, _bindgen_ty_1::*,
-  _bindgen_ty_2::*, _bindgen_ty_3::*, _bindgen_ty_4::*, _bindgen_ty_5::*, _bindgen_ty_6::*,
-  _bindgen_ty_7::*, *,
+  SDL_EventType::*, SDL_GLattr::*, SDL_GLprofile::*, SDL_GameControllerAxis::*,
+  SDL_GameControllerButton::*, SDL_Keymod::*, SDL_RendererFlags::*, SDL_Scancode::*,
+  SDL_WindowFlags::*, SDL_bool::*, _bindgen_ty_1::*, _bindgen_ty_2::*, _bindgen_ty_3::*,
+  _bindgen_ty_4::*, _bindgen_ty_5::*, _bindgen_ty_6::*, _bindgen_ty_7::*, *,
 };
 
 use libc::c_char;
@@ -33,6 +33,9 @@ pub use controller::*;
 
 mod audio;
 pub use audio::*;
+
+mod opengl;
+pub use opengl::*;
 
 /// Grabs up the data from a null terminated string pointer.
 unsafe fn gather_string(ptr: *const c_char) -> String {
@@ -336,6 +339,26 @@ impl SDLToken {
       })
     }
   }
+
+  /// Attempts to set a given attribute, returns `true` if successful.
+  ///
+  /// Depending on the attribute, this can often be viewed as a "minimum
+  /// request". Once you create the context you should examine it to see what
+  /// you actually got.
+  pub fn gl_set_attribute(&self, attr: GLattr, value: i32) -> bool {
+    0 == unsafe { SDL_GL_SetAttribute(attr as fermium::SDL_GLattr::Type, value) }
+  }
+
+  /// Resets all previously set attributes to their default values.
+  pub fn gl_reset_attributes(&self) {
+    unsafe { SDL_GL_ResetAttributes() }
+  }
+
+  /// Gets a function pointer to the named OpenGL function
+  pub unsafe fn gl_get_proc_address(&self, name: &str) -> *const c_void {
+    let name_null: Vec<u8> = name.bytes().chain(Some(0)).collect();
+    SDL_GL_GetProcAddress(name_null.as_ptr() as *const c_char) as *const c_void
+  }
 }
 
 /// Flags that a window might have.
@@ -535,6 +558,39 @@ impl<'sdl> Window<'sdl> {
     } else {
       Err(get_error())
     }
+  }
+
+  /// Creates a context for this window and makes it current.
+  pub unsafe fn gl_create_context<'win>(&'win self) -> Result<GLContext<'sdl, 'win>, String> {
+    let ctx = SDL_GL_CreateContext(self.ptr);
+    if ctx.is_null() {
+      Err(get_error())
+    } else {
+      Ok(GLContext {
+        ctx,
+        _marker: PhantomData,
+      })
+    }
+  }
+
+  /// Obtains the size of the drawable space in the window.
+  ///
+  /// This gives you a number of "physical pixels", so it might be different
+  /// from the "logical pixels" value of [window_size](Window::window_size). For
+  /// use with
+  /// [glViewport](https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glViewport.xhtml)
+  pub unsafe fn gl_get_drawable_size(&self) -> (i32, i32) {
+    let mut w = 0;
+    let mut h = 0;
+    SDL_GL_GetDrawableSize(self.ptr, &mut w, &mut h);
+    (w, h)
+  }
+
+  /// Swaps the window's OpenGL buffers.
+  ///
+  /// If double buffering isn't enabled this just does nothing.
+  pub unsafe fn gl_swap_window(&self) {
+    SDL_GL_SwapWindow(self.ptr)
   }
 }
 
