@@ -1,8 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-//! A demo about how to use a Surface.
+//! A demo about how to use a Surface (CPU-side image memory).
 //!
-//! Our "demo" is that we'll store where the mouse goes, and turn those pixels
+//! Our demo is that we'll store where the mouse goes, and turn those pixels
 //! white, so you see a "trail" of sorts.
 
 use beryllium::*;
@@ -39,7 +39,6 @@ fn main() -> Result<(), String> {
   let mut mouse_points = vec![];
 
   'game_loop: loop {
-    mouse_points.clear();
     while let Some(event) = sdl.poll_event() {
       match event {
         Event::Quit { timestamp } => {
