@@ -1,15 +1,15 @@
 #![warn(missing_docs)]
 #![deny(missing_debug_implementations)]
+#![cfg(any(target_pointer_width = "32", target_pointer_width = "64"))]
 
 //! An opinionated set of "high level" wrappers for the
 //! [fermium](https://github.com/Lokathor/fermium) SDL2 bindings.
-
 
 use core::{
   convert::TryFrom,
   ffi::c_void,
   marker::PhantomData,
-  ptr::{null_mut, NonNull},
+  ptr::{null, null_mut, NonNull},
   slice::from_raw_parts,
 };
 use fermium::{
@@ -30,6 +30,9 @@ pub use event::*;
 
 mod controller;
 pub use controller::*;
+
+mod audio;
+pub use audio::*;
 
 /// Grabs up the data from a null terminated string pointer.
 unsafe fn gather_string(ptr: *const c_char) -> String {
@@ -285,6 +288,50 @@ impl SDLToken {
     } else {
       Ok(CDyLib {
         ptr,
+        _marker: PhantomData,
+      })
+    }
+  }
+
+  /// Attempts to open a default audio device in "queue" mode.
+  ///
+  /// If successful, the device will initially be paused.
+  pub fn open_default_audio_queue<'sdl>(
+    &'sdl self, request: DefaultAudioQueueRequest,
+  ) -> Result<AudioQueue<'sdl>, String> {
+    //
+    let mut desired_spec = SDL_AudioSpec::default();
+    desired_spec.freq = request.frequency;
+    desired_spec.format = request.format.0;
+    desired_spec.channels = request.channels;
+    desired_spec.samples = request.samples;
+    //
+    let mut changes = 0;
+    if request.allow_frequency_change {
+      changes |= SDL_AUDIO_ALLOW_FREQUENCY_CHANGE as i32;
+    }
+    if request.allow_format_change {
+      changes |= SDL_AUDIO_ALLOW_FORMAT_CHANGE as i32;
+    }
+    if request.allow_channels_change {
+      changes |= SDL_AUDIO_ALLOW_CHANNELS_CHANGE as i32;
+    }
+    //
+    let mut obtained_spec = SDL_AudioSpec::default();
+    //
+    let audio_device_id =
+      unsafe { SDL_OpenAudioDevice(null(), 0, &desired_spec, &mut obtained_spec, changes) };
+    if audio_device_id == 0 {
+      Err(get_error())
+    } else {
+      Ok(AudioQueue {
+        dev: audio_device_id,
+        frequency: obtained_spec.freq,
+        format: AudioFormat(obtained_spec.format),
+        channels: obtained_spec.channels,
+        silence: obtained_spec.silence,
+        sample_count: usize::from(obtained_spec.samples),
+        buffer_size: obtained_spec.size as usize,
         _marker: PhantomData,
       })
     }

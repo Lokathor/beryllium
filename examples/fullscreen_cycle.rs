@@ -1,7 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 //! A demo for using a fullscreen window.
-//! 
+//!
 //! Press F11 to cycle through the modes.
 
 use beryllium::*;
