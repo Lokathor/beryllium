@@ -80,7 +80,7 @@ impl<'sdl> Palette<'sdl> {
     }
     // We'll manually clip the input slice instead of relying on SDL2's dubious
     // clipping process.
-    let clipped_length =(self.len() - start).min(new_colors.len());
+    let clipped_length = (self.len() - start).min(new_colors.len());
     debug_assert!(start + clipped_length <= self.len());
     let out = unsafe {
       SDL_SetPaletteColors(
