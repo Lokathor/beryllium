@@ -159,9 +159,8 @@ impl<'sdl> Surface<'sdl> {
         if sdl_palette_ptr.is_null() {
           None
         } else {
-          let ref_to_palette_ptr: &*mut SDL_Palette = &sdl_palette_ptr;
           Some(core::mem::transmute::<&*mut SDL_Palette, &Palette<'sdl>>(
-            ref_to_palette_ptr,
+            &sdl_palette_ptr,
           ))
         }
       }
