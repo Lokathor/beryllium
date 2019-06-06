@@ -129,12 +129,38 @@ impl From<fermium::_bindgen_ty_6::Type> for PixelFormatEnum {
     }
   }
 }
-impl Default for PixelFormatEnum {
-  fn default() -> Self {
-    PixelFormatEnum::Unknown
-  }
-}
 impl PixelFormatEnum {
+  /// Gets a `PixelFormatEnum` from the bpp and mask values given.
+  ///
+  /// * `bpp` is bits per pixel, usually 15, 16, or 32
+  /// * `?_mask` values are the `r`, `g`, `b`, and `a` mask values
+  pub fn from_masks(bpp: i32, r_mask: u32, g_mask: u32, b_mask: u32, a_mask: u32) -> Self {
+    PixelFormatEnum::from(
+      unsafe { SDL_MasksToPixelFormatEnum(bpp, r_mask, g_mask, b_mask, a_mask) }
+        as fermium::_bindgen_ty_6::Type,
+    )
+  }
+
+  /// Converts this value into the appropriate `bpp` and mask values.
+  pub fn to_masks(&self) -> (i32, u32, u32, u32, u32) {
+    let mut bpp = 0;
+    let mut r_mask = 0;
+    let mut g_mask = 0;
+    let mut b_mask = 0;
+    let mut a_mask = 0;
+    unsafe {
+      SDL_PixelFormatEnumToMasks(
+        (*self) as u32,
+        &mut bpp,
+        &mut r_mask,
+        &mut g_mask,
+        &mut b_mask,
+        &mut a_mask,
+      );
+    }
+    (bpp, r_mask, g_mask, b_mask, a_mask)
+  }
+
   /// The type of the pixel format.
   ///
   /// All unknown types convert to `PixelType::Unknown`, of course.
@@ -363,4 +389,143 @@ pub enum PixelLayout {
   _8888 = SDL_PACKEDLAYOUT_8888,
   _2101010 = SDL_PACKEDLAYOUT_2101010,
   _1010102 = SDL_PACKEDLAYOUT_1010102,
+}
+
+/// Data about a particular pixel layout.
+///
+/// A `PixelFormat` value is a handle to a heap allocated `SDL_PixelFormat`.
+/// That `SDL_PixelFormat` then has all sorts of info, including a reference
+/// count value. So you can think of it as being _similar to_ `*mut
+/// Rc<PixelFormatData>` or something like that.
+#[derive(Debug)]
+#[repr(transparent)]
+pub struct PixelFormat<'sdl> {
+  pub(crate) ptr: *mut SDL_PixelFormat,
+  pub(crate) _marker: PhantomData<&'sdl SDLToken>,
+}
+impl<'sdl> Clone for PixelFormat<'sdl> {
+  fn clone(&self) -> Self {
+    let ptr = unsafe { SDL_AllocFormat((*self.ptr).format) };
+    if ptr.is_null() {
+      panic!("Couldn't allocate a new PixelFormat!")
+    } else {
+      Self {
+        ptr,
+        _marker: PhantomData,
+      }
+    }
+  }
+}
+impl<'sdl> Drop for PixelFormat<'sdl> {
+  fn drop(&mut self) {
+    unsafe { SDL_FreeFormat(self.ptr) }
+  }
+}
+impl<'sdl> PixelFormat<'sdl> {
+  /// Allocates a new `PixelFormat` value.
+  pub fn new(format: PixelFormatEnum) -> Result<PixelFormat<'sdl>, String> {
+    let ptr = unsafe { SDL_AllocFormat(format as u32) };
+    if ptr.is_null() {
+      Err(get_error())
+    } else {
+      Ok(Self {
+        ptr,
+        _marker: PhantomData,
+      })
+    }
+  }
+
+  /// Gets the RGB [Color](Color) components of a pixel value in this format.
+  ///
+  /// The alpha channel is always given as `0xFF`
+  pub fn get_rgb(&self, pixel: u32) -> Color {
+    let mut out = Color {
+      r: 0,
+      g: 0,
+      b: 0,
+      a: 0xFF,
+    };
+    unsafe { SDL_GetRGB(pixel, self.ptr, &mut out.r, &mut out.g, &mut out.b) };
+    out
+  }
+
+  /// Gets the RGBA [Color](Color) components of a pixel value in this format.
+  ///
+  /// The alpha channel is always given as `0xFF` if the format has no alpha
+  /// channel.
+  pub fn get_rgba(&self, pixel: u32) -> Color {
+    let mut out = Color::default();
+    unsafe {
+      SDL_GetRGBA(
+        pixel, self.ptr, &mut out.r, &mut out.g, &mut out.b, &mut out.a,
+      )
+    };
+    out
+  }
+
+  /// Maps a [Color](Color) value into an RGB pixel value in this format.
+  ///
+  /// * If the format is paletted the closest index is returned.
+  /// * If the format supports alpha it will be a fully opaque pixel.
+  /// * The pixel format data is always in the lowest bits, so you can safely
+  ///   downcast pixel values to `u16` and `u8` as appropriate.
+  pub fn map_rgb(&self, color: Color) -> u32 {
+    unsafe { SDL_MapRGB(self.ptr, color.r, color.g, color.b) }
+  }
+
+  /// Maps a [Color](Color) value into an RGBA pixel value in this format.
+  ///
+  /// * If the format is paletted the closest index is returned.
+  /// * If the format has no alpha channel or is paletted then the input alpha
+  ///   value is simply ignored.
+  /// * The pixel format data is always in the lowest bits, so you can safely
+  ///   downcast pixel values to `u16` and `u8` as appropriate.
+  pub fn map_rgba(&self, color: Color) -> u32 {
+    unsafe { SDL_MapRGBA(self.ptr, color.r, color.g, color.b, color.a) }
+  }
+
+  /// Reassigns the [Palette](Palette) for this `PixelFormat`
+  pub fn set_palette(&mut self, palette: &Palette) -> Result<(), String> {
+    let out = unsafe { SDL_SetPixelFormatPalette(self.ptr, palette.ptr) };
+    if out == 0 {
+      Ok(())
+    } else {
+      Err(get_error())
+    }
+  }
+
+  /// The enum value of this pixel format.
+  pub fn format(&self) -> PixelFormatEnum {
+    PixelFormatEnum::from(unsafe { (*self.ptr).format } as fermium::_bindgen_ty_6::Type)
+  }
+
+  /// Significant bits in a pixel value: probably 8, 15, 16, 24, or 32.
+  pub fn bits_per_pixel(&self) -> u8 {
+    unsafe { (*self.ptr).BitsPerPixel }
+  }
+
+  /// The bytes required to hold a pixel value: probably 1, 2, 3, or 4.
+  pub fn bytes_per_pixel(&self) -> u8 {
+    unsafe { (*self.ptr).BytesPerPixel }
+  }
+
+  /// Mask for the location of the red component within a pixel value.
+  pub fn r_mask(&self) -> u32 {
+    unsafe { (*self.ptr).Rmask }
+
+  }
+  /// Mask for the location of the green component within a pixel value.
+  pub fn g_mask(&self) -> u32 {
+    unsafe { (*self.ptr).Gmask }
+  }
+
+  /// Mask for the location of the blue component within a pixel value.
+  pub fn b_mask(&self) -> u32 {
+    unsafe { (*self.ptr).Bmask }
+  }
+
+  /// Mask for the location of the alpha component within a pixel value.
+  pub fn a_mask(&self) -> u32 {
+    unsafe { (*self.ptr).Amask }
+  }
 }

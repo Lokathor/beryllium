@@ -147,23 +147,4 @@ impl<'sdl> Surface<'sdl> {
       None => SDL_TRUE == unsafe { SDL_SetClipRect(self.ptr, null()) },
     }
   }
-
-  /// The Surface's palette, if any.
-  pub fn palette(&self) -> Option<&Palette> {
-    unsafe {
-      let format_ptr: *mut SDL_PixelFormat = (*self.ptr).format;
-      if format_ptr.is_null() {
-        None
-      } else {
-        let sdl_palette_ptr: *mut SDL_Palette = (*format_ptr).palette;
-        if sdl_palette_ptr.is_null() {
-          None
-        } else {
-          Some(core::mem::transmute::<&*mut SDL_Palette, &Palette<'sdl>>(
-            &sdl_palette_ptr,
-          ))
-        }
-      }
-    }
-  }
 }

@@ -10,7 +10,6 @@ use core::{
   convert::TryFrom,
   ffi::c_void,
   marker::PhantomData,
-  ops::Deref,
   ptr::{null, null_mut, NonNull},
   slice::from_raw_parts,
 };
