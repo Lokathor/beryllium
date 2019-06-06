@@ -1,5 +1,6 @@
 #![warn(missing_docs)]
 #![deny(missing_debug_implementations)]
+// The unsafe code relies on the idea that `usize` is at least `u32`
 #![cfg(any(target_pointer_width = "32", target_pointer_width = "64"))]
 
 //! An opinionated set of "high level" wrappers for the
@@ -9,7 +10,7 @@ use core::{
   convert::TryFrom,
   ffi::c_void,
   marker::PhantomData,
-  ops::{Deref, DerefMut},
+  ops::Deref,
   ptr::{null, null_mut, NonNull},
   slice::from_raw_parts,
 };

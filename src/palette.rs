@@ -14,8 +14,7 @@ pub struct Palette<'sdl> {
 }
 impl<'sdl> Clone for Palette<'sdl> {
   fn clone(&self) -> Self {
-    let mut n =
-      unsafe { Self::new((*self.ptr).ncolors).expect("OOM: Could not allocate a new Palette!") };
+    let mut n = Self::new(self.len()).expect("OOM: Could not allocate a new Palette!");
     n.set_colors(0, &self)
       .expect("Failed to copy over the color data!");
     n
@@ -45,8 +44,12 @@ impl<'sdl> Palette<'sdl> {
   ///
   /// The initial value of the palette color values is 0xFF in all four channels
   /// (opaque white).
-  pub fn new(color_count: i32) -> Result<Palette<'sdl>, String> {
-    let ptr = unsafe { SDL_AllocPalette(color_count) };
+  pub fn new(color_count: usize) -> Result<Palette<'sdl>, String> {
+    let max = core::i32::MAX as usize;
+    if color_count > max {
+      return Err("beryllium error: color_count > i32::MAX".to_string());
+    }
+    let ptr = unsafe { SDL_AllocPalette(color_count as i32) };
     if ptr.is_null() {
       Err(get_error())
     } else {
@@ -68,26 +71,29 @@ impl<'sdl> Palette<'sdl> {
   /// This seems silly, but SDL2 has a specific routine it uses for altering
   /// palette colors and we have to go though that, which normal use of the
   /// `IndexMut` trait would not do.
+  ///
+  /// `start` values out of bounds give an error. If the starting point for the
+  /// slice would cause it to copy off the end of this Palette the input slice
+  /// is truncated and it copies as many colors as possible.
   pub fn set_colors(&mut self, start: usize, new_colors: &[Color]) -> Result<(), String> {
-    let max = core::i32::MAX as usize;
-    if start > max {
-      return Err("beryllium error: start index > i32::MAX".to_string());
+    if start >= self.len() {
+      return Err("beryllium error: start index out of bounds".to_string());
     }
-    let len = new_colors.len();
-    if len > max {
-      return Err("beryllium error: slice length > i32::MAX".to_string());
-    }
+    // We'll manually clip the input slice instead of relying on SDL2's dubious
+    // clipping process.
+    let clipped_new_colors = &new_colors[..(self.len() - start).min(new_colors.len())];
     let out = unsafe {
       SDL_SetPaletteColors(
         self.ptr,
-        new_colors.as_ptr() as *const SDL_Color,
+        clipped_new_colors.as_ptr() as *const SDL_Color,
         start as i32,
-        new_colors.len() as i32,
+        clipped_new_colors.len() as i32,
       )
     };
     if out == 0 {
       Ok(())
     } else {
+      // Given our previous checks, this path should never happen.
       Err(get_error())
     }
   }
