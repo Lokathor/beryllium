@@ -80,14 +80,14 @@ impl<'sdl> Palette<'sdl> {
     }
     // We'll manually clip the input slice instead of relying on SDL2's dubious
     // clipping process.
-    let clipped_new_colors = &new_colors[..(self.len() - start).min(new_colors.len())];
-    debug_assert!(start + clipped_new_colors.len() <= self.len());
+    let clipped_length =(self.len() - start).min(new_colors.len());
+    debug_assert!(start + clipped_length <= self.len());
     let out = unsafe {
       SDL_SetPaletteColors(
         self.ptr,
-        clipped_new_colors.as_ptr() as *const SDL_Color,
+        new_colors.as_ptr() as *const SDL_Color,
         start as i32,
-        clipped_new_colors.len() as i32,
+        clipped_length as i32,
       )
     };
     if out == 0 {
