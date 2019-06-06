@@ -72,9 +72,8 @@ impl<'sdl> Palette<'sdl> {
   /// palette colors and we have to go though that, which normal use of the
   /// `IndexMut` trait would not do.
   ///
-  /// `start` values out of bounds give an error. If the starting point for the
-  /// slice would cause it to copy off the end of this Palette the input slice
-  /// is truncated and it copies as many colors as possible.
+  /// `start` values >= the length will give an error. The input slice is
+  /// automatically clipped as necessary, so as to not go out of bounds.
   pub fn set_colors(&mut self, start: usize, new_colors: &[Color]) -> Result<(), String> {
     if start >= self.len() {
       return Err("beryllium error: start index out of bounds".to_string());
@@ -82,6 +81,7 @@ impl<'sdl> Palette<'sdl> {
     // We'll manually clip the input slice instead of relying on SDL2's dubious
     // clipping process.
     let clipped_new_colors = &new_colors[..(self.len() - start).min(new_colors.len())];
+    debug_assert!(start + clipped_new_colors.len() <= self.len());
     let out = unsafe {
       SDL_SetPaletteColors(
         self.ptr,
