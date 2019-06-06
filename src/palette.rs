@@ -15,28 +15,19 @@ pub struct Palette<'sdl> {
 impl<'sdl> Clone for Palette<'sdl> {
   fn clone(&self) -> Self {
     let mut n = Self::new(self.len()).expect("OOM: Could not allocate a new Palette!");
-    n.set_colors(0, &self)
-      .expect("Failed to copy over the color data!");
+    n.set_colors(0, unsafe {
+      core::slice::from_raw_parts(
+        (*self.ptr).colors as *mut Color,
+        (*self.ptr).ncolors as usize,
+      )
+    })
+    .expect("Failed to copy over the color data!");
     n
   }
 }
 impl<'sdl> Drop for Palette<'sdl> {
   fn drop(&mut self) {
     unsafe { SDL_FreePalette(self.ptr) }
-  }
-}
-impl<'sdl> Deref for Palette<'sdl> {
-  type Target = [Color];
-
-  /// We can _read_ the Color values normally, we just can't _write_ the
-  /// `Palette` normally.
-  fn deref(&self) -> &Self::Target {
-    unsafe {
-      core::slice::from_raw_parts(
-        (*self.ptr).colors as *mut Color,
-        (*self.ptr).ncolors as usize,
-      )
-    }
   }
 }
 impl<'sdl> Palette<'sdl> {
@@ -63,6 +54,24 @@ impl<'sdl> Palette<'sdl> {
   /// Gets the number of colors in the Palette
   pub fn len(&self) -> usize {
     unsafe { (*self.ptr).ncolors as usize }
+  }
+
+  /// Gets the [Color](Color) at the index specified.
+  pub fn get_color(&self, index: usize) -> Option<Color> {
+    if index < self.len() {
+      Some(unsafe { (*(*self.ptr).colors.offset(index as isize)).into() })
+    } else {
+      None
+    }
+  }
+
+  /// Assigns the given color to the index specified.
+  ///
+  /// This is shorthand for [set_colors](Palette::set_colors) with a single
+  /// element slice. If you have many colors in a row to set you should use that
+  /// instead.
+  pub fn set_color(&mut self, index: usize, color: Color) -> Result<(), String> {
+    self.set_colors(index, core::slice::from_ref(&color))
   }
 
   /// Assigns a slice of colors into the `Palette`, starting at the position
@@ -96,14 +105,5 @@ impl<'sdl> Palette<'sdl> {
       // Given our previous checks, this path should never happen.
       Err(get_error())
     }
-  }
-
-  /// Assigns the given color to the index specified.
-  ///
-  /// This is shorthand for [set_colors](Palette::set_colors) with a single
-  /// element slice. If you have many colors in a row to set you should use that
-  /// instead.
-  pub fn set_color(&mut self, index: usize, color: Color) -> Result<(), String> {
-    self.set_colors(index, core::slice::from_ref(&color))
   }
 }
