@@ -6,6 +6,53 @@
 
 //! An opinionated set of "high level" wrappers for the
 //! [fermium](https://github.com/Lokathor/fermium) SDL2 bindings.
+//!
+//! * Very little of SDL2 can be called before you initialize the library. As a
+//!   result, there's only a very small number of functions available as top
+//!   level functions:
+//!   * [version](version) can be called to check what version of SDL2 is being
+//!     used. Because of SDL2's [Dynamic API](https://tinyurl.com/y2fndelh), it
+//!     is possible for a user to try and run the program using an future,
+//!     SemVer compatible version of SDL2. It would be a great indignity if you
+//!     didn't allow them to do this, but you can still check the version and
+//!     log it perhaps.
+//!   * [get_error](get_error) can be called at any time, though before you
+//!     initialize SDL2 the error string will probably be blank. You _very
+//!     rarely_ have to call this yourself. Any necessary error strings are
+//!     almost always passed back to you as part of a `Result` type.
+//!   * [lone_message_box](lone_message_box) opens a simple message box where
+//!     you can display that some critical file is missing or something like
+//!     that instead of failing with no message at all. It is `unsafe` because
+//!     you must only call it from the `main` thread.
+//!       * See also: [Window::modal_message_box](Window::modal_message_box)
+//!   * [init](init) is how you initialize SDL2. If successful it gives you an
+//!     [SDLToken](SDLToken) which has all the necessary methods to do
+//!     everything else. It is `unsafe` because you must only call this from the
+//!     `main` thread, and you must never double initialize SDL2.
+//!
+//! _Very little_ of SDL2 is thread-safe. Your code that interacts with SDL2
+//! will mostly be locked into just the `main` thread. This isn't a huge deal in
+//! practice, but it's something that people might want to know up font.
+//!
+//! ## Lifetimes
+//!
+//! Sadly, we gotta track some lifetimes here. Anything with a heap allocation
+//! or other OS resource needs to live within the lifetime of its parent. I
+//! assure you that the lifetime tracking is happening via
+//! [PhantomData](PhantomData), no runtime cost here.
+//!
+//! Almost all lifetime tracking is restricted to things needing to live no
+//! longer than the life of the `SDLToken`, which isn't a very big deal at all.
+//!
+//! ## Naming
+//!
+//! I've attempted to stick to SDL2's naming for things unless there's an
+//! obviously more Rusty name to use instead.
+//!
+//! The main exception I can think of is that all `AllocFoo`/`FreeFoo` and
+//! `CreateFoo`/`DestroyFoo` pairs for creation and destruction have been
+//! replaced with just using `new_foo` for creation and [Drop](Drop) for
+//! cleanup.
 
 use core::{
   convert::TryFrom,
@@ -584,8 +631,8 @@ impl<'sdl> Window<'sdl> {
   /// Obtains the size of the drawable space in the window.
   ///
   /// This gives you a number of "physical pixels", so it might be different
-  /// from the "logical pixels" value of [window_size](Window::window_size). For
-  /// use with
+  /// from the "logical pixels" value you get when you call
+  /// [size](Window::size). This is primarily for use with
   /// [glViewport](https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glViewport.xhtml)
   pub unsafe fn gl_get_drawable_size(&self) -> (i32, i32) {
     let mut w = 0;
