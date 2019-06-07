@@ -1,5 +1,6 @@
 #![warn(missing_docs)]
 #![deny(missing_debug_implementations)]
+#![allow(clippy::needless_lifetimes)]
 // The unsafe code relies on the idea that `usize` is at least `u32`
 #![cfg(any(target_pointer_width = "32", target_pointer_width = "64"))]
 

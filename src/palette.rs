@@ -64,6 +64,7 @@ impl SDLToken {
   }
 }
 
+#[allow(clippy::len_without_is_empty)]
 impl<'sdl> Palette<'sdl> {
   /// Gets the number of colors in the Palette
   pub fn len(&self) -> usize {
@@ -73,7 +74,7 @@ impl<'sdl> Palette<'sdl> {
   /// Gets the [Color](Color) at the index specified.
   pub fn get_color(&self, index: usize) -> Option<Color> {
     if index < self.len() {
-      Some(unsafe { (*(*self.ptr).colors.offset(index as isize)).into() })
+      Some(unsafe { (*(*self.ptr).colors.add(index)).into() })
     } else {
       None
     }

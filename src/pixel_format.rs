@@ -142,7 +142,7 @@ impl PixelFormatEnum {
   }
 
   /// Converts this value into the appropriate `bpp` and mask values.
-  pub fn to_masks(&self) -> (i32, u32, u32, u32, u32) {
+  pub fn to_masks(self) -> (i32, u32, u32, u32, u32) {
     let mut bpp = 0;
     let mut r_mask = 0;
     let mut g_mask = 0;
@@ -150,7 +150,7 @@ impl PixelFormatEnum {
     let mut a_mask = 0;
     unsafe {
       SDL_PixelFormatEnumToMasks(
-        (*self) as u32,
+        self as u32,
         &mut bpp,
         &mut r_mask,
         &mut g_mask,
