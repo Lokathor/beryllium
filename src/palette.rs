@@ -2,16 +2,38 @@ use super::*;
 
 /// A palette of [Color](Color) values.
 ///
-/// A `Palette` value is a handle to a heap allocated `SDL_Palette`. That
-/// `SDL_Palette` then has a pointer to the `Color` values, length, and some
-/// reference count and version info. So you can think of it as being _similar
-/// to_ `*mut Rc<[Color]>` or something like that.
-#[derive(Debug)]
+/// The way that the `Palette` type works is very different from Rust's normal
+/// ownership model, so please pay attention as I explain.
+///
+/// A `Palette` value holds a pointer to a heap allocated
+/// [SDL_Palette](SDL_Palette). That `SDL_Palette` has a pointer to the heap
+/// allocated `Color` values, along with a length, reference count, and version
+/// number.
+///
+/// You allocate a `Palette` by calling
+/// [SDLToken::new_palette](SDLToken::new_palette) and specifying how many
+/// `Color` values the `Palette` should hold. All slots in a new `Palette` are
+/// initialized to opaque white (`0xFF` in all four color channel).
+///
+/// When you set a Palette on a [Surface](Surface) or [PixelFormat](PixelFormat)
+/// it moves some pointers and adjusts the reference count of the `Palette`. Now
+/// you have the `Palette`, and _also_ that thing has the same `Palette`. An
+/// edit to the `Palette` data in either location will affect everyone's data.
+///
+/// As a result, I cannot allow you to _ever_ construct a shared reference or
+/// unique reference to the `Color` data held inside the `Palette`. This means
+/// no [Deref](Deref), [Index](Index), or [IndexMut](IndexMut), no Iterators of
+/// any kind, none of that. This definitely makes the API of the `Palette` type
+/// not quite as fun as you might like.
+#[derive(Debug)] // TODO: We probably want a custom Debug impl
 #[repr(transparent)]
 pub struct Palette<'sdl> {
-  pub(crate) ptr: *mut SDL_Palette,
+  pub(crate) ptr: *mut SDL_Palette, // TODO: NonNull<SDL_Palette> ?
   pub(crate) _marker: PhantomData<&'sdl SDLToken>,
 }
+
+// TODO: PAST HERE NEEDS A CAREFUL SECOND PASS VERIFICATION
+
 impl<'sdl> Clone for Palette<'sdl> {
   fn clone(&self) -> Self {
     let ptr = unsafe { SDL_AllocPalette(self.len() as i32) };
