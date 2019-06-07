@@ -34,6 +34,12 @@
 //! will mostly be locked into just the `main` thread. This isn't a huge deal in
 //! practice, but it's something that people might want to know up font.
 //!
+//! ## Safety
+//!
+//! As much as possible, SDL2 is carefully wrapped into a safe interface for you
+//! to use. That said, there's a few points that still can't be made 100% safe,
+//! so you will have to use `unsafe` in some places.
+//!
 //! ## Lifetimes
 //!
 //! Sadly, we gotta track some lifetimes here. Anything with a heap allocation
