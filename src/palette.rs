@@ -14,15 +14,24 @@ pub struct Palette<'sdl> {
 }
 impl<'sdl> Clone for Palette<'sdl> {
   fn clone(&self) -> Self {
-    let mut n = Self::new(self.len()).expect("OOM: Could not allocate a new Palette!");
-    n.set_colors(0, unsafe {
-      core::slice::from_raw_parts(
-        (*self.ptr).colors as *mut Color,
-        (*self.ptr).ncolors as usize,
-      )
-    })
-    .expect("Failed to copy over the color data!");
-    n
+    let ptr = unsafe { SDL_AllocPalette(self.len() as i32) };
+    if ptr.is_null() {
+      panic!("OOM: Could not allocate a new Palette!");
+    } else {
+      let mut n = Palette {
+        ptr,
+        _marker: PhantomData,
+      };
+      let self_slice = unsafe {
+        core::slice::from_raw_parts(
+          (*self.ptr).colors as *mut Color,
+          (*self.ptr).ncolors as usize,
+        )
+      };
+      n.set_colors(0, self_slice)
+        .expect("Failed to copy over the color data!");
+      n
+    }
   }
 }
 impl<'sdl> Drop for Palette<'sdl> {
@@ -30,27 +39,32 @@ impl<'sdl> Drop for Palette<'sdl> {
     unsafe { SDL_FreePalette(self.ptr) }
   }
 }
-impl<'sdl> Palette<'sdl> {
-  /// Allocates a new palette with the number of color slots given.
+impl SDLToken {
+  /// Allocates a new [Palette](Palette) with the number of color slots given.
   ///
   /// The initial value of the palette color values is 0xFF in all four channels
   /// (opaque white).
-  pub fn new(color_count: usize) -> Result<Palette<'sdl>, String> {
+  pub fn new_palette<'sdl>(&'sdl self, color_count: usize) -> Result<Palette<'sdl>, String> {
     let max = core::i32::MAX as usize;
     if color_count > max {
       return Err("beryllium error: color_count > i32::MAX".to_string());
+    }
+    if color_count < 2 {
+      return Err("beryllium error: color_count of a palette must be at least 2".to_string());
     }
     let ptr = unsafe { SDL_AllocPalette(color_count as i32) };
     if ptr.is_null() {
       Err(get_error())
     } else {
-      Ok(Self {
+      Ok(Palette {
         ptr,
         _marker: PhantomData,
       })
     }
   }
+}
 
+impl<'sdl> Palette<'sdl> {
   /// Gets the number of colors in the Palette
   pub fn len(&self) -> usize {
     unsafe { (*self.ptr).ncolors as usize }

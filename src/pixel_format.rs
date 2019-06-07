@@ -397,6 +397,9 @@ pub enum PixelLayout {
 /// That `SDL_PixelFormat` then has all sorts of info, including a reference
 /// count value. So you can think of it as being _similar to_ `*mut
 /// Rc<PixelFormatData>` or something like that.
+///
+/// A `PixelFormat` is for either a paletted format or masks format. The mask
+/// values of a paletted format will all be 0.
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct PixelFormat<'sdl> {
@@ -413,6 +416,7 @@ impl<'sdl> Clone for PixelFormat<'sdl> {
         ptr,
         _marker: PhantomData,
       }
+      // TODO: also copy over palette data?
     }
   }
 }
@@ -421,20 +425,24 @@ impl<'sdl> Drop for PixelFormat<'sdl> {
     unsafe { SDL_FreeFormat(self.ptr) }
   }
 }
-impl<'sdl> PixelFormat<'sdl> {
+impl SDLToken {
   /// Allocates a new `PixelFormat` value.
-  pub fn new(format: PixelFormatEnum) -> Result<PixelFormat<'sdl>, String> {
+  pub fn new_pixel_format<'sdl>(
+    &'sdl self, format: PixelFormatEnum,
+  ) -> Result<PixelFormat<'sdl>, String> {
     let ptr = unsafe { SDL_AllocFormat(format as u32) };
     if ptr.is_null() {
       Err(get_error())
     } else {
-      Ok(Self {
+      Ok(PixelFormat {
         ptr,
         _marker: PhantomData,
       })
     }
   }
+}
 
+impl<'sdl> PixelFormat<'sdl> {
   /// Gets the RGB [Color](Color) components of a pixel value in this format.
   ///
   /// The alpha channel is always given as `0xFF`
@@ -512,7 +520,6 @@ impl<'sdl> PixelFormat<'sdl> {
   /// Mask for the location of the red component within a pixel value.
   pub fn r_mask(&self) -> u32 {
     unsafe { (*self.ptr).Rmask }
-
   }
   /// Mask for the location of the green component within a pixel value.
   pub fn g_mask(&self) -> u32 {
