@@ -120,6 +120,19 @@ impl Palette<'_> {
       Some(unsafe { (*(*self.nn.as_ptr()).colors.add(index)).into() })
     }
   }
+
+  /// Creates a new [Vec](Vec) with the same colors as this `Palette`.
+  pub fn to_vec(&self) -> Vec<Color> {
+    // Note(Lokathor): This is safe only as long as this slice never leaves
+    // this function call.
+    let self_slice = unsafe {
+      core::slice::from_raw_parts(
+        (*self.nn.as_ptr()).colors as *mut Color,
+        (*self.nn.as_ptr()).ncolors as usize,
+      )
+    };
+    self_slice.to_vec()
+  }
 }
 
 impl Clone for Palette<'_> {
@@ -141,14 +154,14 @@ impl Clone for Palette<'_> {
           nn,
           _marker: PhantomData,
         };
-        // Note(Lokathor): This is safe because
+        // Note(Lokathor): This is safe only as long as this slice never leaves
+        // this function call.
         let self_slice = unsafe {
           core::slice::from_raw_parts(
             (*self.nn.as_ptr()).colors as *mut Color,
             (*self.nn.as_ptr()).ncolors as usize,
           )
         };
-
         out
           .set_colors(0, self_slice)
           .expect("Failed to copy the color data!");
