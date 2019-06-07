@@ -494,7 +494,7 @@ impl<'sdl> PixelFormat<'sdl> {
 
   /// Reassigns the [Palette](Palette) for this `PixelFormat`
   pub fn set_palette(&mut self, palette: &Palette) -> Result<(), String> {
-    let out = unsafe { SDL_SetPixelFormatPalette(self.ptr, palette.ptr) };
+    let out = unsafe { SDL_SetPixelFormatPalette(self.ptr, palette.nn.as_ptr()) };
     if out == 0 {
       Ok(())
     } else {

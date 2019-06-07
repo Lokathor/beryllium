@@ -59,6 +59,21 @@
 //! `CreateFoo`/`DestroyFoo` pairs for creation and destruction have been
 //! replaced with just using `new_foo` for creation and [Drop](Drop) for
 //! cleanup.
+//!
+//! ## Organization
+//!
+//! Internally the code is split up into modules because that's easier to work
+//! with, however the public API is that everything is just at the top level of
+//! the crate because that's far easier to work with. The only down side to this
+//! is that some compiler error messages will list the internal module name in
+//! the path. It's a little annoying, but that's more the fault of `rustc` than
+//! anything else.
+//!
+//! ## Failures
+//!
+//! If a call returns [Option](Option) or [Result](Result), I will make an
+//! effort to document what's likely to cause that. However, it's always
+//! possible that additional error conditions might exist.
 
 use core::{
   convert::TryFrom,
