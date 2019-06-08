@@ -29,5 +29,6 @@ before_script:
   - sdl2-config --static-libs
 
 test_script:
+  - cargo clippy -- -D warnings
   - cargo build
   - cargo test

@@ -4,6 +4,9 @@
 //!
 //! Note that we have to implement quite a bit of glue code to make the two libs
 //! interact.
+//!
+//! MANY THANKS TO [nukep](https://github.com/nukep)! I used their `glium-sdl2`
+//! crate as a guide to figure out how to make a custom backend for `glium`.
 
 use beryllium::*;
 use glium;

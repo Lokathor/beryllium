@@ -669,8 +669,9 @@ impl<'sdl> Window<'sdl> {
     SDL_GL_SwapWindow(self.ptr)
   }
 
+  /// Makes the given context the current context in this window.
   pub unsafe fn gl_make_current(&self, ctx: &GLContext) -> Result<(), String> {
-    let out = unsafe { SDL_GL_MakeCurrent(self.ptr, ctx.ctx) };
+    let out = SDL_GL_MakeCurrent(self.ptr, ctx.ctx);
     if out == 0 {
       Ok(())
     } else {

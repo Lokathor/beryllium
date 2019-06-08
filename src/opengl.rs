@@ -149,6 +149,7 @@ impl<'sdl, 'win> GLContext<'sdl, 'win> {
     }
   }
 
+  /// Checks if this context is current.
   pub fn is_current(&self) -> bool {
     let cur = unsafe { SDL_GL_GetCurrentContext() };
     self.ctx == cur

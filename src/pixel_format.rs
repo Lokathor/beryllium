@@ -518,7 +518,9 @@ impl PixelFormat<'_> {
     unsafe {
       match NonNull::new((*self.nn.as_ptr()).palette) {
         // Note(Lokathor): Hey can't you use map here? Naw, the lifetimes get weird.
-        Some(nn) => Some(core::mem::transmute::<&NonNull<SDL_Palette>, &Palette>(&nn)),
+        Some(nn) => Some(
+          &*(&nn as *const std::ptr::NonNull<fermium::SDL_Palette> as *const palette::Palette<'_>),
+        ),
         None => None,
       }
     }

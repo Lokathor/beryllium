@@ -17,5 +17,7 @@ install:
 build: false
 
 test_script:
+  - cargo clippy -- -D warnings
   - cargo build
   - cargo test
+
