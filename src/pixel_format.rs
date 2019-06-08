@@ -130,37 +130,6 @@ impl From<fermium::_bindgen_ty_6::Type> for PixelFormatEnum {
   }
 }
 impl PixelFormatEnum {
-  /// Gets a `PixelFormatEnum` from the bpp and mask values given.
-  ///
-  /// * `bpp` is bits per pixel, usually 15, 16, or 32
-  /// * `?_mask` values are the `r`, `g`, `b`, and `a` mask values
-  pub fn from_masks(bpp: i32, r_mask: u32, g_mask: u32, b_mask: u32, a_mask: u32) -> Self {
-    PixelFormatEnum::from(
-      unsafe { SDL_MasksToPixelFormatEnum(bpp, r_mask, g_mask, b_mask, a_mask) }
-        as fermium::_bindgen_ty_6::Type,
-    )
-  }
-
-  /// Converts this value into the appropriate `bpp` and mask values.
-  pub fn to_masks(self) -> (i32, u32, u32, u32, u32) {
-    let mut bpp = 0;
-    let mut r_mask = 0;
-    let mut g_mask = 0;
-    let mut b_mask = 0;
-    let mut a_mask = 0;
-    unsafe {
-      SDL_PixelFormatEnumToMasks(
-        self as u32,
-        &mut bpp,
-        &mut r_mask,
-        &mut g_mask,
-        &mut b_mask,
-        &mut a_mask,
-      );
-    }
-    (bpp, r_mask, g_mask, b_mask, a_mask)
-  }
-
   /// The type of the pixel format.
   ///
   /// All unknown types convert to `PixelType::Unknown`, of course.
@@ -391,61 +360,93 @@ pub enum PixelLayout {
   _1010102 = SDL_PACKEDLAYOUT_1010102,
 }
 
-/// Data about a particular pixel layout.
+/// A handle to the information about a particular pixel layout.
 ///
-/// A `PixelFormat` value is a handle to a heap allocated `SDL_PixelFormat`.
-/// That `SDL_PixelFormat` then has all sorts of info, including a reference
-/// count value. So you can think of it as being _similar to_ `*mut
-/// Rc<PixelFormatData>` or something like that.
+/// This type works similar to the [Palette](Palette) type, where many images
+/// can share a single `PixelFormat` value and changes to the `PixelFormat` will
+/// show up in all places. Thankfully, the only changes you can make to a
+/// `PixelFormat` is changing the palette used.
 ///
-/// A `PixelFormat` is for either a paletted format or masks format. The mask
-/// values of a paletted format will all be 0.
+/// Every `PixelFormat` is either "paletted" or not. If the `PixelFormat` is
+/// paletted then allocating the format value also allocates a `Palette` of the
+/// appropriate length. That length is either 32 (4 bits per pixel index values)
+/// or 256 (8 bits per pixel index values). Formats with a bits per pixel values
+/// of more than 8 don't use a palette.
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct PixelFormat<'sdl> {
-  pub(crate) ptr: *mut SDL_PixelFormat,
+  pub(crate) nn: NonNull<SDL_PixelFormat>,
   pub(crate) _marker: PhantomData<&'sdl SDLToken>,
 }
-impl<'sdl> Clone for PixelFormat<'sdl> {
-  fn clone(&self) -> Self {
-    let ptr = unsafe { SDL_AllocFormat((*self.ptr).format) };
-    if ptr.is_null() {
-      panic!("Couldn't allocate a new PixelFormat!")
-    } else {
-      Self {
-        ptr,
-        _marker: PhantomData,
-      }
-      // TODO: also copy over palette data?
-    }
-  }
-}
-impl<'sdl> Drop for PixelFormat<'sdl> {
-  fn drop(&mut self) {
-    unsafe { SDL_FreeFormat(self.ptr) }
-  }
-}
+
 impl SDLToken {
-  /// Allocates a new `PixelFormat` value.
-  pub fn new_pixel_format<'sdl>(
-    &'sdl self, format: PixelFormatEnum,
-  ) -> Result<PixelFormat<'sdl>, String> {
-    let ptr = unsafe { SDL_AllocFormat(format as u32) };
-    if ptr.is_null() {
-      Err(get_error())
-    } else {
-      Ok(PixelFormat {
-        ptr,
+  /// Allocates a new `PixelFormat` according to the enum given.
+  pub fn new_pixel_format(&self, format: PixelFormatEnum) -> Result<PixelFormat<'_>, String> {
+    match NonNull::new(unsafe { SDL_AllocFormat(format as u32) }) {
+      Some(nn) => Ok(PixelFormat {
+        nn,
         _marker: PhantomData,
-      })
+      }),
+      None => Err(get_error()),
     }
   }
 }
 
-impl<'sdl> PixelFormat<'sdl> {
+impl Drop for PixelFormat<'_> {
+  fn drop(&mut self) {
+    unsafe { SDL_FreeFormat(self.nn.as_ptr()) }
+  }
+}
+
+impl SDLToken {
+  /// Gets SDL2's textual name of a `PixelFormatEnum`.
+  ///
+  /// Honestly, you can probably use the `Debug` impl of that type instead, but
+  /// it's here if you want to double check SDL2's opinion of things.
+  pub fn get_pixel_format_name(&self, format: PixelFormatEnum) -> String {
+    unsafe {
+      let ptr: *const c_char = SDL_GetPixelFormatName(format as u32);
+      let len = SDL_strlen(ptr);
+      let useful_bytes = from_raw_parts(ptr as *const u8, len);
+      String::from_utf8_lossy(useful_bytes).into_owned()
+    }
+  }
+
+  /// Try to combine some `bpp` and mask values into a single `format` value.
+  pub fn masks_to_pixel_format_enum(
+    &self, bpp: i32, r_mask: u32, g_mask: u32, b_mask: u32, a_mask: u32,
+  ) -> PixelFormatEnum {
+    PixelFormatEnum::from(
+      unsafe { SDL_MasksToPixelFormatEnum(bpp, r_mask, g_mask, b_mask, a_mask) }
+        as fermium::_bindgen_ty_6::Type,
+    )
+  }
+
+  /// Converts this `format` into the appropriate `bpp` and mask values.
+  pub fn pixel_format_enum_to_masks(&self, format: PixelFormatEnum) -> (i32, u32, u32, u32, u32) {
+    let mut bpp = 0;
+    let mut r_mask = 0;
+    let mut g_mask = 0;
+    let mut b_mask = 0;
+    let mut a_mask = 0;
+    unsafe {
+      SDL_PixelFormatEnumToMasks(
+        format as u32,
+        &mut bpp,
+        &mut r_mask,
+        &mut g_mask,
+        &mut b_mask,
+        &mut a_mask,
+      );
+    }
+    (bpp, r_mask, g_mask, b_mask, a_mask)
+  }
+}
+
+impl PixelFormat<'_> {
   /// Gets the RGB [Color](Color) components of a pixel value in this format.
   ///
-  /// The alpha channel is always given as `0xFF`
+  /// * The alpha channel is always given as `0xFF`
   pub fn get_rgb(&self, pixel: u32) -> Color {
     let mut out = Color {
       r: 0,
@@ -453,19 +454,24 @@ impl<'sdl> PixelFormat<'sdl> {
       b: 0,
       a: 0xFF,
     };
-    unsafe { SDL_GetRGB(pixel, self.ptr, &mut out.r, &mut out.g, &mut out.b) };
+    unsafe { SDL_GetRGB(pixel, self.nn.as_ptr(), &mut out.r, &mut out.g, &mut out.b) };
     out
   }
 
   /// Gets the RGBA [Color](Color) components of a pixel value in this format.
   ///
-  /// The alpha channel is always given as `0xFF` if the format has no alpha
-  /// channel.
+  /// * The alpha channel is always given as `0xFF` if the format has no alpha
+  ///   channel.
   pub fn get_rgba(&self, pixel: u32) -> Color {
     let mut out = Color::default();
     unsafe {
       SDL_GetRGBA(
-        pixel, self.ptr, &mut out.r, &mut out.g, &mut out.b, &mut out.a,
+        pixel,
+        self.nn.as_ptr(),
+        &mut out.r,
+        &mut out.g,
+        &mut out.b,
+        &mut out.a,
       )
     };
     out
@@ -478,7 +484,7 @@ impl<'sdl> PixelFormat<'sdl> {
   /// * The pixel format data is always in the lowest bits, so you can safely
   ///   downcast pixel values to `u16` and `u8` as appropriate.
   pub fn map_rgb(&self, color: Color) -> u32 {
-    unsafe { SDL_MapRGB(self.ptr, color.r, color.g, color.b) }
+    unsafe { SDL_MapRGB(self.nn.as_ptr(), color.r, color.g, color.b) }
   }
 
   /// Maps a [Color](Color) value into an RGBA pixel value in this format.
@@ -489,12 +495,12 @@ impl<'sdl> PixelFormat<'sdl> {
   /// * The pixel format data is always in the lowest bits, so you can safely
   ///   downcast pixel values to `u16` and `u8` as appropriate.
   pub fn map_rgba(&self, color: Color) -> u32 {
-    unsafe { SDL_MapRGBA(self.ptr, color.r, color.g, color.b, color.a) }
+    unsafe { SDL_MapRGBA(self.nn.as_ptr(), color.r, color.g, color.b, color.a) }
   }
 
   /// Reassigns the [Palette](Palette) for this `PixelFormat`
-  pub fn set_palette(&mut self, palette: &Palette) -> Result<(), String> {
-    let out = unsafe { SDL_SetPixelFormatPalette(self.ptr, palette.nn.as_ptr()) };
+  pub fn set_palette(&self, palette: &Palette) -> Result<(), String> {
+    let out = unsafe { SDL_SetPixelFormatPalette(self.nn.as_ptr(), palette.nn.as_ptr()) };
     if out == 0 {
       Ok(())
     } else {
@@ -504,35 +510,62 @@ impl<'sdl> PixelFormat<'sdl> {
 
   /// The enum value of this pixel format.
   pub fn format(&self) -> PixelFormatEnum {
-    PixelFormatEnum::from(unsafe { (*self.ptr).format } as fermium::_bindgen_ty_6::Type)
+    PixelFormatEnum::from(unsafe { (*self.nn.as_ptr()).format } as fermium::_bindgen_ty_6::Type)
+  }
+
+  /// Obtains the palette of this format, if any.
+  pub fn palette(&self) -> Option<&Palette> {
+    unsafe {
+      match NonNull::new((*self.nn.as_ptr()).palette) {
+        // Note(Lokathor): Hey can't you use map here? Naw, the lifetimes get weird.
+        Some(nn) => Some(core::mem::transmute::<&NonNull<SDL_Palette>, &Palette>(&nn)),
+        None => None,
+      }
+    }
   }
 
   /// Significant bits in a pixel value: probably 8, 15, 16, 24, or 32.
   pub fn bits_per_pixel(&self) -> u8 {
-    unsafe { (*self.ptr).BitsPerPixel }
+    unsafe { (*self.nn.as_ptr()).BitsPerPixel }
   }
 
   /// The bytes required to hold a pixel value: probably 1, 2, 3, or 4.
   pub fn bytes_per_pixel(&self) -> u8 {
-    unsafe { (*self.ptr).BytesPerPixel }
+    unsafe { (*self.nn.as_ptr()).BytesPerPixel }
   }
 
   /// Mask for the location of the red component within a pixel value.
   pub fn r_mask(&self) -> u32 {
-    unsafe { (*self.ptr).Rmask }
+    unsafe { (*self.nn.as_ptr()).Rmask }
   }
   /// Mask for the location of the green component within a pixel value.
   pub fn g_mask(&self) -> u32 {
-    unsafe { (*self.ptr).Gmask }
+    unsafe { (*self.nn.as_ptr()).Gmask }
   }
 
   /// Mask for the location of the blue component within a pixel value.
   pub fn b_mask(&self) -> u32 {
-    unsafe { (*self.ptr).Bmask }
+    unsafe { (*self.nn.as_ptr()).Bmask }
   }
 
   /// Mask for the location of the alpha component within a pixel value.
   pub fn a_mask(&self) -> u32 {
-    unsafe { (*self.ptr).Amask }
+    unsafe { (*self.nn.as_ptr()).Amask }
+  }
+}
+
+impl Clone for PixelFormat<'_> {
+  fn clone(&self) -> Self {
+    match NonNull::new(unsafe { SDL_AllocFormat((*self.nn.as_ptr()).format) }) {
+      Some(nn) => {
+        let other = Self {
+          nn,
+          _marker: PhantomData,
+        };
+        self.palette().map(|pal_ref| other.set_palette(pal_ref));
+        other
+      }
+      None => panic!("OOM: Couldn't allocate a new SDL_PixelFormat!"),
+    }
   }
 }

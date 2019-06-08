@@ -1,5 +1,49 @@
 use super::*;
 
+/// An abstract RGBA color value.
+///
+/// * Each channel ranges from 0 (none) to 255 (maximum).
+/// * Alpha channel is "opacity", so 255 is opaque.
+///
+/// A color value's exact representation within an image depends on the
+/// [PixelFormat](PixelFormat) of the image. You can use the "get" and "map"
+/// methods of a `PixelFormat` to convert between raw pixel data and a `Color`
+/// value. Note that any `PixelFormat` that's less than 32 bits per pixel will
+/// lose information when you go from `Color` to raw pixel value, so the
+/// conversion isn't always reversible.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+#[repr(C)]
+pub struct Color {
+  /// Red
+  pub r: u8,
+  /// Green
+  pub g: u8,
+  /// Blue
+  pub b: u8,
+  /// Alpha / opacity
+  pub a: u8,
+}
+impl From<SDL_Color> for Color {
+  fn from(other: SDL_Color) -> Self {
+    Self {
+      r: other.r,
+      g: other.g,
+      b: other.b,
+      a: other.a,
+    }
+  }
+}
+impl From<Color> for SDL_Color {
+  fn from(other: Color) -> Self {
+    Self {
+      r: other.r,
+      g: other.g,
+      b: other.b,
+      a: other.a,
+    }
+  }
+}
+
 /// A palette of [Color](Color) values.
 ///
 /// The way that the `Palette` type works is slightly different from Rust's

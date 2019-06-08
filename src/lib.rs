@@ -828,36 +828,6 @@ impl<'sdl, 'win, 'ren> Drop for Texture<'sdl, 'win, 'ren> {
   }
 }
 
-/// A standard color, separate from any format.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-#[repr(C)]
-pub struct Color {
-  r: u8,
-  g: u8,
-  b: u8,
-  a: u8,
-}
-impl From<SDL_Color> for Color {
-  fn from(other: SDL_Color) -> Self {
-    Self {
-      r: other.r,
-      g: other.g,
-      b: other.b,
-      a: other.a,
-    }
-  }
-}
-impl From<Color> for SDL_Color {
-  fn from(other: Color) -> Self {
-    Self {
-      r: other.r,
-      g: other.g,
-      b: other.b,
-      a: other.a,
-    }
-  }
-}
-
 /// Rectangle struct, origin at the upper left.
 ///
 /// Naturally, having the origin at the upper left is a terrible and heretical
