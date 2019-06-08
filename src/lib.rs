@@ -668,6 +668,15 @@ impl<'sdl> Window<'sdl> {
   pub unsafe fn gl_swap_window(&self) {
     SDL_GL_SwapWindow(self.ptr)
   }
+
+  pub unsafe fn gl_make_current(&self, ctx: &GLContext) -> Result<(), String> {
+    let out = unsafe { SDL_GL_MakeCurrent(self.ptr, ctx.ctx) };
+    if out == 0 {
+      Ok(())
+    } else {
+      Err(get_error())
+    }
+  }
 }
 
 /// The window's fullscreen style.

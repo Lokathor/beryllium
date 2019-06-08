@@ -6,11 +6,11 @@ use super::*;
 /// * Alpha channel is "opacity", so 255 is opaque.
 ///
 /// A color value's exact representation within an image depends on the
-/// [PixelFormat](PixelFormat) of the image. You can use the "get" and "map"
-/// methods of a `PixelFormat` to convert between raw pixel data and a `Color`
-/// value. Note that any `PixelFormat` that's less than 32 bits per pixel will
-/// lose information when you go from `Color` to raw pixel value, so the
-/// conversion isn't always reversible.
+/// [PixelFormat] of the image. You can use the "get" and "map" methods of a
+/// `PixelFormat` to convert between raw pixel data and a `Color` value. Note
+/// that any `PixelFormat` that's less than 32 bits per pixel will lose
+/// information when you go from `Color` to raw pixel value, so the conversion
+/// isn't always reversible.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 #[repr(C)]
 pub struct Color {
@@ -44,22 +44,22 @@ impl From<Color> for SDL_Color {
   }
 }
 
-/// A palette of [Color](Color) values.
+/// A palette of [Color] values.
 ///
 /// The way that the `Palette` type works is slightly different from Rust's
 /// normal ownership model, so please pay attention as I explain.
 ///
-/// A `Palette` value holds a pointer to a heap allocated
-/// [SDL_Palette](SDL_Palette) ([wiki](https://wiki.libsdl.org/SDL_Palette)).
-/// That `SDL_Palette` has a pointer to the heap allocated `Color` values, along
-/// with a length, reference count, and version number.
+/// A `Palette` value holds a pointer to a heap allocated [SDL_Palette]
+/// ([wiki](https://wiki.libsdl.org/SDL_Palette)). That `SDL_Palette` has a
+/// pointer to the heap allocated `Color` values, along with a length, reference
+/// count, and version number.
 ///
-/// When you set a `Palette` on a [Surface](Surface) or [PixelFormat](PixelFormat)
-/// it moves some pointers and adjusts the reference count of the `Palette`. Now
-/// you have the `Palette`, and _also_ that thing has the same `Palette`. An
-/// edit to the `Palette` data in either location will affect everyone's data.
-/// Having a `&mut Palette` does _not_ mean that you have an exclusive path of
-/// access to the `Palette` contents.
+/// When you set a `Palette` on a [Surface] or [PixelFormat] it moves some
+/// pointers and adjusts the reference count of the `Palette`. Now you have the
+/// `Palette`, and _also_ that thing has the same `Palette`. An edit to the
+/// `Palette` data in either location will affect everyone's data. Having a
+/// `&mut Palette` does _not_ mean that you have an exclusive path of access to
+/// the `Palette` contents.
 ///
 /// As a result, I cannot allow you to _ever_ construct a shared reference or
 /// unique reference to the `Color` data held inside the `Palette`. This means
@@ -68,12 +68,11 @@ impl From<Color> for SDL_Color {
 /// This definitely makes the API of the `Palette` type not quite as fun as you
 /// might like.
 ///
-/// You can allocate a `Palette` by calling
-/// [SDLToken::new_palette](SDLToken::new_palette) and specifying how many
-/// `Color` values the `Palette` should hold. However, you generally do not need
-/// to do this yourself, because if a `Surface` or `PixelFormat` needs palette
-/// data it will automatically allocate a palette of the correct size when it is
-/// created.
+/// You can allocate a `Palette` by calling [SDLToken::new_palette] and
+/// specifying how many `Color` values the `Palette` should hold. However, you
+/// generally do not need to do this yourself, because if a `Surface` or
+/// `PixelFormat` needs palette data it will automatically allocate a palette of
+/// the correct size when it is created.
 ///
 /// All slots in a new `Palette` are initialized to opaque white (`0xFF` in all
 /// four color channels).
@@ -85,10 +84,10 @@ pub struct Palette<'sdl> {
 }
 
 impl SDLToken {
-  /// Allocates a new [Palette](Palette) with the number of color slots given.
+  /// Allocates a new [Palette] with the number of color slots given.
   ///
-  /// The initial value of the palette color values is 0xFF in all four channels
-  /// (opaque white).
+  /// The initial value of the palette color values is `0xFF` in all four
+  /// channels (opaque white).
   pub fn new_palette(&self, color_count: usize) -> Result<Palette<'_>, String> {
     let max = core::i32::MAX as usize;
     if color_count > max {
@@ -152,7 +151,7 @@ impl Palette<'_> {
     }
   }
 
-  /// Gets the [Color](Color) at the index specified.
+  /// Gets the [Color] at the index specified.
   ///
   /// ## Failure
   ///
@@ -165,7 +164,7 @@ impl Palette<'_> {
     }
   }
 
-  /// Creates a new [Vec](Vec) with the same colors as this `Palette`.
+  /// Creates a new [Vec] with the same colors as this `Palette`.
   pub fn to_vec(&self) -> Vec<Color> {
     // Note(Lokathor): This is safe only as long as this slice never leaves
     // this function call.

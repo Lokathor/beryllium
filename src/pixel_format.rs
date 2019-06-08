@@ -553,19 +553,3 @@ impl PixelFormat<'_> {
     unsafe { (*self.nn.as_ptr()).Amask }
   }
 }
-
-impl Clone for PixelFormat<'_> {
-  fn clone(&self) -> Self {
-    match NonNull::new(unsafe { SDL_AllocFormat((*self.nn.as_ptr()).format) }) {
-      Some(nn) => {
-        let other = Self {
-          nn,
-          _marker: PhantomData,
-        };
-        self.palette().map(|pal_ref| other.set_palette(pal_ref));
-        other
-      }
-      None => panic!("OOM: Couldn't allocate a new SDL_PixelFormat!"),
-    }
-  }
-}

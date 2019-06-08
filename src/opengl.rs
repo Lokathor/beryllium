@@ -148,4 +148,9 @@ impl<'sdl, 'win> GLContext<'sdl, 'win> {
       Err(get_error())
     }
   }
+
+  pub fn is_current(&self) -> bool {
+    let cur = unsafe { SDL_GL_GetCurrentContext() };
+    self.ctx == cur
+  }
 }

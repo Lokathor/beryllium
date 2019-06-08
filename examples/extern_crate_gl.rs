@@ -19,7 +19,8 @@ fn main() -> Result<(), String> {
     WindowFlags::default().with_shown(true).with_opengl(true), // flags
   )?;
 
-  // Set our context request settings and make a context
+  // Set our context request settings and make a context (which is automatically
+  // made current for you).
   sdl.gl_set_attribute(GLattr::ContextProfileMask, CONTEXT_PROFILE_CORE);
   sdl.gl_set_attribute(GLattr::ContextMajorVersion, 3);
   sdl.gl_set_attribute(GLattr::ContextMinorVersion, 3);
