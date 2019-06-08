@@ -8,12 +8,13 @@ edition = "2018"
 license = "Zlib"
 
 [dependencies]
-fermium = "0.0.12"
+fermium = "0.0.13"
 phantom-fields = "^0.1.2"
 libc = "0.2"
 
 [dev-dependencies]
 gl = "0.12"
+glium = "0.25"
 
 [package.metadata.docs.rs]
 features = ["fermium/use_bindgen_lib"]
