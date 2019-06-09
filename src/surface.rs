@@ -94,9 +94,7 @@ impl<'sdl> Surface<'sdl> {
   /// * You have to follow standard 2D raw pixel editing rules.
   ///   * `y * pitch + x * size_of::<PixelType>()`
   ///   * Stay in bounds and all that jazz
-  pub unsafe fn lock_edit<'surface, F: FnMut(*mut u8)>(
-    &'surface mut self, mut op: F,
-  ) -> Result<(), String> {
+  pub unsafe fn lock_edit<F: FnMut(*mut u8)>(&mut self, mut op: F) -> Result<(), String> {
     let lock_output = SDL_LockSurface(self.ptr);
     if lock_output == 0 {
       op((*self.ptr).pixels as *mut u8);
@@ -120,5 +118,33 @@ impl<'sdl> Surface<'sdl> {
   /// Pitch in **bytes**
   pub fn pitch(&self) -> i32 {
     unsafe { (*self.ptr).pitch }
+  }
+
+  /// The current clipping rectangle for blits.
+  pub fn clip_rect(&self) -> Rect {
+    let mut rect = SDL_Rect::default();
+    unsafe { SDL_GetClipRect(self.ptr, &mut rect) };
+    rect.into()
+  }
+
+  /// Assigns a new clipping rectangle.
+  ///
+  /// * `Some(rect)` will clip blits to be within that rect only.
+  /// * `None` will disable clipping.
+  ///
+  /// Returns `true` if the given rectangle intersects at least part of the
+  /// `Surface` (or if it was `None`). Otherwise you get `false` and all blits
+  /// will be completely clipped.
+  ///
+  /// Either way, blits are clipped to be within bounds of the `Surface`, so you
+  /// don't have to worry about that.
+  pub fn set_clip_rect(&mut self, opt_rect: Option<Rect>) -> bool {
+    match opt_rect {
+      Some(rect) => {
+        let r: SDL_Rect = rect.into();
+        SDL_TRUE == unsafe { SDL_SetClipRect(self.ptr, &r) }
+      }
+      None => SDL_TRUE == unsafe { SDL_SetClipRect(self.ptr, null()) },
+    }
   }
 }
