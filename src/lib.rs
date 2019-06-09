@@ -85,8 +85,8 @@ use core::{
 use fermium::{
   SDL_EventType::*, SDL_GLattr::*, SDL_GLprofile::*, SDL_GameControllerAxis::*,
   SDL_GameControllerButton::*, SDL_Keymod::*, SDL_RendererFlags::*, SDL_Scancode::*,
-  SDL_WindowFlags::*, SDL_bool::*, _bindgen_ty_1::*, _bindgen_ty_2::*, _bindgen_ty_3::*,
-  _bindgen_ty_4::*, _bindgen_ty_5::*, _bindgen_ty_6::*, _bindgen_ty_7::*, *,
+  SDL_WindowEventID::*, SDL_WindowFlags::*, SDL_bool::*, _bindgen_ty_1::*, _bindgen_ty_2::*,
+  _bindgen_ty_3::*, _bindgen_ty_4::*, _bindgen_ty_5::*, _bindgen_ty_6::*, _bindgen_ty_7::*, *,
 };
 
 use libc::c_char;
