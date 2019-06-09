@@ -58,3 +58,10 @@ This line won't have any effect on the build outside Windows, so no worries.
 ## License
 
 This crate uses the Zlib license, the same license that SDL2 itself uses.
+
+### Contribution
+
+**PLEASE DO NOT PR TO MASTER**
+
+All new development goes to a dev branch. Updates are only transferred to the
+master branch when it's time to do a new release.

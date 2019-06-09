@@ -277,7 +277,7 @@ impl From<SDL_Event> for Event {
           repeat_count: event.key.repeat,
           key: KeyInfo::from(event.key.keysym),
         },
-        SDL_WINDOWEVENT => match SDL_WindowEventID::Type::from(event.window.event) {
+        SDL_WINDOWEVENT => match event.window.event as fermium::SDL_WindowEventID::Type {
           SDL_WINDOWEVENT_MOVED => Event::WindowMoved {
             timestamp: event.window.timestamp,
             window_id: event.window.windowID,

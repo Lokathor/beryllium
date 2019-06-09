@@ -1,6 +1,8 @@
 #![warn(missing_docs)]
 #![deny(missing_debug_implementations)]
-#![allow(clippy::needless_lifetimes)]
+#![deny(unreachable_patterns)]
+// fuck off clippy the types aren't the same on all systems
+#![allow(clippy::cast_lossless)]
 // The unsafe code relies on the idea that `usize` is at least `u32`
 #![cfg(any(target_pointer_width = "32", target_pointer_width = "64"))]
 
@@ -85,8 +87,9 @@ use core::{
 use fermium::{
   SDL_EventType::*, SDL_GLattr::*, SDL_GLcontextFlag::*, SDL_GLprofile::*,
   SDL_GameControllerAxis::*, SDL_GameControllerButton::*, SDL_Keymod::*, SDL_RendererFlags::*,
-  SDL_Scancode::*, SDL_WindowFlags::*, SDL_bool::*, _bindgen_ty_1::*, _bindgen_ty_2::*,
-  _bindgen_ty_3::*, _bindgen_ty_4::*, _bindgen_ty_5::*, _bindgen_ty_6::*, _bindgen_ty_7::*, *,
+  SDL_Scancode::*, SDL_WindowEventID::*, SDL_WindowFlags::*, SDL_bool::*, _bindgen_ty_1::*,
+  _bindgen_ty_2::*, _bindgen_ty_3::*, _bindgen_ty_4::*, _bindgen_ty_5::*, _bindgen_ty_6::*,
+  _bindgen_ty_7::*, *,
 };
 
 use libc::c_char;
@@ -268,9 +271,9 @@ impl SDLToken {
   /// Creates a new [Surface](Surface) with the desired format, or error.
   ///
   /// See [the wiki page](https://wiki.libsdl.org/SDL_CreateRGBSurface)
-  pub fn create_rgb_surface<'sdl>(
-    &'sdl self, width: i32, height: i32, format: SurfaceFormat,
-  ) -> Result<Surface<'sdl>, String> {
+  pub fn create_rgb_surface(
+    &self, width: i32, height: i32, format: SurfaceFormat,
+  ) -> Result<Surface<'_>, String> {
     let (depth, r_mask, g_mask, b_mask, a_mask) = match format {
       SurfaceFormat::Indexed4 => (4, 0, 0, 0, 0),
       SurfaceFormat::Indexed8 => (8, 0, 0, 0, 0),
@@ -346,7 +349,7 @@ impl SDLToken {
   }
 
   /// Attempts to open the given index as a Controller.
-  pub fn open_controller<'sdl>(&'sdl self, index: u32) -> Result<Controller<'sdl>, String> {
+  pub fn open_controller(&self, index: u32) -> Result<Controller<'_>, String> {
     let ptr = unsafe { SDL_GameControllerOpen(index as i32) };
     if ptr.is_null() {
       Err(get_error())
@@ -375,9 +378,9 @@ impl SDLToken {
   /// Attempts to open a default audio device in "queue" mode.
   ///
   /// If successful, the device will initially be paused.
-  pub fn open_default_audio_queue<'sdl>(
-    &'sdl self, request: DefaultAudioQueueRequest,
-  ) -> Result<AudioQueue<'sdl>, String> {
+  pub fn open_default_audio_queue(
+    &self, request: DefaultAudioQueueRequest,
+  ) -> Result<AudioQueue<'_>, String> {
     //
     let mut desired_spec = SDL_AudioSpec::default();
     desired_spec.freq = request.frequency;
