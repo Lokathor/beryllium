@@ -138,13 +138,34 @@ impl<'sdl> Surface<'sdl> {
   ///
   /// Either way, blits are clipped to be within bounds of the `Surface`, so you
   /// don't have to worry about that.
-  pub fn set_clip_rect(&mut self, opt_rect: Option<Rect>) -> bool {
+  pub fn set_clip_rect(&self, opt_rect: Option<Rect>) -> bool {
     match opt_rect {
       Some(rect) => {
         let r: SDL_Rect = rect.into();
         SDL_TRUE == unsafe { SDL_SetClipRect(self.ptr, &r) }
       }
       None => SDL_TRUE == unsafe { SDL_SetClipRect(self.ptr, null()) },
+    }
+  }
+
+  /// Gets the surface's palette, if any.
+  pub fn palette(&self) -> Option<&Palette> {
+    unsafe {
+      let format_nn = NonNull::new((*self.ptr).format);
+      let format_ref_nn = format_nn.as_ref();
+      core::mem::transmute(format_ref_nn)
+    }
+  }
+
+  /// Updates the palette for the surface's pixel format.
+  pub fn set_palette(&mut self, palette: &Palette) -> Result<(), String> {
+    // Note(Lokathor): This must take `&mut self` to ensure you don't have an
+    // active reference to the palette.
+    let out = unsafe { SDL_SetSurfacePalette(self.ptr, palette.nn.as_ptr()) };
+    if out == 0 {
+      Ok(())
+    } else {
+      Err(get_error())
     }
   }
 }

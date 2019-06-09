@@ -444,7 +444,7 @@ impl SDLToken {
 }
 
 impl PixelFormat<'_> {
-  /// Gets the RGB [Color](Color) components of a pixel value in this format.
+  /// Gets the RGB [Color] components of a pixel value in this format.
   ///
   /// * The alpha channel is always given as `0xFF`
   pub fn get_rgb(&self, pixel: u32) -> Color {
@@ -458,7 +458,7 @@ impl PixelFormat<'_> {
     out
   }
 
-  /// Gets the RGBA [Color](Color) components of a pixel value in this format.
+  /// Gets the RGBA [Color] components of a pixel value in this format.
   ///
   /// * The alpha channel is always given as `0xFF` if the format has no alpha
   ///   channel.
@@ -477,7 +477,7 @@ impl PixelFormat<'_> {
     out
   }
 
-  /// Maps a [Color](Color) value into an RGB pixel value in this format.
+  /// Maps a [Color] value into an RGB pixel value in this format.
   ///
   /// * If the format is paletted the closest index is returned.
   /// * If the format supports alpha it will be a fully opaque pixel.
@@ -487,7 +487,7 @@ impl PixelFormat<'_> {
     unsafe { SDL_MapRGB(self.nn.as_ptr(), color.r, color.g, color.b) }
   }
 
-  /// Maps a [Color](Color) value into an RGBA pixel value in this format.
+  /// Maps a [Color] value into an RGBA pixel value in this format.
   ///
   /// * If the format is paletted the closest index is returned.
   /// * If the format has no alpha channel or is paletted then the input alpha
@@ -498,8 +498,10 @@ impl PixelFormat<'_> {
     unsafe { SDL_MapRGBA(self.nn.as_ptr(), color.r, color.g, color.b, color.a) }
   }
 
-  /// Reassigns the [Palette](Palette) for this `PixelFormat`
-  pub fn set_palette(&self, palette: &Palette) -> Result<(), String> {
+  /// Reassigns the [Palette] for this `PixelFormat`
+  pub fn set_palette(&mut self, palette: &Palette) -> Result<(), String> {
+    // Note(Lokathor): This must take `&mut self` to ensure you don't have an
+    // active reference to the palette.
     let out = unsafe { SDL_SetPixelFormatPalette(self.nn.as_ptr(), palette.nn.as_ptr()) };
     if out == 0 {
       Ok(())
