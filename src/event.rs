@@ -215,6 +215,27 @@ pub enum Event {
     /// The window which has been restored.
     window_id: u32,
   },
+  /// Fired when a controller is connected.
+  ControllerAdded {
+    /// When the event happened
+    timestamp: u32,
+    /// The joystick device index of the device that was just added
+    device_index: u32,
+  },
+  /// Fired when a controller is removed.
+  ControllerRemoved {
+    /// When the event happened
+    timestamp: u32,
+    /// The instance id of the controller that was removed.
+    instance_id: i32,
+  },
+  /// Fired when the mapping for a controller is updated.
+  ControllerRemapped {
+    /// When the event happened
+    timestamp: u32,
+    /// The instance id of the controller whose mapping was updated.
+    instance_id: i32,
+  },
   /// It's always possible that we'll load some future version which will have
   /// event variants we don't understand, which we have to just ignore.
   UnknownEventType,
@@ -341,6 +362,25 @@ impl From<SDL_Event> for Event {
             window_id: event.window.windowID,
           },
           _ => Event::UnknownEventType,
+        },
+        SDL_CONTROLLERDEVICEADDED => {
+          // Is this possible?
+          if event.cdevice.which < 0 {
+            return Event::UnknownEventType;
+          }
+          Event::ControllerAdded {
+            timestamp: event.cdevice.timestamp,
+            // SDL functions, so this should be fine.
+            device_index: event.cdevice.which as u32,
+          }
+        },
+        SDL_CONTROLLERDEVICEREMOVED => Event::ControllerRemoved {
+          timestamp: event.cdevice.timestamp,
+          instance_id: event.cdevice.which,
+        },
+        SDL_CONTROLLERDEVICEREMAPPED => Event::ControllerRemapped {
+          timestamp: event.cdevice.timestamp,
+          instance_id: event.cdevice.which,
         },
         _ => Event::UnknownEventType,
       }

@@ -143,6 +143,28 @@ impl<'sdl> Controller<'sdl> {
       SDL_GameControllerGetButton(self.ptr, button as fermium::SDL_GameControllerButton::Type)
     }
   }
+
+  /// Get this controller's joystick instance id (it's `SDL_JoystickID`). This
+  /// is the value used by SDL when dispatching removal notifications about this
+  /// controller.
+  ///
+  /// Note: This is not the same as it's device index. The two values serve
+  /// similar purposes, but are unrelated beyond both referring to the same
+  /// item.
+  pub fn get_instance_id(&self) -> Result<i32, String> {
+    unsafe {
+      // Note: SDL owns this pointer, we don't want to free it.
+      let joystick_ptr = SDL_GameControllerGetJoystick(self.ptr);
+      if joystick_ptr.is_null() {
+        return Err(get_error());
+      }
+      let instance_id = SDL_JoystickInstanceID(joystick_ptr);
+      if instance_id < 0 {
+        return Err(get_error());
+      }
+      Ok(instance_id)
+    }
+  }
 }
 
 const INVERSE_AXIS_RANGE: f32 = 1.0 / (std::i16::MAX as f32);
