@@ -747,6 +747,29 @@ impl DisplayMode {
   }
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+#[repr(C)]
+pub struct Point {
+  x: i32,
+  y: i32,
+}
+impl From<SDL_Point> for Point {
+  fn from(other: SDL_Point) -> Self {
+    Self {
+      x: other.x,
+      y: other.y,
+    }
+  }
+}
+impl From<Point> for SDL_Point {
+  fn from(other: Point) -> Self {
+    Self {
+      x: other.x,
+      y: other.y,
+    }
+  }
+}
+
 /// Handle to some SDL2 rendering state.
 ///
 /// Helps you do things like upload data to the GPU and blit image data around.
@@ -784,6 +807,31 @@ impl<'sdl, 'win> Renderer<'sdl, 'win> {
   /// Clears the entire target, ignoring the viewport and clip rect.
   pub fn clear(&self) -> Result<(), String> {
     if unsafe { SDL_RenderClear(self.ptr) } == 0 {
+      Ok(())
+    } else {
+      Err(get_error())
+    }
+  }
+
+  /// Draws the line to include both end points.
+  pub fn draw_line(&self, x1: i32, y1: i32, x2: i32, y2: i32) -> Result<(), String> {
+    let out = unsafe { SDL_RenderDrawLine(self.ptr, x1, y1, x2, y2) };
+    if out == 0 {
+      Ok(())
+    } else {
+      Err(get_error())
+    }
+  }
+
+  /// Using the slice of `n` points, draws `n-1` lines end to end.
+  pub fn draw_lines(&self, points: &[Point]) -> Result<(), String> {
+    if points.len() > core::i32::MAX as usize {
+      return Err("beryllium error: len cannot exceed `i32::MAX`.".to_string());
+    }
+    let ptr = points.as_ptr() as *const SDL_Point;
+    let count = points.len() as i32;
+    let out = unsafe { SDL_RenderDrawLines(self.ptr, ptr, count) };
+    if out == 0 {
       Ok(())
     } else {
       Err(get_error())
