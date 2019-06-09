@@ -747,6 +747,9 @@ impl DisplayMode {
   }
 }
 
+/// Basic struct for 2D positions.
+///
+/// Used with some parts of the [Renderer].
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 #[repr(C)]
 pub struct Point {
@@ -804,7 +807,36 @@ impl<'sdl, 'win> Renderer<'sdl, 'win> {
     }
   }
 
-  /// Clears the entire target, ignoring the viewport and clip rect.
+  /// Obtains the current draw color.
+  pub fn draw_color(&self) -> Result<Color, String> {
+    let mut color = Color::default();
+    let out = unsafe {
+      SDL_GetRenderDrawColor(
+        self.ptr,
+        &mut color.r,
+        &mut color.g,
+        &mut color.b,
+        &mut color.a,
+      )
+    };
+    if out == 0 {
+      Ok(color)
+    } else {
+      Err(get_error())
+    }
+  }
+
+  /// Assigns the color used for drawing.
+  pub fn set_draw_color(&self, color: Color) -> Result<(), String> {
+    let out = unsafe { SDL_SetRenderDrawColor(self.ptr, color.r, color.g, color.b, color.a) };
+    if out == 0 {
+      Ok(())
+    } else {
+      Err(get_error())
+    }
+  }
+
+  /// Clears the render target with the current draw color.
   pub fn clear(&self) -> Result<(), String> {
     if unsafe { SDL_RenderClear(self.ptr) } == 0 {
       Ok(())
@@ -813,7 +845,7 @@ impl<'sdl, 'win> Renderer<'sdl, 'win> {
     }
   }
 
-  /// Draws the line to include both end points.
+  /// Draws a line that includes both end points.
   pub fn draw_line(&self, x1: i32, y1: i32, x2: i32, y2: i32) -> Result<(), String> {
     let out = unsafe { SDL_RenderDrawLine(self.ptr, x1, y1, x2, y2) };
     if out == 0 {
