@@ -76,6 +76,145 @@ pub enum Event {
     /// The information about the key being pressed or released.
     key: KeyInfo,
   },
+  /// Something has changed the size of the window.
+  ///
+  /// If (and only if) this was done by an external action (the user or window
+  /// manager changing the size of the window, for example), this event will be
+  /// followed by an [`Event::WindowResized`].
+  WindowSizeChanged {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which experienced a size change.
+    window_id: u32,
+    /// The new width of the window.
+    width: i32,
+    /// The new height of the window.
+    height: i32,
+  },
+  /// The size of the window has been changed externally.
+  ///
+  /// This event is always preceeded by a [`Event::WindowSizeChanged`], however
+  /// the inverse is not always true.
+  ///
+  /// The difference between these two events is that `Event::WindowResized` is
+  /// only generated if the resize is triggered externally (by a user, their
+  /// window manager, etc), and *not* by calls to `beryllium` functions which
+  /// may change the size of a window, such as `Window::set_size`,
+  /// `Window::set_display_mode`, whereas [`Event::WindowSizeChanged`] is called
+  /// whenever the size of the window is changed, regardless of the cause.
+  WindowResized {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which experienced a size change.
+    window_id: u32,
+    /// The new width of the window.
+    width: i32,
+    /// The new height of the window.
+    height: i32,
+  },
+  /// The window has been moved.
+  WindowMoved {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which experienced a size change.
+    window_id: u32,
+    /// The new x position of the window.
+    x: i32,
+    /// The new y position of the window.
+    y: i32,
+  },
+  /// The window manager requests that the window be closed.
+  WindowClosed {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which wants to be closed.
+    window_id: u32,
+  },
+  /// The window has gained keyboard focus.
+  ///
+  /// Inverse of [`Event::WindowLostFocus`].
+  WindowGainedFocus {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which gained keyboard focus.
+    window_id: u32,
+  },
+  /// The window has lost keyboard focus.
+  ///
+  /// Inverse of [`Event::WindowGainedFocus`].
+  WindowLostFocus {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which lost keyboard focus.
+    window_id: u32,
+  },
+  /// The window has gained mouse focus.
+  ///
+  /// Inverse of [`Event::MouseLeftWindow`].
+  MouseEnteredWindow {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which gained mouse focus.
+    window_id: u32,
+  },
+  /// The window has lost mouse focus.
+  ///
+  /// Inverse of [`Event::MouseEnteredWindow`].
+  MouseLeftWindow {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which lost mouse focus.
+    window_id: u32,
+  },
+  /// The window has been hidden.
+  ///
+  /// Inverse of [`Event::WindowShown`].
+  WindowHidden {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which gained or lost mouse focus.
+    window_id: u32,
+  },
+  /// The window has been shown.
+  ///
+  /// Inverse of [`Event::WindowHidden`].
+  WindowShown {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which gained or lost mouse focus.
+    window_id: u32,
+  },
+  /// The window needs repainting for one reason or another.
+  ///
+  /// This maps to `SDL_WINDOWEVENT_EXPOSED`, but has been renamed in order to
+  /// make it more clear what the event indicates.
+  WindowNeedsRepaint {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which gained or lost mouse focus.
+    window_id: u32,
+  },
+  /// The window has been minimized.
+  WindowMinimized {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which has been minimized.
+    window_id: u32,
+  },
+  /// The window has been maximized.
+  WindowMaximized {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which has been maximized.
+    window_id: u32,
+  },
+  /// The window has been restored to normal size and position.
+  WindowRestored {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which has been restored.
+    window_id: u32,
+  },
   /// It's always possible that we'll load some future version which will have
   /// event variants we don't understand, which we have to just ignore.
   UnknownEventType,
@@ -137,6 +276,71 @@ impl From<SDL_Event> for Event {
           is_key_down: u32::from(event.key.state) == SDL_PRESSED,
           repeat_count: event.key.repeat,
           key: KeyInfo::from(event.key.keysym),
+        },
+        SDL_WINDOWEVENT => match SDL_WindowEventID::Type::from(event.window.event) {
+          SDL_WINDOWEVENT_MOVED => Event::WindowMoved {
+            timestamp: event.window.timestamp,
+            window_id: event.window.windowID,
+            x: event.window.data1,
+            y: event.window.data2,
+          },
+          SDL_WINDOWEVENT_RESIZED => Event::WindowResized {
+            timestamp: event.window.timestamp,
+            window_id: event.window.windowID,
+            width: event.window.data1,
+            height: event.window.data2,
+          },
+          SDL_WINDOWEVENT_SIZE_CHANGED => Event::WindowSizeChanged {
+            timestamp: event.window.timestamp,
+            window_id: event.window.windowID,
+            width: event.window.data1,
+            height: event.window.data2,
+          },
+          SDL_WINDOWEVENT_CLOSE => Event::WindowClosed {
+            timestamp: event.window.timestamp,
+            window_id: event.window.windowID,
+          },
+          SDL_WINDOWEVENT_SHOWN => Event::WindowShown {
+            timestamp: event.window.timestamp,
+            window_id: event.window.windowID,
+          },
+          SDL_WINDOWEVENT_HIDDEN => Event::WindowHidden {
+            timestamp: event.window.timestamp,
+            window_id: event.window.windowID,
+          },
+          SDL_WINDOWEVENT_EXPOSED => Event::WindowNeedsRepaint {
+            timestamp: event.window.timestamp,
+            window_id: event.window.windowID,
+          },
+          SDL_WINDOWEVENT_MINIMIZED => Event::WindowMinimized {
+            timestamp: event.window.timestamp,
+            window_id: event.window.windowID,
+          },
+          SDL_WINDOWEVENT_MAXIMIZED => Event::WindowMaximized {
+            timestamp: event.window.timestamp,
+            window_id: event.window.windowID,
+          },
+          SDL_WINDOWEVENT_RESTORED => Event::WindowRestored {
+            timestamp: event.window.timestamp,
+            window_id: event.window.windowID,
+          },
+          SDL_WINDOWEVENT_ENTER => Event::MouseEnteredWindow {
+            timestamp: event.window.timestamp,
+            window_id: event.window.windowID,
+          },
+          SDL_WINDOWEVENT_LEAVE => Event::MouseLeftWindow {
+            timestamp: event.window.timestamp,
+            window_id: event.window.windowID,
+          },
+          SDL_WINDOWEVENT_FOCUS_GAINED => Event::WindowGainedFocus {
+            timestamp: event.window.timestamp,
+            window_id: event.window.windowID,
+          },
+          SDL_WINDOWEVENT_FOCUS_LOST => Event::WindowLostFocus {
+            timestamp: event.window.timestamp,
+            window_id: event.window.windowID,
+          },
+          _ => Event::UnknownEventType,
         },
         _ => Event::UnknownEventType,
       }
