@@ -85,6 +85,53 @@ pub const CONTEXT_PROFILE_CORE: i32 = SDL_GL_CONTEXT_PROFILE_CORE as i32;
 /// Requests an OpenGL ES context.
 pub const CONTEXT_PROFILE_ES: i32 = SDL_GL_CONTEXT_PROFILE_ES as i32;
 
+/// A flag for use with [`GLattr::ContextFlags`].
+///
+/// This flag maps to `GLX_CONTEXT_DEBUG_BIT_ARB` in the
+/// `GLX_ARB_create_context` extension for X11 and `WGL_CONTEXT_DEBUG_BIT_ARB`
+/// in the `WGL_ARB_create_context` extension for Windows. This flag is
+/// currently ignored on other targets that don't support equivalent
+/// functionality. This flag is intended to put the GL into a "debug" mode which
+/// might offer better developer insights, possibly at a loss of performance
+/// (although a given GL implementation may or may not do anything differently
+/// in the presence of this flag).
+pub const CONTEXT_DEBUG_FLAG: i32 = SDL_GL_CONTEXT_DEBUG_FLAG as i32;
+
+/// A flag for use with [`GLattr::ContextFlags`].
+///
+/// This flag maps to `GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB` in the
+/// `GLX_ARB_create_context` extension for X11 and
+/// `WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB` in the `WGL_ARB_create_context`
+/// extension for Windows. This flag is currently ignored on other targets that
+/// don't support equivalent functionality. This flag is intended to put the GL
+/// into a "forward compatible" mode, which means that no deprecated
+/// functionality will be supported, possibly at a gain in performance, and only
+/// applies to GL 3.0 and later contexts.
+pub const CONTEXT_FORWARD_COMPATIBLE_FLAG: i32 = SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG as i32;
+
+/// A flag for use with [`GLattr::ContextFlags`].
+///
+/// This flag maps to `GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB` in the
+/// `GLX_ARB_create_context_robustness` extension for X11 and
+/// `WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB` in the `WGL_ARB_create_context_robustness`
+/// extension for Windows. This flag is currently ignored on other targets that
+/// don't support equivalent functionality. This flag is intended to require a
+/// GL context that supports the GL_ARB_robustness extension--a mode that offers
+/// a few APIs that are safer than the usual defaults (think `snprintf()` vs
+/// `sprintf()`).
+pub const CONTEXT_ROBUST_ACCESS_FLAG: i32 = SDL_GL_CONTEXT_ROBUST_ACCESS_FLAG as i32;
+
+/// A flag for use with [`GLattr::ContextFlags`].
+///
+/// This flag maps to `GLX_CONTEXT_RESET_ISOLATION_BIT_ARB` in the
+/// `GLX_ARB_robustness_isolation` extension for X11 and
+/// `WGL_CONTEXT_RESET_ISOLATION_BIT_ARB` in the `WGL_ARB_robustness_isolation`
+/// extension for Windows. This flag is currently ignored on other targets that
+/// don't support equivalent functionality. This flag is intended to require the
+/// GL to make promises about what to do in the face of driver or hardware
+/// failure.
+pub const CONTEXT_RESET_ISOLATION_FLAG: i32 = SDL_GL_CONTEXT_RESET_ISOLATION_FLAG as i32;
+
 /// Handle for an OpenGL context.
 ///
 /// # General Safety
