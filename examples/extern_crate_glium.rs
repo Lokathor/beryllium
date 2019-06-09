@@ -41,6 +41,7 @@ fn main() -> Result<(), String> {
 
   'game_loop: loop {
     while let Some(event) = sdl.poll_event() {
+      #[allow(clippy::single_match)]
       match event {
         Event::Quit { timestamp } => {
           println!("Quitting the program after {} milliseconds.", timestamp);
@@ -109,13 +110,13 @@ impl<'sdl> BerylliumBackend<'sdl> {
   /// Reference to the held Window.
   pub fn window(&self) -> &Window<'sdl> {
     let r: &*mut fermium::SDL_Window = &self.win_ptr;
-    unsafe { core::mem::transmute(r) }
+    unsafe { &*(r as *const *mut fermium::SDL_Window as *const Window<'sdl>) }
   }
 
   /// Reference to the held GLContext
   pub fn context(&self) -> &GLContext<'sdl, 'sdl> {
     let r: &fermium::SDL_GLContext = &self.ctx;
-    unsafe { core::mem::transmute(r) }
+    unsafe { &*(r as *const fermium::SDL_GLContext as *const GLContext<'sdl, 'sdl>) }
   }
 }
 
@@ -132,7 +133,7 @@ unsafe impl Backend for BerylliumBackend<'_> {
     // Note: We can make up a &SDLToken "out of nowhere" because if this window
     // exists then naturally SDL2 is currently initialized. We choose a
     // reference instead of an owned value so that we don't drop the token.
-    core::mem::transmute::<&(), &SDLToken>(&()).gl_get_proc_address(symbol)
+    (&*(&() as *const () as *const beryllium::SDLToken)).gl_get_proc_address(symbol)
   }
   fn get_framebuffer_dimensions(&self) -> (u32, u32) {
     let (w, h) = unsafe { self.window().gl_get_drawable_size() };

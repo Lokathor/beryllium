@@ -30,6 +30,6 @@ before_script:
   - rustup component add clippy
 
 script:
-  - cargo clippy -- -D warnings
+  - cargo clippy --all --all-features --all-targets -- -D warnings
   - cargo build
   - cargo test
