@@ -658,10 +658,10 @@ impl<'sdl> Window<'sdl> {
   /// from the "logical pixels" value you get when you call
   /// [size](Window::size). This is primarily for use with
   /// [glViewport](https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glViewport.xhtml)
-  pub unsafe fn gl_get_drawable_size(&self) -> (i32, i32) {
+  pub fn gl_get_drawable_size(&self) -> (i32, i32) {
     let mut w = 0;
     let mut h = 0;
-    SDL_GL_GetDrawableSize(self.ptr, &mut w, &mut h);
+    unsafe { SDL_GL_GetDrawableSize(self.ptr, &mut w, &mut h) };
     (w, h)
   }
 
