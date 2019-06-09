@@ -18,7 +18,7 @@ install:
 build: false
 
 test_script:
-  - cargo clippy -- -D warnings
+  - cargo clippy --all --all-features --all-targets -- -D warnings
   - cargo build
   - cargo test -- --test-threads=1
 

@@ -33,6 +33,7 @@ fn main() -> Result<(), String> {
 
   'game_loop: loop {
     while let Some(event) = sdl.poll_event() {
+      #[allow(clippy::single_match)]
       match event {
         Event::Quit { timestamp } => {
           println!("Quitting the program after {} milliseconds.", timestamp);

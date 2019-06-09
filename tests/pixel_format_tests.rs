@@ -1,3 +1,5 @@
+#![allow(clippy::type_complexity, clippy::cognitive_complexity)]
+
 use beryllium::*;
 
 #[rustfmt::skip]
@@ -164,7 +166,7 @@ pub fn test_compare_with_header_definitions() {
   let (basics, flags) = basics_flags(format);
   assert_eq!(basics, (PixelType::Packed32, PixelOrder::Packed(PackedPixelOrder::ARGB), PixelLayout::_2101010, 32, 4));
   assert_eq!(flags, (false, true, false, false));
-  
+
   // The fourcc pixel formats are standards based values that don't follow
   // SDL2's bit packing scheme, so they basically have nonsense as their
   // "basics" entries, however, the fourcc flag result must always be correct.

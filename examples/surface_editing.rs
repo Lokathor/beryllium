@@ -58,7 +58,13 @@ fn main() -> Result<(), String> {
     // you just get a byte pointer and you have to cast it to the type for the
     // size of pixel data you're working with.
     unsafe {
+      #[allow(clippy::cast_ptr_alignment)]
       surface.lock_edit(|ptr| {
+        assert_eq!(
+          (ptr as usize) & 3,
+          0,
+          "Got an unaligned pointer from the surface"
+        );
         for (x, y) in mouse_points.drain(..) {
           // Note: pitch values are provided **in bytes**, so cast to the pixel
           // type after you offset to the start of the target row.
