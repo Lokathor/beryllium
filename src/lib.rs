@@ -85,9 +85,8 @@ use core::{
 use fermium::{
   SDL_EventType::*, SDL_GLattr::*, SDL_GLcontextFlag::*, SDL_GLprofile::*,
   SDL_GameControllerAxis::*, SDL_GameControllerButton::*, SDL_Keymod::*, SDL_RendererFlags::*,
-  SDL_Scancode::*, SDL_WindowEventID::*, SDL_WindowFlags::*, SDL_bool::*, _bindgen_ty_1::*,
-  _bindgen_ty_2::*, _bindgen_ty_3::*, _bindgen_ty_4::*, _bindgen_ty_5::*, _bindgen_ty_6::*,
-  _bindgen_ty_7::*, *,
+  SDL_Scancode::*, SDL_WindowFlags::*, SDL_bool::*, _bindgen_ty_1::*, _bindgen_ty_2::*,
+  _bindgen_ty_3::*, _bindgen_ty_4::*, _bindgen_ty_5::*, _bindgen_ty_6::*, _bindgen_ty_7::*, *,
 };
 
 use libc::c_char;
@@ -748,9 +747,42 @@ impl DisplayMode {
   }
 }
 
+/// Basic struct for 2D positions.
+///
+/// Used with some parts of the [Renderer].
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+#[repr(C)]
+pub struct Point {
+  x: i32,
+  y: i32,
+}
+impl From<SDL_Point> for Point {
+  fn from(other: SDL_Point) -> Self {
+    Self {
+      x: other.x,
+      y: other.y,
+    }
+  }
+}
+impl From<Point> for SDL_Point {
+  fn from(other: Point) -> Self {
+    Self {
+      x: other.x,
+      y: other.y,
+    }
+  }
+}
+
 /// Handle to some SDL2 rendering state.
 ///
 /// Helps you do things like upload data to the GPU and blit image data around.
+///
+/// **To be clear: This is not a super fast renderer.** It's easy to use and you
+/// can get an image on the screen, but if you want do much at all that's
+/// computationally expensive you'll need to use a proper hardware API (OpenGL,
+/// Vulkan, etc). Also, you cannot really mix this renderer with the hardware
+/// APIs. They both expect to have full control of the pixel process. Use this
+/// _or_ a hardware API.
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct Renderer<'sdl, 'win> {
@@ -782,9 +814,63 @@ impl<'sdl, 'win> Renderer<'sdl, 'win> {
     }
   }
 
-  /// Clears the entire target, ignoring the viewport and clip rect.
+  /// Obtains the current draw color.
+  pub fn draw_color(&self) -> Result<Color, String> {
+    let mut color = Color::default();
+    let out = unsafe {
+      SDL_GetRenderDrawColor(
+        self.ptr,
+        &mut color.r,
+        &mut color.g,
+        &mut color.b,
+        &mut color.a,
+      )
+    };
+    if out == 0 {
+      Ok(color)
+    } else {
+      Err(get_error())
+    }
+  }
+
+  /// Assigns the color used for drawing.
+  pub fn set_draw_color(&self, color: Color) -> Result<(), String> {
+    let out = unsafe { SDL_SetRenderDrawColor(self.ptr, color.r, color.g, color.b, color.a) };
+    if out == 0 {
+      Ok(())
+    } else {
+      Err(get_error())
+    }
+  }
+
+  /// Clears the render target with the current draw color.
   pub fn clear(&self) -> Result<(), String> {
     if unsafe { SDL_RenderClear(self.ptr) } == 0 {
+      Ok(())
+    } else {
+      Err(get_error())
+    }
+  }
+
+  /// Draws a line that includes both end points.
+  pub fn draw_line(&self, x1: i32, y1: i32, x2: i32, y2: i32) -> Result<(), String> {
+    let out = unsafe { SDL_RenderDrawLine(self.ptr, x1, y1, x2, y2) };
+    if out == 0 {
+      Ok(())
+    } else {
+      Err(get_error())
+    }
+  }
+
+  /// Using the slice of `n` points, draws `n-1` lines end to end.
+  pub fn draw_lines(&self, points: &[Point]) -> Result<(), String> {
+    if points.len() > core::i32::MAX as usize {
+      return Err("beryllium error: len cannot exceed `i32::MAX`.".to_string());
+    }
+    let ptr = points.as_ptr() as *const SDL_Point;
+    let count = points.len() as i32;
+    let out = unsafe { SDL_RenderDrawLines(self.ptr, ptr, count) };
+    if out == 0 {
       Ok(())
     } else {
       Err(get_error())
