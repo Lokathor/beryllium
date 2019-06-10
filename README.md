@@ -8,20 +8,30 @@
 An opinionated set of "high level" wrappers for the
 [fermium](https://github.com/Lokathor/fermium) SDL2 bindings.
 
+There are [examples](/examples/) available if you want to see it in action.
+
 ## Mindset
 
-I attempt to make things as safe as is _reasonable_, without actually doing
-anything that would hurt the API design.
-
-There are [examples](/examples/) available if you want a sample of what things
-look like in practice.
+* Correctness is evaluated at compile time through lifetime tracking. Many
+  people don't like having said lifetimes because it makes it hard to put stuff
+  together into the same struct. I'm trying to keep it to a minimum without
+  being unsafe. If you'd like to take the wheel yourself you're invited to. The
+  [glium example](/examples/extern_crate_glium.rs) has some code that
+  (carefully) uses a bunch of transmutes to keep lifetime trouble to a minimum
+  while also mixing several things up into one big struct. Going forward, I'll
+  try to improve in this area as much as possible.
+* Sometimes you just gotta write some `unsafe` code, and that's all there is to
+  it. I can't cover up every dangerous possibility for you. I don't really
+  consider this a major drawback, but you might think differently. I still try
+  to keep the `unsafe` to a minimum of course.
 
 ## Building
 
-Obviously this uses SDL2. You need version 2.0.9 or later:
+Obviously this uses SDL2. The [fermium](https://docs.rs/fermium) crate is used
+as the bindings crate. You will need version 2.0.9 or later:
 
-* On Windows the necessary files are provided automatically, and you don't need
-  to do _any_ special setup at all.
+* On Windows all necessary files are provided automatically by `fermium`, you
+  don't need to do _any_ special setup at all.
 * On non-Windows you need to have installed SDL2 yourself ahead of time:
   * You'll need the `-fPIC` flag enabled in your SDL2 install! This is necessary
     because the build will static link to SDL2 by default.
@@ -33,9 +43,8 @@ Obviously this uses SDL2. You need version 2.0.9 or later:
     or adjust it to fit your needs. Linux programmer are all pros, right?
   * If you attempt to build the lib and it fails because SDL2 isn't installed
     you'll have to run `cargo clean` to make the `build.rs` work.
-
-The `fermium` bindings do a static compilation by default, so once you build
-your program it won't need to be shipped with any extra files.
+* In both cases, the default linking is a static linking, so your program won't
+  need to also ship any developer files once the compilation is completed.
 
 ### Window Subsystem
 
@@ -63,5 +72,9 @@ This crate uses the Zlib license, the same license that SDL2 itself uses.
 
 **PLEASE DO NOT PR TO MASTER**
 
-All new development goes to a dev branch. Updates are only transferred to the
-master branch when it's time to do a new release.
+All new development goes to a
+[dev](https://github.com/Lokathor/beryllium/tree/dev) branch. Updates are only
+transferred to the `master` branch when it's time to do a new release to
+crates.io. Some call it odd, but I just like having the `master` branch always
+reflect the latest available on crates.io whenever possible to keep confusion to
+a minimum when jumping between the two websites.
