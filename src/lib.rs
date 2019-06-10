@@ -1001,7 +1001,7 @@ impl<'sdl> CDyLib<'sdl> {
   ///   this library unloads is up to you.
   pub unsafe fn find_function(&self, name: &str) -> Option<NonNull<c_void>> {
     let name_null: Vec<u8> = name.bytes().chain(Some(0)).collect();
-    let see_void = SDL_LoadFunction(self.ptr, name_null.as_ptr() as *const c_char);
-    core::mem::transmute::<*mut c_void, Option<NonNull<c_void>>>(see_void)
+    let name_ptr: *const c_char = name_null.as_ptr() as *const c_char;
+    NonNull::new(SDL_LoadFunction(self.ptr, name_ptr))
   }
 }
