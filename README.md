@@ -75,6 +75,8 @@ This crate uses the Zlib license, the same license that SDL2 itself uses.
 All new development goes to a
 [dev](https://github.com/Lokathor/beryllium/tree/dev) branch. Updates are only
 transferred to the `master` branch when it's time to do a new release to
-crates.io. Some call it odd, but I just like having the `master` branch always
-reflect the latest available on crates.io whenever possible to keep confusion to
-a minimum when jumping between the two websites.
+crates.io.
+
+Some call it odd, but I just like having the `master` branch always reflect the
+latest available on crates.io whenever possible to keep confusion to a minimum
+when jumping between the two websites.
