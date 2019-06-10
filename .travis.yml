@@ -13,6 +13,14 @@ os:
   - linux
   - osx
 
+branches:
+  only:
+    - staging
+    - trying
+    - master
+    - dev
+    - lokathor
+
 before_script:
   - |
     if [[ $TRAVIS_OS == "osx" ]]
