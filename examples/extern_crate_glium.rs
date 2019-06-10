@@ -136,7 +136,7 @@ unsafe impl Backend for BerylliumBackend<'_> {
     (&*(&() as *const () as *const beryllium::SDLToken)).gl_get_proc_address(symbol)
   }
   fn get_framebuffer_dimensions(&self) -> (u32, u32) {
-    let (w, h) = unsafe { self.window().gl_get_drawable_size() };
+    let (w, h) = self.window().gl_get_drawable_size();
     (w as u32, h as u32)
   }
   fn is_current(&self) -> bool {
