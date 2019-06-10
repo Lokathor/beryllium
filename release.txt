@@ -1,1 +1,1 @@
-cargo release patch --no-dev-version
+cargo release --dry-run --skip-push --no-dev-version
