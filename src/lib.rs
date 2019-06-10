@@ -455,7 +455,12 @@ impl WindowFlags {
   phantom_fields! {
     self.0: SDL_WindowFlags_Type,
     fullscreen: SDL_WINDOW_FULLSCREEN,
+    /// Make a window with OpenGL Support
     opengl: SDL_WINDOW_OPENGL,
+    /// The window is _currently_ being shown.
+    ///
+    /// Newly created windows are always shown, you don't need to pass this flag
+    /// to the window creation (though it doesn't hurt I guess).
     shown: SDL_WINDOW_SHOWN,
     hidden: SDL_WINDOW_HIDDEN,
     borderless: SDL_WINDOW_BORDERLESS,
