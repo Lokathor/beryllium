@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 use super::*;
 
 /// Rectangle struct, origin at the upper left.
@@ -6,9 +8,7 @@ use super::*;
 /// coordinate system to use, but that's what SDL2 does so that's what we're
 /// stuck with.
 ///
-/// **Note::** This type implements all necessary functionality directly in
-/// Rust. You can use it at any time, regardless of if SDL2 is currently
-/// initialized or not.
+/// **Note:** _This type has been rewritten in Rust._
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 #[allow(missing_docs)]
 #[repr(C)]

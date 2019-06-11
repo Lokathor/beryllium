@@ -66,8 +66,8 @@ fn main() -> Result<(), String> {
 /// We keep them in their raw form and keep a phantom link to the SDLToken
 /// because it makes the whole lifetime thing a lot easier to deal with.
 pub struct BerylliumBackend<'sdl> {
-  win_ptr: *mut fermium::SDL_Window,
-  ctx: fermium::SDL_GLContext,
+  win_ptr: *mut beryllium::unsafe_raw_ffi::SDL_Window,
+  ctx: beryllium::unsafe_raw_ffi::SDL_GLContext,
   _marker: PhantomData<&'sdl SDLToken>,
 }
 
@@ -97,8 +97,8 @@ impl<'sdl> BerylliumBackend<'sdl> {
   pub fn from_window(window: Window<'sdl>) -> Result<Self, String> {
     unsafe {
       let context: GLContext = window.gl_create_context()?;
-      let ctx: fermium::SDL_GLContext = core::mem::transmute(context);
-      let win_ptr: *mut fermium::SDL_Window = core::mem::transmute(window);
+      let ctx: beryllium::unsafe_raw_ffi::SDL_GLContext = core::mem::transmute(context);
+      let win_ptr: *mut beryllium::unsafe_raw_ffi::SDL_Window = core::mem::transmute(window);
       Ok(Self {
         win_ptr,
         ctx,
@@ -109,14 +109,16 @@ impl<'sdl> BerylliumBackend<'sdl> {
 
   /// Reference to the held Window.
   pub fn window(&self) -> &Window<'sdl> {
-    let r: &*mut fermium::SDL_Window = &self.win_ptr;
-    unsafe { &*(r as *const *mut fermium::SDL_Window as *const Window<'sdl>) }
+    let r: &*mut beryllium::unsafe_raw_ffi::SDL_Window = &self.win_ptr;
+    unsafe { &*(r as *const *mut beryllium::unsafe_raw_ffi::SDL_Window as *const Window<'sdl>) }
   }
 
   /// Reference to the held GLContext
   pub fn context(&self) -> &GLContext<'sdl, 'sdl> {
-    let r: &fermium::SDL_GLContext = &self.ctx;
-    unsafe { &*(r as *const fermium::SDL_GLContext as *const GLContext<'sdl, 'sdl>) }
+    let r: &beryllium::unsafe_raw_ffi::SDL_GLContext = &self.ctx;
+    unsafe {
+      &*(r as *const beryllium::unsafe_raw_ffi::SDL_GLContext as *const GLContext<'sdl, 'sdl>)
+    }
   }
 }
 

@@ -9,73 +9,87 @@
 //! An opinionated set of "high level" wrappers for the
 //! [fermium](https://github.com/Lokathor/fermium) SDL2 bindings.
 //!
-//! * Very little of SDL2 can be called before you initialize the library. As a
-//!   result, there's only a very small number of functions available as top
-//!   level functions:
-//!   * [version](version) can be called to check what version of SDL2 is being
-//!     used. Because of SDL2's [Dynamic API](https://tinyurl.com/y2fndelh), it
-//!     is possible for a user to try and run the program using an future,
-//!     SemVer compatible version of SDL2. It would be a great indignity if you
-//!     didn't allow them to do this, but you can still check the version and
-//!     log it perhaps.
-//!   * [get_error](get_error) can be called at any time, though before you
-//!     initialize SDL2 the error string will probably be blank. You _very
-//!     rarely_ have to call this yourself. Any necessary error strings are
-//!     almost always passed back to you as part of a `Result` type.
-//!   * [lone_message_box](lone_message_box) opens a simple message box where
-//!     you can display that some critical file is missing or something like
-//!     that instead of failing with no message at all. It is `unsafe` because
-//!     you must only call it from the `main` thread.
-//!       * See also: [Window::modal_message_box](Window::modal_message_box)
-//!   * [init](init) is how you initialize SDL2. If successful it gives you an
-//!     [SDLToken](SDLToken) which has all the necessary methods to do
-//!     everything else. It is `unsafe` because you must only call this from the
-//!     `main` thread, and you must never double initialize SDL2.
+//! ## Initialization And Usage
+//!
+//! Very little of SDL2 can be called before you initialize the library. This
+//! must be done from the main thread and it must be done only once. `beryllium`
+//! will safely block any double initialization, but I can't enforce that you're
+//! on the main thread.
+//!
+//! ```rust
+//! let sdl = unsafe {
+//!   beryllium::init().expect("Couldn't initialize SDL2!")
+//! };
+//! ```
+//!
+//! Initialization gives you an [SDLToken](SDLToken) (no, I will not change the
+//! name to `SdlToken`, that's stupid). This token is the "proof" that you've
+//! got SDL2 initialized. Basically every other part of the library is a method
+//! off of this token value (polling for events, opening a window, etc), or it's
+//! a method of a struct that you create off of this token value (the window you
+//! opened, an audio queue, etc).
+//!
+//! There's a limited number of other functions that are fine to call even if
+//! SDL2 is _not_ initialized, and so they're stand alone top level functions:
+//!
+//! * [version](version)
+//! * [get_error](get_error)
+//! * [lone_message_box](lone_message_box)
 //!
 //! _Very little_ of SDL2 is thread-safe. Your code that interacts with SDL2
 //! will mostly be locked into just the `main` thread. This isn't a huge deal in
 //! practice, but it's something that people might want to know up font.
 //!
-//! ## Safety
+//! ## Safety and Lifetimes
 //!
-//! As much as possible, SDL2 is carefully wrapped into a safe interface for you
-//! to use. That said, there's a few points that still can't be made 100% safe,
-//! so you will have to use `unsafe` in some places.
+//! I'm aiming to make as much of the API safe as is possible, but unfortunately
+//! not 100% of the interface can be safe. Things are only as safe as they can
+//! get, I don't want to ever over promise.
 //!
-//! ## Lifetimes
+//! Much of the static safety is done with lifetime tracking, which can make it
+//! hard to merge different `beryllium` values into a single struct.
+//! Particularly, values can't easily be combined with their "parent" value. I
+//! honestly don't try to do this kind of thing in my own programs. I just have
+//! a few free floating values on the stack and then I try to interact with SDL2
+//! as absolutely little as possible. It's an OS abstraction layer, it's not
+//! your friend.
 //!
-//! Sadly, we gotta track some lifetimes here. Anything with a heap allocation
-//! or other OS resource needs to live within the lifetime of its parent. I
-//! assure you that the lifetime tracking is happening via
-//! [PhantomData](PhantomData), no runtime cost here.
+//! If you _really_ feel like you want to try and stick things together into a
+//! single struct and then pass that combination around all through the program
+//! and stuff, feel free to use [transmute](core::mem::transmute) to fake the
+//! lifetimes involved and [ManuallyDrop](core::mem::ManuallyDrop) to carefully
+//! clean it up at the end. Or you could go use the [sdl2](https://docs.rs/sdl2)
+//! crate, which handles everything by tracking which subsystems are active via
+//! an [Rc](https://doc.rust-lang.org/std/rc/struct.Rc.html) value in
+//! practically everything.
 //!
-//! Almost all lifetime tracking is restricted to things needing to live no
-//! longer than the life of the `SDLToken`, which isn't a very big deal at all.
+//! Please note that safety assumptions are usually based on actually looking at
+//! the current version's C code, so if an end user uses the [Dynamic
+//! API](https://github.com/SDL-mirror/SDL/blob/master/docs/README-dynapi.md) to
+//! override the version of SDL2 used it's _possible_ they could break safety.
+//! It's honestly their fault at that point, not yours or mine. I'm not trying
+//! to be glib about it, but calling _arbitrary_ code can't be safety checked.
+//! That said, it's an important end user ability that should not be removed.
 //!
-//! ## Naming
+//! ## Rewritten In Rust
 //!
-//! I've attempted to stick to SDL2's naming for things unless there's an
-//! obviously more Rusty name to use instead.
+//! Select portions of the SDL2 API _have_ been re-written entirely in Rust
+//! (insert memes here). Instead of making a call to whichever SDL2 I simply
+//! ported the appropriate code to Rust.
 //!
-//! The main exception I can think of is that all `AllocFoo`/`FreeFoo` and
-//! `CreateFoo`/`DestroyFoo` pairs for creation and destruction have been
-//! replaced with just using `new_foo` for creation and [Drop](Drop) for
-//! cleanup.
+//! * **The Good:**
+//!   * It's easier (for us Rust programmers) to understand Rust than C.
+//!   * LLVM can inline Rust code (when appropriate and such).
+//! * **The Bad:**
+//!   * This takes more dev time to make sure that the new Rust matches the
+//!     semantics of the C it's replacing.
+//! * **The Ugly:**
+//!   * If there's a bug user's can use the Dynamic API to apply a patch, so we
+//!     don't want to do this for anything hardware or OS related (those are the
+//!     things most like to need driver fixes).
 //!
-//! ## Organization
-//!
-//! Internally the code is split up into modules because that's easier to work
-//! with, however the public API is that everything is just at the top level of
-//! the crate because that's far easier to work with. The only down side to this
-//! is that some compiler error messages will list the internal module name in
-//! the path. It's a little annoying, but that's more the fault of `rustc` than
-//! anything else.
-//!
-//! ## Failures
-//!
-//! If a call returns [Option](Option) or [Result](Result), I will make an
-//! effort to document what's likely to cause that. However, it's always
-//! possible that additional error conditions might exist.
+//! So it's not a lot, and it probably won't ever be a lot, but some _small_
+//! parts have been rewritten in Rust.
 
 use core::{
   convert::TryFrom,
@@ -83,7 +97,9 @@ use core::{
   marker::PhantomData,
   ptr::{null, null_mut, NonNull},
   slice::from_raw_parts,
+  sync::atomic::{AtomicBool, Ordering},
 };
+
 use fermium::{
   SDL_EventType::*, SDL_GLattr::*, SDL_GLcontextFlag::*, SDL_GLprofile::*,
   SDL_GameControllerAxis::*, SDL_GameControllerButton::*, SDL_Keymod::*, SDL_RendererFlags::*,
@@ -130,6 +146,9 @@ pub use texture::*;
 
 mod rect;
 pub use rect::*;
+
+/// In case of emergency, you can break the glass.
+pub use fermium as unsafe_raw_ffi;
 
 /// Grabs up the data from a null terminated string pointer.
 unsafe fn gather_string(ptr: *const c_char) -> String {
@@ -221,20 +240,34 @@ pub unsafe fn lone_message_box(
 
 /// Initializes SDL2 and gives you a token as proof, or an error message.
 ///
+/// # Failure
+///
+/// * You cannot double initialize SDL2, you'll get an error.
+/// * If SDL2 fails to initialize you'll get an error and it will revert itself
+///   to an uninitialized state, perhaps allowing you to try again.
+///
 /// # Safety
 ///
 /// * This can only be called from the main thread (because of a
-///   [macOS](https://tinyurl.com/y5bv7g4v) limit built into Cocoa)
-/// * you cannot double initialize SDL2.
+///   [macOS](https://tinyurl.com/y5bv7g4v) limit built into Cocoa).
 pub unsafe fn init() -> Result<SDLToken, String> {
-  if SDL_Init(SDL_INIT_EVERYTHING) == 0 {
-    Ok(SDLToken {
-      _marker: PhantomData,
-    })
+  if I_THINK_THAT_SDL2_IS_ACTIVE.swap(true, Ordering::SeqCst) {
+    // Note(Lokathor): `swap` gives the old value back, so if we get back `true`
+    // that means it was already active, so that's an error.
+    Err("The library is currently initialized!".to_string())
   } else {
-    Err(get_error())
+    if SDL_Init(SDL_INIT_EVERYTHING) == 0 {
+      Ok(SDLToken {
+        _marker: PhantomData,
+      })
+    } else {
+      let out = get_error();
+      I_THINK_THAT_SDL2_IS_ACTIVE.store(false, Ordering::SeqCst);
+      Err(out)
+    }
   }
 }
+static I_THINK_THAT_SDL2_IS_ACTIVE: AtomicBool = AtomicBool::new(false);
 
 /// The `SDLToken` is proof that you have initialized SDL2.
 ///
@@ -248,6 +281,7 @@ pub struct SDLToken {
 impl Drop for SDLToken {
   fn drop(&mut self) {
     unsafe { SDL_Quit() }
+    I_THINK_THAT_SDL2_IS_ACTIVE.store(false, Ordering::SeqCst);
   }
 }
 #[test]
