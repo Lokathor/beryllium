@@ -100,8 +100,8 @@ impl Rect {
   pub fn union(&self, other: &Rect) -> Rect {
     match (self.is_empty(), other.is_empty()) {
       (true, true) => Rect::default(),
-      (true, false) => other.clone(),
-      (false, true) => self.clone(),
+      (true, false) => *other,
+      (false, true) => *self,
       (false, false) => {
         let mut out = Rect::default();
 
