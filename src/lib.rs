@@ -261,7 +261,7 @@ impl SDLToken {
   /// wiki](https://wiki.libsdl.org/SDL_CreateWindow) for guidance.
   pub fn create_window<'sdl>(
     &'sdl self, title: &str, x: i32, y: i32, w: i32, h: i32, flags: WindowFlags,
-  ) -> Result<Window<'sdl>, String> {
+  ) -> Result<crate::window::Window<'sdl>, String> {
     let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
     let ptr = unsafe {
       SDL_CreateWindow(

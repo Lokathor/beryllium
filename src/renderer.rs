@@ -33,7 +33,7 @@ impl RendererFlags {
 #[repr(transparent)]
 pub struct Renderer<'sdl, 'win> {
   pub(crate) ptr: *mut SDL_Renderer,
-  pub(crate) _marker: PhantomData<&'win Window<'sdl>>,
+  pub(crate) _marker: PhantomData<&'win crate::window::Window<'sdl>>,
 }
 impl<'sdl, 'win> Drop for Renderer<'sdl, 'win> {
   fn drop(&mut self) {
