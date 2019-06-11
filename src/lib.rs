@@ -255,16 +255,14 @@ pub unsafe fn init() -> Result<SDLToken, String> {
     // Note(Lokathor): `swap` gives the old value back, so if we get back `true`
     // that means it was already active, so that's an error.
     Err("The library is currently initialized!".to_string())
+  } else if SDL_Init(SDL_INIT_EVERYTHING) == 0 {
+    Ok(SDLToken {
+      _marker: PhantomData,
+    })
   } else {
-    if SDL_Init(SDL_INIT_EVERYTHING) == 0 {
-      Ok(SDLToken {
-        _marker: PhantomData,
-      })
-    } else {
-      let out = get_error();
-      I_THINK_THAT_SDL2_IS_ACTIVE.store(false, Ordering::SeqCst);
-      Err(out)
-    }
+    let out = get_error();
+    I_THINK_THAT_SDL2_IS_ACTIVE.store(false, Ordering::SeqCst);
+    Err(out)
   }
 }
 static I_THINK_THAT_SDL2_IS_ACTIVE: AtomicBool = AtomicBool::new(false);
