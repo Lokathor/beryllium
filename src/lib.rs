@@ -310,7 +310,7 @@ impl SDLToken {
     if ptr.is_null() {
       Err(get_error())
     } else {
-      Ok(Window {
+      Ok(crate::window::Window {
         ptr,
         _marker: PhantomData,
       })
