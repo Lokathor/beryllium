@@ -9,73 +9,87 @@
 //! An opinionated set of "high level" wrappers for the
 //! [fermium](https://github.com/Lokathor/fermium) SDL2 bindings.
 //!
-//! * Very little of SDL2 can be called before you initialize the library. As a
-//!   result, there's only a very small number of functions available as top
-//!   level functions:
-//!   * [version](version) can be called to check what version of SDL2 is being
-//!     used. Because of SDL2's [Dynamic API](https://tinyurl.com/y2fndelh), it
-//!     is possible for a user to try and run the program using an future,
-//!     SemVer compatible version of SDL2. It would be a great indignity if you
-//!     didn't allow them to do this, but you can still check the version and
-//!     log it perhaps.
-//!   * [get_error](get_error) can be called at any time, though before you
-//!     initialize SDL2 the error string will probably be blank. You _very
-//!     rarely_ have to call this yourself. Any necessary error strings are
-//!     almost always passed back to you as part of a `Result` type.
-//!   * [lone_message_box](lone_message_box) opens a simple message box where
-//!     you can display that some critical file is missing or something like
-//!     that instead of failing with no message at all. It is `unsafe` because
-//!     you must only call it from the `main` thread.
-//!       * See also: [Window::modal_message_box](Window::modal_message_box)
-//!   * [init](init) is how you initialize SDL2. If successful it gives you an
-//!     [SDLToken](SDLToken) which has all the necessary methods to do
-//!     everything else. It is `unsafe` because you must only call this from the
-//!     `main` thread, and you must never double initialize SDL2.
+//! ## Initialization And Usage
+//!
+//! Very little of SDL2 can be called before you initialize the library. This
+//! must be done from the main thread and it must be done only once. `beryllium`
+//! will safely block any double initialization, but I can't enforce that you're
+//! on the main thread.
+//!
+//! ```no_run
+//! let sdl = unsafe {
+//!   beryllium::init().expect("Couldn't initialize SDL2!")
+//! };
+//! ```
+//!
+//! Initialization gives you an [SDLToken](SDLToken) (no, I will not change the
+//! name to `SdlToken`, that's stupid). This token is the "proof" that you've
+//! got SDL2 initialized. Basically every other part of the library is a method
+//! off of this token value (polling for events, opening a window, etc), or it's
+//! a method of a struct that you create off of this token value (the window you
+//! opened, an audio queue, etc).
+//!
+//! There's a limited number of other functions that are fine to call even if
+//! SDL2 is _not_ initialized, and so they're stand alone top level functions:
+//!
+//! * [version](version)
+//! * [get_error](get_error)
+//! * [lone_message_box](lone_message_box)
 //!
 //! _Very little_ of SDL2 is thread-safe. Your code that interacts with SDL2
 //! will mostly be locked into just the `main` thread. This isn't a huge deal in
 //! practice, but it's something that people might want to know up font.
 //!
-//! ## Safety
+//! ## Safety and Lifetimes
 //!
-//! As much as possible, SDL2 is carefully wrapped into a safe interface for you
-//! to use. That said, there's a few points that still can't be made 100% safe,
-//! so you will have to use `unsafe` in some places.
+//! I'm aiming to make as much of the API safe as is possible, but unfortunately
+//! not 100% of the interface can be safe. Things are only as safe as they can
+//! get, I don't want to ever over promise.
 //!
-//! ## Lifetimes
+//! Much of the static safety is done with lifetime tracking, which can make it
+//! hard to merge different `beryllium` values into a single struct.
+//! Particularly, values can't easily be combined with their "parent" value. I
+//! honestly don't try to do this kind of thing in my own programs. I just have
+//! a few free floating values on the stack and then I try to interact with SDL2
+//! as absolutely little as possible. It's an OS abstraction layer, it's not
+//! your friend.
 //!
-//! Sadly, we gotta track some lifetimes here. Anything with a heap allocation
-//! or other OS resource needs to live within the lifetime of its parent. I
-//! assure you that the lifetime tracking is happening via
-//! [PhantomData](PhantomData), no runtime cost here.
+//! If you _really_ feel like you want to try and stick things together into a
+//! single struct and then pass that combination around all through the program
+//! and stuff, feel free to use [transmute](core::mem::transmute) to fake the
+//! lifetimes involved and [ManuallyDrop](core::mem::ManuallyDrop) to carefully
+//! clean it up at the end. Or you could go use the [sdl2](https://docs.rs/sdl2)
+//! crate, which handles everything by tracking which subsystems are active via
+//! an [Rc](https://doc.rust-lang.org/std/rc/struct.Rc.html) value in
+//! practically everything.
 //!
-//! Almost all lifetime tracking is restricted to things needing to live no
-//! longer than the life of the `SDLToken`, which isn't a very big deal at all.
+//! Please note that safety assumptions are usually based on actually looking at
+//! the current version's C code, so if an end user uses the [Dynamic
+//! API](https://github.com/SDL-mirror/SDL/blob/master/docs/README-dynapi.md) to
+//! override the version of SDL2 used it's _possible_ they could break safety.
+//! It's honestly their fault at that point, not yours or mine. I'm not trying
+//! to be glib about it, but calling _arbitrary_ code can't be safety checked.
+//! That said, it's an important end user ability that should not be removed.
 //!
-//! ## Naming
+//! ## Rewritten In Rust
 //!
-//! I've attempted to stick to SDL2's naming for things unless there's an
-//! obviously more Rusty name to use instead.
+//! Select portions of the SDL2 API _have_ been re-written entirely in Rust
+//! (insert memes here). Instead of making a call to whichever SDL2 I simply
+//! ported the appropriate code to Rust.
 //!
-//! The main exception I can think of is that all `AllocFoo`/`FreeFoo` and
-//! `CreateFoo`/`DestroyFoo` pairs for creation and destruction have been
-//! replaced with just using `new_foo` for creation and [Drop](Drop) for
-//! cleanup.
+//! * **The Good:**
+//!   * It's easier (for us Rust programmers) to understand Rust than C.
+//!   * LLVM can inline Rust code (when appropriate and such).
+//! * **The Bad:**
+//!   * This takes more dev time to make sure that the new Rust matches the
+//!     semantics of the C it's replacing.
+//! * **The Ugly:**
+//!   * If there's a bug user's can use the Dynamic API to apply a patch, so we
+//!     don't want to do this for anything hardware or OS related (those are the
+//!     things most like to need driver fixes).
 //!
-//! ## Organization
-//!
-//! Internally the code is split up into modules because that's easier to work
-//! with, however the public API is that everything is just at the top level of
-//! the crate because that's far easier to work with. The only down side to this
-//! is that some compiler error messages will list the internal module name in
-//! the path. It's a little annoying, but that's more the fault of `rustc` than
-//! anything else.
-//!
-//! ## Failures
-//!
-//! If a call returns [Option](Option) or [Result](Result), I will make an
-//! effort to document what's likely to cause that. However, it's always
-//! possible that additional error conditions might exist.
+//! So it's not a lot, and it probably won't ever be a lot, but some _small_
+//! parts have been rewritten in Rust.
 
 use core::{
   convert::TryFrom,
@@ -83,7 +97,9 @@ use core::{
   marker::PhantomData,
   ptr::{null, null_mut, NonNull},
   slice::from_raw_parts,
+  sync::atomic::{AtomicBool, Ordering},
 };
+
 use fermium::{
   SDL_EventType::*, SDL_GLattr::*, SDL_GLcontextFlag::*, SDL_GLprofile::*,
   SDL_GameControllerAxis::*, SDL_GameControllerButton::*, SDL_Keymod::*, SDL_RendererFlags::*,
@@ -118,6 +134,21 @@ pub use palette::*;
 
 mod cdylib;
 pub use cdylib::*;
+
+mod window;
+pub use window::*;
+
+mod renderer;
+pub use renderer::*;
+
+mod texture;
+pub use texture::*;
+
+mod rect;
+pub use rect::*;
+
+/// In case of emergency, you can break the glass.
+pub use fermium as unsafe_raw_ffi;
 
 /// Grabs up the data from a null terminated string pointer.
 unsafe fn gather_string(ptr: *const c_char) -> String {
@@ -209,20 +240,32 @@ pub unsafe fn lone_message_box(
 
 /// Initializes SDL2 and gives you a token as proof, or an error message.
 ///
+/// # Failure
+///
+/// * You cannot double initialize SDL2, you'll get an error.
+/// * If SDL2 fails to initialize you'll get an error and it will revert itself
+///   to an uninitialized state, perhaps allowing you to try again.
+///
 /// # Safety
 ///
 /// * This can only be called from the main thread (because of a
-///   [macOS](https://tinyurl.com/y5bv7g4v) limit built into Cocoa)
-/// * you cannot double initialize SDL2.
+///   [macOS](https://tinyurl.com/y5bv7g4v) limit built into Cocoa).
 pub unsafe fn init() -> Result<SDLToken, String> {
-  if SDL_Init(SDL_INIT_EVERYTHING) == 0 {
+  if I_THINK_THAT_SDL2_IS_ACTIVE.swap(true, Ordering::SeqCst) {
+    // Note(Lokathor): `swap` gives the old value back, so if we get back `true`
+    // that means it was already active, so that's an error.
+    Err("The library is currently initialized!".to_string())
+  } else if SDL_Init(SDL_INIT_EVERYTHING) == 0 {
     Ok(SDLToken {
       _marker: PhantomData,
     })
   } else {
-    Err(get_error())
+    let out = get_error();
+    I_THINK_THAT_SDL2_IS_ACTIVE.store(false, Ordering::SeqCst);
+    Err(out)
   }
 }
+static I_THINK_THAT_SDL2_IS_ACTIVE: AtomicBool = AtomicBool::new(false);
 
 /// The `SDLToken` is proof that you have initialized SDL2.
 ///
@@ -236,6 +279,7 @@ pub struct SDLToken {
 impl Drop for SDLToken {
   fn drop(&mut self) {
     unsafe { SDL_Quit() }
+    I_THINK_THAT_SDL2_IS_ACTIVE.store(false, Ordering::SeqCst);
   }
 }
 #[test]
@@ -249,7 +293,7 @@ impl SDLToken {
   /// wiki](https://wiki.libsdl.org/SDL_CreateWindow) for guidance.
   pub fn create_window<'sdl>(
     &'sdl self, title: &str, x: i32, y: i32, w: i32, h: i32, flags: WindowFlags,
-  ) -> Result<Window<'sdl>, String> {
+  ) -> Result<crate::window::Window<'sdl>, String> {
     let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
     let ptr = unsafe {
       SDL_CreateWindow(
@@ -264,7 +308,7 @@ impl SDLToken {
     if ptr.is_null() {
       Err(get_error())
     } else {
-      Ok(Window {
+      Ok(crate::window::Window {
         ptr,
         _marker: PhantomData,
       })
@@ -441,316 +485,6 @@ impl SDLToken {
   }
 }
 
-/// Flags that a window might have.
-///
-/// This is for use with [create_window](SDLToken::create_window) as well as
-/// other methods that examine the state of a window.
-#[derive(Debug, Default, Clone, Copy)]
-#[repr(transparent)]
-pub struct WindowFlags(SDL_WindowFlags::Type);
-#[allow(bad_style)]
-type SDL_WindowFlags_Type = SDL_WindowFlags::Type;
-#[allow(missing_docs)]
-impl WindowFlags {
-  phantom_fields! {
-    self.0: SDL_WindowFlags_Type,
-    fullscreen: SDL_WINDOW_FULLSCREEN,
-    opengl: SDL_WINDOW_OPENGL,
-    shown: SDL_WINDOW_SHOWN,
-    hidden: SDL_WINDOW_HIDDEN,
-    borderless: SDL_WINDOW_BORDERLESS,
-    resizable: SDL_WINDOW_RESIZABLE,
-    minimized: SDL_WINDOW_MINIMIZED,
-    maximized: SDL_WINDOW_MAXIMIZED,
-    input_grabbed: SDL_WINDOW_INPUT_GRABBED,
-    input_focus: SDL_WINDOW_INPUT_FOCUS,
-    mouse_focus: SDL_WINDOW_MOUSE_FOCUS,
-    fullscreen_desktop: SDL_WINDOW_FULLSCREEN_DESKTOP,
-    foreign: SDL_WINDOW_FOREIGN,
-    /// Window should be created in high-DPI mode if supported.
-    ///
-    /// On macOS `NSHighResolutionCapable` must be set true in the application's
-    /// `Info.plist` for this to have any effect.
-    allow_high_dpi: SDL_WINDOW_ALLOW_HIGHDPI,
-    /// Distinct from "input grabbed".
-    mouse_capture: SDL_WINDOW_MOUSE_CAPTURE,
-    always_on_top: SDL_WINDOW_ALWAYS_ON_TOP,
-    /// Window should not be added to the taskbar list (eg: a dialog box).
-    skip_taskbar: SDL_WINDOW_SKIP_TASKBAR,
-    utility: SDL_WINDOW_UTILITY,
-    tooltip: SDL_WINDOW_TOOLTIP,
-    popup_menu: SDL_WINDOW_POPUP_MENU,
-    vulkan: SDL_WINDOW_VULKAN,
-  }
-}
-
-/// Flags for renderer creation.
-///
-/// See [Window::create_renderer](Window::create_renderer]
-#[derive(Debug, Default, Clone, Copy)]
-#[repr(transparent)]
-pub struct RendererFlags(SDL_RendererFlags::Type);
-#[allow(bad_style)]
-type SDL_RendererFlags_Type = SDL_RendererFlags::Type;
-#[allow(missing_docs)]
-impl RendererFlags {
-  phantom_fields! {
-    self.0: SDL_RendererFlags_Type,
-    accelerated: SDL_RENDERER_ACCELERATED,
-    present_vsync: SDL_RENDERER_PRESENTVSYNC,
-    software: SDL_RENDERER_SOFTWARE,
-    target_texture: SDL_RENDERER_TARGETTEXTURE,
-  }
-}
-
-/// Centers the window along the axis used.
-///
-/// See [create_window](SDLToken::create_window).
-pub const WINDOW_POSITION_CENTERED: i32 = SDL_WINDOWPOS_CENTERED_MASK as i32;
-
-/// Gives the window an undefined position on this axis.
-///
-/// See [create_window](SDLToken::create_window).
-pub const WINDOW_POSITION_UNDEFINED: i32 = SDL_WINDOWPOS_UNDEFINED_MASK as i32;
-
-/// Handle to a window on the screen.
-#[derive(Debug)]
-#[repr(transparent)]
-pub struct Window<'sdl> {
-  ptr: *mut SDL_Window,
-  _marker: PhantomData<&'sdl SDLToken>,
-}
-impl<'sdl> Drop for Window<'sdl> {
-  fn drop(&mut self) {
-    unsafe { SDL_DestroyWindow(self.ptr) }
-  }
-}
-impl<'sdl> Window<'sdl> {
-  /// Like the [lone_message_box](lone_message_box) function, but
-  /// modal to this `Window`.
-  ///
-  /// Because you need a valid `Window` to call this method, we don't need to
-  /// mark it as `unsafe`.
-  pub fn modal_message_box(
-    &self, box_type: MessageBox, title: &str, message: &str,
-  ) -> Result<(), String> {
-    let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
-    let message_null: Vec<u8> = message.bytes().chain(Some(0)).collect();
-    let output = unsafe {
-      SDL_ShowSimpleMessageBox(
-        box_type as u32,
-        title_null.as_ptr() as *const c_char,
-        message_null.as_ptr() as *const c_char,
-        self.ptr,
-      )
-    };
-    if output == 0 {
-      Ok(())
-    } else {
-      Err(get_error())
-    }
-  }
-
-  /// Makes a renderer for the window.
-  ///
-  /// # Safety
-  ///
-  /// * Each renderer must only be used with its own window
-  /// * Each renderer must only be used with textures that it created
-  ///
-  /// If you only have a single renderer then this is trivially proved, if you
-  /// make more than one renderer it's up to you to verify this.
-  pub unsafe fn create_renderer<'win>(
-    &'win self, driver_index: Option<usize>, flags: RendererFlags,
-  ) -> Result<Renderer<'sdl, 'win>, String> {
-    let index = driver_index.map(|u| u as i32).unwrap_or(-1);
-    let ptr = SDL_CreateRenderer(self.ptr, index, flags.0 as u32);
-    if ptr.is_null() {
-      Err(get_error())
-    } else {
-      Ok(Renderer {
-        ptr,
-        _marker: PhantomData,
-      })
-    }
-  }
-
-  /// Gets the logical size of the window (in screen coordinates).
-  ///
-  /// Use the GL Drawable Size or Renderer Output Size checks to get the
-  /// physical pixel count, if you need that.
-  pub fn size(&self) -> (i32, i32) {
-    let mut w = 0;
-    let mut h = 0;
-    unsafe { SDL_GetWindowSize(self.ptr, &mut w, &mut h) };
-    (w, h)
-  }
-
-  /// Sets the logical size of the window.
-  ///
-  /// Note that fullscreen windows automatically match the size of the display
-  /// mode, so use [set_display_mode](Window::set_display_mode) instead.
-  pub fn set_size(&self, width: i32, height: i32) {
-    unsafe { SDL_SetWindowSize(self.ptr, width, height) }
-  }
-
-  /// Obtains info about the fullscreen settings of the window.
-  pub fn display_mode(&self) -> Result<DisplayMode, String> {
-    let mut mode = SDL_DisplayMode::default();
-    let out = unsafe { SDL_GetWindowDisplayMode(self.ptr, &mut mode) };
-    if out == 0 {
-      Ok(DisplayMode::from(mode))
-    } else {
-      Err(get_error())
-    }
-  }
-
-  /// Assigns the fullscreen display mode for the window.
-  ///
-  /// * If `Some(mode)`, attempts to set the mode given.
-  /// * If `None`, it will use the window's dimensions, and the desktop's
-  ///   current format and refresh rate.
-  pub fn set_display_mode(&self, opt_mode: Option<DisplayMode>) -> Result<(), String> {
-    let out = match opt_mode {
-      Some(mode) => {
-        let sdl_mode: SDL_DisplayMode = mode.into();
-        unsafe { SDL_SetWindowDisplayMode(self.ptr, &sdl_mode) }
-      }
-      None => unsafe { SDL_SetWindowDisplayMode(self.ptr, null_mut()) },
-    };
-    if out == 0 {
-      Ok(())
-    } else {
-      Err(get_error())
-    }
-  }
-
-  /// Sets the window's fullscreen style.
-  ///
-  /// * Fullscreen: Performs an actual video mode change.
-  /// * Fullscreen Desktop: "fake" fullscreen with full resolution but no video
-  ///   mode change.
-  /// * Windowed: Don't use fullscreen.
-  pub fn set_fullscreen_style(&self, style: FullscreenStyle) -> Result<(), String> {
-    let out = unsafe { SDL_SetWindowFullscreen(self.ptr, style as u32) };
-    if out == 0 {
-      Ok(())
-    } else {
-      Err(get_error())
-    }
-  }
-
-  /// Creates a context for this window and makes it current.
-  pub unsafe fn gl_create_context<'win>(&'win self) -> Result<GLContext<'sdl, 'win>, String> {
-    let ctx = SDL_GL_CreateContext(self.ptr);
-    if ctx.is_null() {
-      Err(get_error())
-    } else {
-      Ok(GLContext {
-        ctx,
-        _marker: PhantomData,
-      })
-    }
-  }
-
-  /// Obtains the size of the drawable space in the window.
-  ///
-  /// This gives you a number of "physical pixels", so it might be different
-  /// from the "logical pixels" value you get when you call
-  /// [size](Window::size). This is primarily for use with
-  /// [glViewport](https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glViewport.xhtml)
-  pub fn gl_get_drawable_size(&self) -> (i32, i32) {
-    let mut w = 0;
-    let mut h = 0;
-    unsafe { SDL_GL_GetDrawableSize(self.ptr, &mut w, &mut h) };
-    (w, h)
-  }
-
-  /// Swaps the window's OpenGL buffers.
-  ///
-  /// If double buffering isn't enabled this just does nothing.
-  pub unsafe fn gl_swap_window(&self) {
-    SDL_GL_SwapWindow(self.ptr)
-  }
-
-  /// Makes the given context the current context in this window.
-  pub unsafe fn gl_make_current(&self, ctx: &GLContext) -> Result<(), String> {
-    let out = SDL_GL_MakeCurrent(self.ptr, ctx.ctx);
-    if out == 0 {
-      Ok(())
-    } else {
-      Err(get_error())
-    }
-  }
-}
-
-/// The window's fullscreen style.
-///
-/// * Windowed size is controlled with [set_size](Window::set_size)
-/// * Fullscreen and FullscreenDesktop size is controlled with [set_display_mode](Window::set_display_mode)
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[cfg_attr(windows, repr(i32))]
-#[cfg_attr(not(windows), repr(u32))]
-pub enum FullscreenStyle {
-  /// Performs an actual video mode change.
-  Fullscreen = SDL_WINDOW_FULLSCREEN,
-  /// "fakes" a fullscreen window without a video mode change.
-  FullscreenDesktop = SDL_WINDOW_FULLSCREEN_DESKTOP,
-  /// Makes the window actually work like a window.
-  Windowed = 0,
-}
-
-/// A description of a fullscreen display mode.
-#[derive(Debug, Clone, Copy)]
-pub struct DisplayMode {
-  /// The screen's format
-  pub format: PixelFormatEnum,
-  /// Width, in logical units
-  pub width: i32,
-  /// Height, in logical units
-  pub height: i32,
-  /// Refresh rate in Hz, or 0 if unspecified.
-  pub refresh_rate: i32,
-  driver_data: *mut c_void,
-}
-impl From<SDL_DisplayMode> for DisplayMode {
-  fn from(sdl_mode: SDL_DisplayMode) -> Self {
-    Self {
-      format: PixelFormatEnum::from(sdl_mode.format as fermium::_bindgen_ty_6::Type),
-      width: sdl_mode.w,
-      height: sdl_mode.h,
-      refresh_rate: sdl_mode.refresh_rate,
-      driver_data: sdl_mode.driverdata,
-    }
-  }
-}
-impl From<DisplayMode> for SDL_DisplayMode {
-  fn from(mode: DisplayMode) -> Self {
-    Self {
-      format: mode.format as u32,
-      w: mode.width,
-      h: mode.height,
-      refresh_rate: mode.refresh_rate,
-      driverdata: mode.driver_data,
-    }
-  }
-}
-impl DisplayMode {
-  /// Constructs a new display mode as specified.
-  ///
-  /// This is necessary because the display mode has a hidden driver data
-  /// pointer which must be initialized to null and not altered by outside users.
-  pub const fn new(format: PixelFormatEnum, width: i32, height: i32, refresh_rate: i32) -> Self {
-    Self {
-      format,
-      width,
-      height,
-      refresh_rate,
-      driver_data: null_mut(),
-    }
-  }
-}
-
 /// Basic struct for 2D positions.
 ///
 /// Used with some parts of the [Renderer].
@@ -773,192 +507,6 @@ impl From<Point> for SDL_Point {
     Self {
       x: other.x,
       y: other.y,
-    }
-  }
-}
-
-/// Handle to some SDL2 rendering state.
-///
-/// Helps you do things like upload data to the GPU and blit image data around.
-///
-/// **To be clear: This is not a super fast renderer.** It's easy to use and you
-/// can get an image on the screen, but if you want do much at all that's
-/// computationally expensive you'll need to use a proper hardware API (OpenGL,
-/// Vulkan, etc). Also, you cannot really mix this renderer with the hardware
-/// APIs. They both expect to have full control of the pixel process. Use this
-/// _or_ a hardware API.
-#[derive(Debug)]
-#[repr(transparent)]
-pub struct Renderer<'sdl, 'win> {
-  ptr: *mut SDL_Renderer,
-  _marker: PhantomData<&'win Window<'sdl>>,
-}
-impl<'sdl, 'win> Drop for Renderer<'sdl, 'win> {
-  fn drop(&mut self) {
-    unsafe { SDL_DestroyRenderer(self.ptr) }
-  }
-}
-impl<'sdl, 'win> Renderer<'sdl, 'win> {
-  /// Makes a texture with the contents of the surface specified.
-  ///
-  /// The TextureAccess hint for textures from this is "static".
-  ///
-  /// The pixel format might be different from the surface's pixel format.
-  pub fn create_texture_from_surface<'ren>(
-    &'ren self, surf: &Surface,
-  ) -> Result<Texture<'sdl, 'win, 'ren>, String> {
-    let ptr: *mut SDL_Texture = unsafe { SDL_CreateTextureFromSurface(self.ptr, surf.ptr) };
-    if ptr.is_null() {
-      Err(get_error())
-    } else {
-      Ok(Texture {
-        ptr,
-        _marker: PhantomData,
-      })
-    }
-  }
-
-  /// Obtains the current draw color.
-  pub fn draw_color(&self) -> Result<Color, String> {
-    let mut color = Color::default();
-    let out = unsafe {
-      SDL_GetRenderDrawColor(
-        self.ptr,
-        &mut color.r,
-        &mut color.g,
-        &mut color.b,
-        &mut color.a,
-      )
-    };
-    if out == 0 {
-      Ok(color)
-    } else {
-      Err(get_error())
-    }
-  }
-
-  /// Assigns the color used for drawing.
-  pub fn set_draw_color(&self, color: Color) -> Result<(), String> {
-    let out = unsafe { SDL_SetRenderDrawColor(self.ptr, color.r, color.g, color.b, color.a) };
-    if out == 0 {
-      Ok(())
-    } else {
-      Err(get_error())
-    }
-  }
-
-  /// Clears the render target with the current draw color.
-  pub fn clear(&self) -> Result<(), String> {
-    if unsafe { SDL_RenderClear(self.ptr) } == 0 {
-      Ok(())
-    } else {
-      Err(get_error())
-    }
-  }
-
-  /// Draws a line that includes both end points.
-  pub fn draw_line(&self, x1: i32, y1: i32, x2: i32, y2: i32) -> Result<(), String> {
-    let out = unsafe { SDL_RenderDrawLine(self.ptr, x1, y1, x2, y2) };
-    if out == 0 {
-      Ok(())
-    } else {
-      Err(get_error())
-    }
-  }
-
-  /// Using the slice of `n` points, draws `n-1` lines end to end.
-  pub fn draw_lines(&self, points: &[Point]) -> Result<(), String> {
-    if points.len() > core::i32::MAX as usize {
-      return Err("beryllium error: len cannot exceed `i32::MAX`.".to_string());
-    }
-    let ptr = points.as_ptr() as *const SDL_Point;
-    let count = points.len() as i32;
-    let out = unsafe { SDL_RenderDrawLines(self.ptr, ptr, count) };
-    if out == 0 {
-      Ok(())
-    } else {
-      Err(get_error())
-    }
-  }
-
-  /// Blits the texture to the rendering target.
-  ///
-  /// * `src`: Optional clip rect of where to copy _from_. If None, the whole
-  ///   texture is used.
-  /// * `dst`: Optional clip rect of where to copy data _to_. If None, the whole
-  ///   render target is used.
-  ///
-  /// The image is stretched as necessary if the `src` and `dst` are different
-  /// sizes. This is a GPU operation, so it's fast no matter how much upscale or
-  /// downscale you do.
-  pub fn copy(&self, t: &Texture, src: Option<Rect>, dst: Option<Rect>) -> Result<(), String> {
-    unsafe {
-      let src_ptr = core::mem::transmute::<Option<&Rect>, *const SDL_Rect>(src.as_ref());
-      let dst_ptr = core::mem::transmute::<Option<&Rect>, *const SDL_Rect>(dst.as_ref());
-      if SDL_RenderCopy(self.ptr, t.ptr, src_ptr, dst_ptr) == 0 {
-        Ok(())
-      } else {
-        Err(get_error())
-      }
-    }
-  }
-
-  /// Presents the backbuffer to the user.
-  ///
-  /// After a present, all backbuffer data should be assumed to be invalid, and
-  /// you should also clear the backbuffer before doing the next render pass
-  /// even if you intend to write to every pixel.
-  pub fn present(&self) {
-    unsafe { SDL_RenderPresent(self.ptr) };
-  }
-}
-
-/// Handle to a "texture", a GPU-side image.
-///
-/// This is harder to directly edit, but operations are faster, and you can
-/// display it in the Window.
-#[derive(Debug)]
-#[repr(transparent)]
-pub struct Texture<'sdl, 'win, 'ren> {
-  ptr: *mut SDL_Texture,
-  _marker: PhantomData<&'ren Renderer<'sdl, 'win>>,
-}
-impl<'sdl, 'win, 'ren> Drop for Texture<'sdl, 'win, 'ren> {
-  fn drop(&mut self) {
-    unsafe { SDL_DestroyTexture(self.ptr) }
-  }
-}
-
-/// Rectangle struct, origin at the upper left.
-///
-/// Naturally, having the origin at the upper left is a terrible and heretical
-/// coordinate system to use, but that's what SDL2 does so that's what we're
-/// stuck with.
-#[derive(Debug, Clone, Copy, Default)]
-#[repr(C)]
-pub struct Rect {
-  x: i32,
-  y: i32,
-  w: i32,
-  h: i32,
-}
-impl From<SDL_Rect> for Rect {
-  fn from(other: SDL_Rect) -> Self {
-    Self {
-      x: other.x,
-      y: other.y,
-      w: other.w,
-      h: other.h,
-    }
-  }
-}
-impl From<Rect> for SDL_Rect {
-  fn from(other: Rect) -> Self {
-    Self {
-      x: other.x,
-      y: other.y,
-      w: other.w,
-      h: other.h,
     }
   }
 }

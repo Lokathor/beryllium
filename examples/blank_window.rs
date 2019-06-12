@@ -11,12 +11,12 @@ fn main() -> Result<(), String> {
   let sdl = unsafe { beryllium::init() }?;
 
   let _window = sdl.create_window(
-    "Window Demo",                           // title
-    WINDOW_POSITION_CENTERED,                // x
-    WINDOW_POSITION_CENTERED,                // y
-    800,                                     // width
-    600,                                     // height
-    WindowFlags::default().with_shown(true), // flags
+    "Window Demo",            // title
+    WINDOW_POSITION_CENTERED, // x
+    WINDOW_POSITION_CENTERED, // y
+    800,                      // width
+    600,                      // height
+    WindowFlags::default(),   // flags
   )?;
 
   'game_loop: loop {
