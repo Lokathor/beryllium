@@ -16,7 +16,7 @@
 //! will safely block any double initialization, but I can't enforce that you're
 //! on the main thread.
 //!
-//! ```rust
+//! ```no_run
 //! let sdl = unsafe {
 //!   beryllium::init().expect("Couldn't initialize SDL2!")
 //! };
