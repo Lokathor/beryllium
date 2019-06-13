@@ -16,9 +16,6 @@ libc = "0.2"
 gl = "0.12"
 glium = "0.25"
 
-[package.metadata.docs.rs]
-features = ["fermium/use_bindgen_lib"]
-
 [badges]
 appveyor = { repository = "Lokathor/beryllium" }
 travis-ci = { repository = "Lokathor/beryllium" }
