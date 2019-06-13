@@ -2,7 +2,7 @@
 name = "beryllium"
 description = "An opinionated set of high level wrappers for the `fermium` SDL2 bindings."
 repository = "https://github.com/Lokathor/beryllium"
-version = "0.0.7"
+version = "0.0.8"
 authors = ["Lokathor <zefria@gmail.com>"]
 edition = "2018"
 license = "Zlib"
@@ -15,9 +15,6 @@ libc = "0.2"
 [dev-dependencies]
 gl = "0.12"
 glium = "0.25"
-
-[package.metadata.docs.rs]
-features = ["fermium/use_bindgen_lib"]
 
 [badges]
 appveyor = { repository = "Lokathor/beryllium" }
