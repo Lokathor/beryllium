@@ -11,12 +11,12 @@ fn main() -> Result<(), String> {
 
   // Make a window (include the flag for OpenGL support!)
   let window = sdl.create_window(
-    "Extern Crate: `gl`",                                      // title
-    WINDOW_POSITION_CENTERED,                                  // x
-    WINDOW_POSITION_CENTERED,                                  // y
-    800,                                                       // width
-    600,                                                       // height
-    WindowFlags::default().with_shown(true).with_opengl(true), // flags
+    "Extern Crate: `gl`",                     // title
+    WINDOW_POSITION_CENTERED,                 // x
+    WINDOW_POSITION_CENTERED,                 // y
+    800,                                      // width
+    600,                                      // height
+    WindowFlags::default().with_opengl(true), // flags
   )?;
 
   // Set our context request settings and make a context (which is automatically

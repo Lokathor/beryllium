@@ -11,12 +11,12 @@ fn main() -> Result<(), String> {
   let sdl = unsafe { beryllium::init()? };
 
   let window = sdl.create_window(
-    "Surface Demo",                          // title
-    WINDOW_POSITION_CENTERED,                // x
-    WINDOW_POSITION_CENTERED,                // y
-    800,                                     // width
-    600,                                     // height
-    WindowFlags::default().with_shown(true), // flags
+    "Surface Demo",           // title
+    WINDOW_POSITION_CENTERED, // x
+    WINDOW_POSITION_CENTERED, // y
+    800,                      // width
+    600,                      // height
+    WindowFlags::default(),   // flags
   )?;
 
   let mut surface = sdl.create_rgb_surface(800, 600, SurfaceFormat::DIRECT32_DEFAULT)?;

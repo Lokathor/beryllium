@@ -141,7 +141,7 @@ pub const CONTEXT_RESET_ISOLATION_FLAG: i32 = SDL_GL_CONTEXT_RESET_ISOLATION_FLA
 #[repr(transparent)]
 pub struct GLContext<'sdl, 'win> {
   pub(crate) ctx: SDL_GLContext,
-  pub(crate) _marker: PhantomData<&'win crate::Window<'sdl>>,
+  pub(crate) _marker: PhantomData<&'win Window<'sdl>>,
 }
 impl<'sdl, 'win> Drop for GLContext<'sdl, 'win> {
   fn drop(&mut self) {
