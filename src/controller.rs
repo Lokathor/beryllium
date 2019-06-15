@@ -1,5 +1,13 @@
 use super::*;
 
+/// A joystick ID value is just a non-negative `i32` value.
+///
+/// There's no special safety involved here. Invalid ID values will cause the
+/// API to return errors, but nothing will explode.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(transparent)]
+pub struct JoystickID(pub i32);
+
 /// Handle to a window on the screen.
 #[derive(Debug)]
 #[repr(transparent)]
@@ -49,7 +57,7 @@ impl<'sdl> Controller<'sdl> {
   ///
   /// Also gives 0 on failure. You could call [get_error](get_error) if you
   /// want.
-  pub fn get_axis(&self, axis: ControllerAxis) -> i16 {
+  pub fn axis(&self, axis: ControllerAxis) -> i16 {
     unsafe { SDL_GameControllerGetAxis(self.ptr, axis as fermium::SDL_GameControllerAxis::Type) }
   }
 
@@ -57,9 +65,24 @@ impl<'sdl> Controller<'sdl> {
   ///
   /// Note that this returns `false` for not-pressed but _also_ if there's some
   /// sort of error. You can call [get_error](get_error) if you really want.
-  pub fn get_button(&self, button: ControllerButton) -> bool {
+  pub fn button(&self, button: ControllerButton) -> bool {
     1 == unsafe {
       SDL_GameControllerGetButton(self.ptr, button as fermium::SDL_GameControllerButton::Type)
+    }
+  }
+
+  /// Attempts to get the joystick ID of this controller.
+  pub fn joystick_id(&self) -> Result<JoystickID, String> {
+    let joystick_ptr: *mut SDL_Joystick = unsafe { SDL_GameControllerGetJoystick(self.ptr) };
+    if joystick_ptr.is_null() {
+      Err(get_error())
+    } else {
+      let out = unsafe { SDL_JoystickInstanceID(joystick_ptr) };
+      if out < 0 {
+        Err(get_error())
+      } else {
+        Ok(JoystickID(out))
+      }
     }
   }
 }
@@ -76,6 +99,19 @@ pub enum ControllerAxis {
   RightY = SDL_CONTROLLER_AXIS_RIGHTY,
   LeftTrigger = SDL_CONTROLLER_AXIS_TRIGGERLEFT,
   RightTrigger = SDL_CONTROLLER_AXIS_TRIGGERRIGHT,
+}
+impl From<u8> for ControllerAxis {
+  fn from(axis: u8) -> Self {
+    match fermium::SDL_GameControllerAxis::Type::from(axis) {
+      SDL_CONTROLLER_AXIS_LEFTX => ControllerAxis::LeftX,
+      SDL_CONTROLLER_AXIS_LEFTY => ControllerAxis::LeftY,
+      SDL_CONTROLLER_AXIS_RIGHTX => ControllerAxis::RightX,
+      SDL_CONTROLLER_AXIS_RIGHTY => ControllerAxis::RightY,
+      SDL_CONTROLLER_AXIS_TRIGGERLEFT => ControllerAxis::LeftTrigger,
+      SDL_CONTROLLER_AXIS_TRIGGERRIGHT => ControllerAxis::RightTrigger,
+      _ => ControllerAxis::Invalid,
+    }
+  }
 }
 
 /// The types of buttons that a Controller has.
@@ -108,4 +144,26 @@ pub enum ControllerButton {
   Down = SDL_CONTROLLER_BUTTON_DPAD_DOWN,
   Left = SDL_CONTROLLER_BUTTON_DPAD_LEFT,
   Right = SDL_CONTROLLER_BUTTON_DPAD_RIGHT,
+}
+impl From<u8> for ControllerButton {
+  fn from(button: u8) -> Self {
+    match fermium::SDL_GameControllerButton::Type::from(button) {
+      SDL_CONTROLLER_BUTTON_A => ControllerButton::South,
+      SDL_CONTROLLER_BUTTON_B => ControllerButton::East,
+      SDL_CONTROLLER_BUTTON_X => ControllerButton::West,
+      SDL_CONTROLLER_BUTTON_Y => ControllerButton::North,
+      SDL_CONTROLLER_BUTTON_BACK => ControllerButton::Back,
+      SDL_CONTROLLER_BUTTON_GUIDE => ControllerButton::Guide,
+      SDL_CONTROLLER_BUTTON_START => ControllerButton::Start,
+      SDL_CONTROLLER_BUTTON_LEFTSTICK => ControllerButton::LeftStick,
+      SDL_CONTROLLER_BUTTON_RIGHTSTICK => ControllerButton::RightStick,
+      SDL_CONTROLLER_BUTTON_LEFTSHOULDER => ControllerButton::L1,
+      SDL_CONTROLLER_BUTTON_RIGHTSHOULDER => ControllerButton::R1,
+      SDL_CONTROLLER_BUTTON_DPAD_UP => ControllerButton::Up,
+      SDL_CONTROLLER_BUTTON_DPAD_DOWN => ControllerButton::Down,
+      SDL_CONTROLLER_BUTTON_DPAD_LEFT => ControllerButton::Left,
+      SDL_CONTROLLER_BUTTON_DPAD_RIGHT => ControllerButton::Right,
+      _ => ControllerButton::Invalid,
+    }
+  }
 }

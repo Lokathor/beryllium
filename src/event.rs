@@ -215,6 +215,55 @@ pub enum Event {
     /// The window which has been restored.
     window_id: u32,
   },
+  /// A controller axis is in a new position.
+  ControllerAxis {
+    /// When the event happened
+    timestamp: u32,
+    /// The controller
+    joystick_id: JoystickID,
+    /// The new axis
+    axis: ControllerAxis,
+    /// The new position. For sticks it will be full negative to positive range,
+    /// for triggers it will be 0 to maximum.
+    value: i16,
+  },
+  /// A controller button is in a new state.
+  ///
+  /// Note(Lokathor): Limited testing shows that some controllers will repeat
+  /// the same state for a button without the button changing sates in between.
+  /// For example, some controllers will repeatedly send "button up" events even
+  /// though the button never went down.
+  ControllerButton {
+    /// When the event happened
+    timestamp: u32,
+    /// The controller
+    joystick_id: JoystickID,
+    /// The button
+    button: ControllerButton,
+    /// If the button is now pressed or released.
+    pressed: bool,
+  },
+  /// A controller was added.
+  ControllerDeviceAdded {
+    /// When the event happened
+    timestamp: u32,
+    /// The controller
+    joystick_id: JoystickID,
+  },
+  /// A controller was removed.
+  ControllerDeviceRemoved {
+    /// When the event happened
+    timestamp: u32,
+    /// The controller
+    joystick_id: JoystickID,
+  },
+  /// The button mapping layout for a controller has changed.
+  ControllerDeviceRemapped {
+    /// When the event happened
+    timestamp: u32,
+    /// The controller
+    joystick_id: JoystickID,
+  },
   /// It's always possible that we'll load some future version which will have
   /// event variants we don't understand, which we have to just ignore.
   UnknownEventType,
@@ -339,6 +388,30 @@ impl From<SDL_Event> for Event {
           SDL_WINDOWEVENT_FOCUS_LOST => Event::WindowLostFocus {
             timestamp: event.window.timestamp,
             window_id: event.window.windowID,
+          },
+          SDL_CONTROLLERAXISMOTION => Event::ControllerAxis {
+            timestamp: event.caxis.timestamp,
+            joystick_id: JoystickID(event.caxis.which),
+            axis: ControllerAxis::from(event.caxis.axis),
+            value: event.caxis.value,
+          },
+          SDL_CONTROLLERBUTTONDOWN | SDL_CONTROLLERBUTTONUP => Event::ControllerButton {
+            timestamp: event.cbutton.timestamp,
+            joystick_id: JoystickID(event.cbutton.which),
+            button: ControllerButton::from(event.cbutton.button),
+            pressed: u32::from(event.cbutton.state) == SDL_PRESSED,
+          },
+          SDL_CONTROLLERDEVICEADDED => Event::ControllerDeviceAdded {
+            timestamp: event.cdevice.timestamp,
+            joystick_id: JoystickID(event.cdevice.which),
+          },
+          SDL_CONTROLLERDEVICEREMOVED => Event::ControllerDeviceRemoved {
+            timestamp: event.cdevice.timestamp,
+            joystick_id: JoystickID(event.cdevice.which),
+          },
+          SDL_CONTROLLERDEVICEREMAPPED => Event::ControllerDeviceRemapped {
+            timestamp: event.cdevice.timestamp,
+            joystick_id: JoystickID(event.cdevice.which),
           },
           _ => Event::UnknownEventType,
         },
