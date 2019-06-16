@@ -124,6 +124,11 @@ impl From<u8> for ControllerAxis {
 /// These two layouts use the same names, but with inverted positions. Naturally
 /// this leads to annoyance and confusion. The middle ground is that this enum
 /// names the face buttons using _compass directions_ as the button names.
+///
+/// Of course, then the naming is kinda screwed up when using a GameCube
+/// controller (which is, kinda, 90 degrees clockwise from an SNES controller),
+/// but ultimately [controller layouts are
+/// chaos](https://memestatic.fjcdn.com/pictures/Press+x_875402_6229280.jpg).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(i32)]
 #[allow(missing_docs)]

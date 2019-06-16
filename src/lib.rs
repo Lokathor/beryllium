@@ -358,9 +358,9 @@ impl SDLToken {
   /// Polls for an event, getting it out of the queue if one is there.
   pub fn poll_event(&self) -> Option<Event> {
     unsafe {
-      let mut event = SDL_Event::default();
-      if SDL_PollEvent(&mut event) == 1 {
-        Some(Event::from(event))
+      let mut sdl_event = SDL_Event::default();
+      if SDL_PollEvent(&mut sdl_event) == 1 {
+        Some(Event::from(sdl_event))
       } else {
         None
       }
