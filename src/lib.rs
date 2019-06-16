@@ -358,9 +358,9 @@ impl SDLToken {
   /// Polls for an event, getting it out of the queue if one is there.
   pub fn poll_event(&self) -> Option<Event> {
     unsafe {
-      let mut event = SDL_Event::default();
-      if SDL_PollEvent(&mut event) == 1 {
-        Some(Event::from(event))
+      let mut sdl_event = SDL_Event::default();
+      if SDL_PollEvent(&mut sdl_event) == 1 {
+        Some(Event::from(sdl_event))
       } else {
         None
       }
@@ -392,9 +392,11 @@ impl SDLToken {
     }
   }
 
-  /// Attempts to open the given index as a Controller.
-  pub fn open_controller(&self, index: u32) -> Result<Controller<'_>, String> {
-    let ptr = unsafe { SDL_GameControllerOpen(index as i32) };
+  /// Attempts to open the given id as a [Controller].
+  ///
+  /// Not all joysticks support the Controller API, so this can fail.
+  pub fn open_controller(&self, id: JoystickID) -> Result<Controller<'_>, String> {
+    let ptr = unsafe { SDL_GameControllerOpen(id.0) };
     if ptr.is_null() {
       Err(get_error())
     } else {

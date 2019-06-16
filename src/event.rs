@@ -3,218 +3,6 @@ use super::*;
 /// The various events that can happen.
 #[derive(Debug, Clone, Copy)]
 pub enum Event {
-  /// Quit was requested by the user
-  Quit {
-    /// Time, in milliseconds, since SDL2 was initialized.
-    timestamp: u32,
-  },
-  /// Event for any time the user moves the mouse within a window, or if
-  /// `warp_mouse_in_window` is called.
-  MouseMotion {
-    /// Time, in milliseconds, since SDL2 was initialized.
-    timestamp: u32,
-    /// Window with mouse focus, if any
-    window_id: u32,
-    /// The mouse that generated this event. If `None` it was a touch event.
-    mouse_id: Option<u32>,
-    /// State of the mouse buttons during this event
-    state: MouseButtonState,
-    /// X, relative to the window
-    x: i32,
-    /// Y, relative to the window
-    y: i32,
-    /// Change in X position
-    delta_x: i32,
-    /// Change in Y position
-    delta_y: i32,
-  },
-  /// Generated whenever a mouse button is pressed or released.
-  MouseButtonEvent {
-    /// Time, in milliseconds, since SDL2 was initialized.
-    timestamp: u32,
-    /// Window with mouse focus, if any
-    window_id: u32,
-    /// The mouse that generated this event. If `None` it was a touch event.
-    mouse_id: Option<u32>,
-    /// The button that changed
-    button: MouseButton,
-    /// If the button is now pressed or released
-    is_pressed: bool,
-    /// 1 for single-click, 2 for double-click, etc
-    clicks: u8,
-    /// X, relative to the window
-    x: i32,
-    /// Y, relative to the window
-    y: i32,
-  },
-  /// Generated whenever the user moves the mouse wheel.
-  MouseWheel {
-    /// Time, in milliseconds, since SDL2 was initialized.
-    timestamp: u32,
-    /// Window with mouse focus, if any
-    window_id: u32,
-    /// The mouse that generated this event. If `None` it was a touch event.
-    mouse_id: Option<u32>,
-    /// Horizontal scroll, negative Left or positive Right
-    x: i32,
-    /// Vertical scroll, negative to User or positive away from User
-    y: i32,
-    /// Mouse wheel isn't consistent on all platforms. If this bool is set, the
-    /// meaning of the `x` and `y` field is inverted compared to normal.
-    is_flipped: bool,
-  },
-  /// Keyboard button event information (a press or release).
-  Keyboard {
-    /// When the event happened
-    timestamp: u32,
-    /// The window that was focused when the event happened.
-    window_id: u32,
-    /// If the key was pressed or released by this event.
-    is_key_down: bool,
-    /// If this is a "key repeat" event (usually 0 or 1, though possibly more).
-    repeat_count: u8,
-    /// The information about the key being pressed or released.
-    key: KeyInfo,
-  },
-  /// Something has changed the size of the window.
-  ///
-  /// If (and only if) this was done by an external action (the user or window
-  /// manager changing the size of the window, for example), this event will be
-  /// followed by an [`Event::WindowResized`].
-  WindowSizeChanged {
-    /// When the event happened
-    timestamp: u32,
-    /// The window which experienced a size change.
-    window_id: u32,
-    /// The new width of the window.
-    width: i32,
-    /// The new height of the window.
-    height: i32,
-  },
-  /// The size of the window has been changed externally.
-  ///
-  /// This event is always preceeded by a [`Event::WindowSizeChanged`], however
-  /// the inverse is not always true.
-  ///
-  /// The difference between these two events is that `Event::WindowResized` is
-  /// only generated if the resize is triggered externally (by a user, their
-  /// window manager, etc), and *not* by calls to `beryllium` functions which
-  /// may change the size of a window, such as `Window::set_size`,
-  /// `Window::set_display_mode`, whereas [`Event::WindowSizeChanged`] is called
-  /// whenever the size of the window is changed, regardless of the cause.
-  WindowResized {
-    /// When the event happened
-    timestamp: u32,
-    /// The window which experienced a size change.
-    window_id: u32,
-    /// The new width of the window.
-    width: i32,
-    /// The new height of the window.
-    height: i32,
-  },
-  /// The window has been moved.
-  WindowMoved {
-    /// When the event happened
-    timestamp: u32,
-    /// The window which experienced a size change.
-    window_id: u32,
-    /// The new x position of the window.
-    x: i32,
-    /// The new y position of the window.
-    y: i32,
-  },
-  /// The window manager requests that the window be closed.
-  WindowClosed {
-    /// When the event happened
-    timestamp: u32,
-    /// The window which wants to be closed.
-    window_id: u32,
-  },
-  /// The window has gained keyboard focus.
-  ///
-  /// Inverse of [`Event::WindowLostFocus`].
-  WindowGainedFocus {
-    /// When the event happened
-    timestamp: u32,
-    /// The window which gained keyboard focus.
-    window_id: u32,
-  },
-  /// The window has lost keyboard focus.
-  ///
-  /// Inverse of [`Event::WindowGainedFocus`].
-  WindowLostFocus {
-    /// When the event happened
-    timestamp: u32,
-    /// The window which lost keyboard focus.
-    window_id: u32,
-  },
-  /// The window has gained mouse focus.
-  ///
-  /// Inverse of [`Event::MouseLeftWindow`].
-  MouseEnteredWindow {
-    /// When the event happened
-    timestamp: u32,
-    /// The window which gained mouse focus.
-    window_id: u32,
-  },
-  /// The window has lost mouse focus.
-  ///
-  /// Inverse of [`Event::MouseEnteredWindow`].
-  MouseLeftWindow {
-    /// When the event happened
-    timestamp: u32,
-    /// The window which lost mouse focus.
-    window_id: u32,
-  },
-  /// The window has been hidden.
-  ///
-  /// Inverse of [`Event::WindowShown`].
-  WindowHidden {
-    /// When the event happened
-    timestamp: u32,
-    /// The window which gained or lost mouse focus.
-    window_id: u32,
-  },
-  /// The window has been shown.
-  ///
-  /// Inverse of [`Event::WindowHidden`].
-  WindowShown {
-    /// When the event happened
-    timestamp: u32,
-    /// The window which gained or lost mouse focus.
-    window_id: u32,
-  },
-  /// The window needs repainting for one reason or another.
-  ///
-  /// This maps to `SDL_WINDOWEVENT_EXPOSED`, but has been renamed in order to
-  /// make it more clear what the event indicates.
-  WindowNeedsRepaint {
-    /// When the event happened
-    timestamp: u32,
-    /// The window which gained or lost mouse focus.
-    window_id: u32,
-  },
-  /// The window has been minimized.
-  WindowMinimized {
-    /// When the event happened
-    timestamp: u32,
-    /// The window which has been minimized.
-    window_id: u32,
-  },
-  /// The window has been maximized.
-  WindowMaximized {
-    /// When the event happened
-    timestamp: u32,
-    /// The window which has been maximized.
-    window_id: u32,
-  },
-  /// The window has been restored to normal size and position.
-  WindowRestored {
-    /// When the event happened
-    timestamp: u32,
-    /// The window which has been restored.
-    window_id: u32,
-  },
   /// A controller axis is in a new position.
   ControllerAxis {
     /// When the event happened
@@ -250,6 +38,13 @@ pub enum Event {
     /// The controller
     joystick_id: JoystickID,
   },
+  /// The button mapping layout for a controller has changed.
+  ControllerDeviceRemapped {
+    /// When the event happened
+    timestamp: u32,
+    /// The controller
+    joystick_id: JoystickID,
+  },
   /// A controller was removed.
   ControllerDeviceRemoved {
     /// When the event happened
@@ -257,12 +52,217 @@ pub enum Event {
     /// The controller
     joystick_id: JoystickID,
   },
-  /// The button mapping layout for a controller has changed.
-  ControllerDeviceRemapped {
+  /// Keyboard button event information (a press or release).
+  Keyboard {
     /// When the event happened
     timestamp: u32,
-    /// The controller
-    joystick_id: JoystickID,
+    /// The window that was focused when the event happened.
+    window_id: u32,
+    /// If the key was pressed or released by this event.
+    is_key_down: bool,
+    /// If this is a "key repeat" event (usually 0 or 1, though possibly more).
+    repeat_count: u8,
+    /// The information about the key being pressed or released.
+    key: KeyInfo,
+  },
+  /// Generated whenever a mouse button is pressed or released.
+  MouseButtonEvent {
+    /// Time, in milliseconds, since SDL2 was initialized.
+    timestamp: u32,
+    /// Window with mouse focus, if any
+    window_id: u32,
+    /// The mouse that generated this event. If `None` it was a touch event.
+    mouse_id: Option<u32>,
+    /// The button that changed
+    button: MouseButton,
+    /// If the button is now pressed or released
+    is_pressed: bool,
+    /// 1 for single-click, 2 for double-click, etc
+    clicks: u8,
+    /// X, relative to the window
+    x: i32,
+    /// Y, relative to the window
+    y: i32,
+  },
+  /// The window has gained mouse focus.
+  ///
+  /// Inverse of [`Event::MouseLeftWindow`].
+  MouseEnteredWindow {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which gained mouse focus.
+    window_id: u32,
+  },
+  /// The window has lost mouse focus.
+  ///
+  /// Inverse of [`Event::MouseEnteredWindow`].
+  MouseLeftWindow {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which lost mouse focus.
+    window_id: u32,
+  },
+  /// Event for any time the user moves the mouse within a window, or if
+  /// `warp_mouse_in_window` is called.
+  MouseMotion {
+    /// Time, in milliseconds, since SDL2 was initialized.
+    timestamp: u32,
+    /// Window with mouse focus, if any
+    window_id: u32,
+    /// The mouse that generated this event. If `None` it was a touch event.
+    mouse_id: Option<u32>,
+    /// State of the mouse buttons during this event
+    state: MouseButtonState,
+    /// X, relative to the window
+    x: i32,
+    /// Y, relative to the window
+    y: i32,
+    /// Change in X position
+    delta_x: i32,
+    /// Change in Y position
+    delta_y: i32,
+  },
+  /// Generated whenever the user moves the mouse wheel.
+  MouseWheel {
+    /// Time, in milliseconds, since SDL2 was initialized.
+    timestamp: u32,
+    /// Window with mouse focus, if any
+    window_id: u32,
+    /// The mouse that generated this event. If `None` it was a touch event.
+    mouse_id: Option<u32>,
+    /// Horizontal scroll, negative Left or positive Right
+    x: i32,
+    /// Vertical scroll, negative to User or positive away from User
+    y: i32,
+    /// Mouse wheel isn't consistent on all platforms. If this bool is set, the
+    /// meaning of the `x` and `y` field is inverted compared to normal.
+    is_flipped: bool,
+  },
+  /// Quit was requested by the user
+  Quit {
+    /// Time, in milliseconds, since SDL2 was initialized.
+    timestamp: u32,
+  },
+  /// The window manager requests that the window be closed.
+  WindowClosed {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which wants to be closed.
+    window_id: u32,
+  },
+  /// The window has gained keyboard focus.
+  ///
+  /// Inverse of [`Event::WindowLostFocus`].
+  WindowGainedFocus {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which gained keyboard focus.
+    window_id: u32,
+  },
+  /// The window has lost keyboard focus.
+  ///
+  /// Inverse of [`Event::WindowGainedFocus`].
+  WindowLostFocus {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which lost keyboard focus.
+    window_id: u32,
+  },
+  /// The window has been moved.
+  WindowMoved {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which experienced a size change.
+    window_id: u32,
+    /// The new x position of the window.
+    x: i32,
+    /// The new y position of the window.
+    y: i32,
+  },
+  /// The size of the window has been changed externally.
+  ///
+  /// This event is always preceded by a [`Event::WindowSizeChanged`], however
+  /// the inverse is not always true.
+  ///
+  /// The difference between these two events is that `Event::WindowResized` is
+  /// only generated if the resize is triggered externally (by a user, their
+  /// window manager, etc), and *not* by calls to `beryllium` functions which
+  /// may change the size of a window, such as `Window::set_size`,
+  /// `Window::set_display_mode`, whereas [`Event::WindowSizeChanged`] is called
+  /// whenever the size of the window is changed, regardless of the cause.
+  WindowResized {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which experienced a size change.
+    window_id: u32,
+    /// The new width of the window.
+    width: i32,
+    /// The new height of the window.
+    height: i32,
+  },
+  /// Something has changed the size of the window.
+  ///
+  /// If (and only if) this was done by an external action (the user or window
+  /// manager changing the size of the window, for example), this event will be
+  /// followed by an [`Event::WindowResized`].
+  WindowSizeChanged {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which experienced a size change.
+    window_id: u32,
+    /// The new width of the window.
+    width: i32,
+    /// The new height of the window.
+    height: i32,
+  },
+  /// The window has been hidden.
+  ///
+  /// Inverse of [`Event::WindowShown`].
+  WindowHidden {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which gained or lost mouse focus.
+    window_id: u32,
+  },
+  /// The window has been minimized.
+  WindowMinimized {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which has been minimized.
+    window_id: u32,
+  },
+  /// The window needs repainting for one reason or another.
+  ///
+  /// This maps to `SDL_WINDOWEVENT_EXPOSED`, but has been renamed in order to
+  /// make it more clear what the event indicates.
+  WindowNeedsRepaint {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which gained or lost mouse focus.
+    window_id: u32,
+  },
+  /// The window has been shown.
+  ///
+  /// Inverse of [`Event::WindowHidden`].
+  WindowShown {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which gained or lost mouse focus.
+    window_id: u32,
+  },
+  /// The window has been maximized.
+  WindowMaximized {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which has been maximized.
+    window_id: u32,
+  },
+  /// The window has been restored to normal size and position.
+  WindowRestored {
+    /// When the event happened
+    timestamp: u32,
+    /// The window which has been restored.
+    window_id: u32,
   },
   /// It's always possible that we'll load some future version which will have
   /// event variants we don't understand, which we have to just ignore.
@@ -395,25 +395,25 @@ impl From<SDL_Event> for Event {
             axis: ControllerAxis::from(event.caxis.axis),
             value: event.caxis.value,
           },
-          SDL_CONTROLLERBUTTONDOWN | SDL_CONTROLLERBUTTONUP => Event::ControllerButton {
-            timestamp: event.cbutton.timestamp,
-            joystick_id: JoystickID(event.cbutton.which),
-            button: ControllerButton::from(event.cbutton.button),
-            pressed: u32::from(event.cbutton.state) == SDL_PRESSED,
-          },
-          SDL_CONTROLLERDEVICEADDED => Event::ControllerDeviceAdded {
-            timestamp: event.cdevice.timestamp,
-            joystick_id: JoystickID(event.cdevice.which),
-          },
-          SDL_CONTROLLERDEVICEREMOVED => Event::ControllerDeviceRemoved {
-            timestamp: event.cdevice.timestamp,
-            joystick_id: JoystickID(event.cdevice.which),
-          },
-          SDL_CONTROLLERDEVICEREMAPPED => Event::ControllerDeviceRemapped {
-            timestamp: event.cdevice.timestamp,
-            joystick_id: JoystickID(event.cdevice.which),
-          },
           _ => Event::UnknownEventType,
+        },
+        SDL_CONTROLLERBUTTONDOWN | SDL_CONTROLLERBUTTONUP => Event::ControllerButton {
+          timestamp: event.cbutton.timestamp,
+          joystick_id: JoystickID(event.cbutton.which),
+          button: ControllerButton::from(event.cbutton.button),
+          pressed: u32::from(event.cbutton.state) == SDL_PRESSED,
+        },
+        SDL_CONTROLLERDEVICEADDED => Event::ControllerDeviceAdded {
+          timestamp: event.cdevice.timestamp,
+          joystick_id: JoystickID(event.cdevice.which),
+        },
+        SDL_CONTROLLERDEVICEREMOVED => Event::ControllerDeviceRemoved {
+          timestamp: event.cdevice.timestamp,
+          joystick_id: JoystickID(event.cdevice.which),
+        },
+        SDL_CONTROLLERDEVICEREMAPPED => Event::ControllerDeviceRemapped {
+          timestamp: event.cdevice.timestamp,
+          joystick_id: JoystickID(event.cdevice.which),
         },
         _ => Event::UnknownEventType,
       }
