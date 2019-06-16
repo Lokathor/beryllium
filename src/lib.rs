@@ -368,26 +368,23 @@ impl SDLToken {
   }
 
   /// Obtains the number of joysticks connected to the system.
-  pub fn number_of_joysticks(&self) -> Result<u32, String> {
+  pub fn number_of_joysticks(&self) -> Result<i32, String> {
     let out = unsafe { SDL_NumJoysticks() };
     if out < 0 {
       Err(get_error())
     } else {
-      // Note(Lokathor): since it's supposed to be an "index" we'll pretend that
-      // the ID values are unsigned values, since that's more like the Rust
-      // index convention.
-      Ok(out as u32)
+      Ok(out)
     }
   }
 
   /// Says if the joystick index supports the Controller API.
-  pub fn joystick_is_game_controller(&self, index: u32) -> bool {
-    SDL_TRUE == unsafe { SDL_IsGameController(index as i32) }
+  pub fn joystick_is_game_controller(&self, id: JoystickID) -> bool {
+    SDL_TRUE == unsafe { SDL_IsGameController(id.0) }
   }
 
   /// Given a joystick index, attempts to get the Controller name, if any.
-  pub fn controller_name(&self, index: u32) -> Option<String> {
-    let ptr = unsafe { SDL_GameControllerNameForIndex(index as i32) };
+  pub fn controller_name(&self, id: JoystickID) -> Option<String> {
+    let ptr = unsafe { SDL_GameControllerNameForIndex(id.0) };
     if ptr.is_null() {
       None
     } else {
