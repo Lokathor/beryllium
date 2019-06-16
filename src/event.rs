@@ -63,7 +63,7 @@ pub enum Event {
     /// If this is a "key repeat" event (usually 0 or 1, though possibly more).
     repeat_count: u8,
     /// The information about the key being pressed or released.
-    key: KeyInfo,
+    key_info: KeyInfo,
   },
   /// Generated whenever a mouse button is pressed or released.
   MouseButtonEvent {
@@ -324,7 +324,7 @@ impl From<SDL_Event> for Event {
           window_id: event.key.windowID,
           is_key_down: u32::from(event.key.state) == SDL_PRESSED,
           repeat_count: event.key.repeat,
-          key: KeyInfo::from(event.key.keysym),
+          key_info: KeyInfo::from(event.key.keysym),
         },
         SDL_WINDOWEVENT => match event.window.event as fermium::SDL_WindowEventID::Type {
           SDL_WINDOWEVENT_MOVED => Event::WindowMoved {
