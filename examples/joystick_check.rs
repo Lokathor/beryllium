@@ -4,6 +4,7 @@ fn main() -> Result<(), String> {
   let sdl = unsafe { init()? };
 
   let joystick_count = sdl.number_of_joysticks()?;
+  assert!(joystick_count >= 0);
   if joystick_count > 0 {
     for index in 0..joystick_count {
       let id = JoystickID(index);
