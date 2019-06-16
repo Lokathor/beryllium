@@ -392,9 +392,11 @@ impl SDLToken {
     }
   }
 
-  /// Attempts to open the given index as a Controller.
-  pub fn open_controller(&self, index: u32) -> Result<Controller<'_>, String> {
-    let ptr = unsafe { SDL_GameControllerOpen(index as i32) };
+  /// Attempts to open the given id as a [Controller].
+  ///
+  /// Not all joysticks support the Controller API, so this can fail.
+  pub fn open_controller(&self, id: JoystickID) -> Result<Controller<'_>, String> {
+    let ptr = unsafe { SDL_GameControllerOpen(id.0) };
     if ptr.is_null() {
       Err(get_error())
     } else {
