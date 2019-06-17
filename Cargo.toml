@@ -17,6 +17,10 @@ gl = "0.12"
 glium = "0.25"
 ash = "0.29"
 
+[features]
+default = []
+dynamic_link = ["fermium/dynamic_link"]
+
 [badges]
 appveyor = { repository = "Lokathor/beryllium" }
 travis-ci = { repository = "Lokathor/beryllium" }
