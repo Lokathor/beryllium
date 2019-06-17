@@ -17,6 +17,15 @@ gl = "0.12"
 glium = "0.25"
 ash = "0.29"
 
+[features]
+default = []
+dynamic_link = ["fermium/dynamic_link"]
+
 [badges]
 appveyor = { repository = "Lokathor/beryllium" }
 travis-ci = { repository = "Lokathor/beryllium" }
+
+# This forces docs.rs to build us on windows, which has the simplest build for
+# docs.rs to perform.
+[package.metadata.docs.rs]
+default-target = "x86_64-pc-windows-msvc"
