@@ -4,6 +4,10 @@
 [![crates.io](https://img.shields.io/crates/v/beryllium.svg)](https://crates.io/crates/beryllium)
 [![docs.rs](https://docs.rs/beryllium/badge.svg)](https://docs.rs/beryllium/)
 
+# THIS CRATE IS REVOKED AND BANNED YOU CANNOT USE IT BECAUSE C IS TERRIBLE
+
+please have a good day
+
 # beryllium
 An opinionated set of "high level" wrappers for the
 [fermium](https://github.com/Lokathor/fermium) SDL2 bindings.
