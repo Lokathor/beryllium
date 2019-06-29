@@ -126,6 +126,11 @@ impl<'sdl> Window<'sdl> {
     unsafe { SDL_SetWindowTitle(self.ptr, title_null.as_ptr() as *const c_char) }
   }
 
+  /// Returns the title of the window in UTF-8 format or "" if there is no title.
+  pub fn get_title(&self) -> String {
+    unsafe { gather_string(SDL_GetWindowTitle(self.ptr)) }
+  }
+
   /// Gets the logical size of the window (in screen coordinates).
   ///
   /// Use the GL Drawable Size or Renderer Output Size checks to get the
