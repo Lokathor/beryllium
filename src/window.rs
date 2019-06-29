@@ -120,6 +120,12 @@ impl<'sdl> Window<'sdl> {
     }
   }
 
+  /// Sets the title of the window.
+  pub fn set_title(&self, title: &str) {
+    let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
+    unsafe { SDL_SetWindowTitle(self.ptr, title_null.as_ptr() as *const c_char) }
+  }
+
   /// Gets the logical size of the window (in screen coordinates).
   ///
   /// Use the GL Drawable Size or Renderer Output Size checks to get the
