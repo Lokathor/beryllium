@@ -127,7 +127,7 @@ impl<'sdl> Window<'sdl> {
   }
 
   /// Returns the title of the window in UTF-8 format or "" if there is no title.
-  pub fn get_title(&self) -> String {
+  pub fn title(&self) -> String {
     unsafe { gather_string(SDL_GetWindowTitle(self.ptr)) }
   }
 
