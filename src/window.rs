@@ -199,10 +199,7 @@ impl<'sdl> Window<'sdl> {
     if ctx.is_null() {
       Err(get_error())
     } else {
-      Ok(GLWindow {
-        ctx: ctx,
-        window: self,
-      })
+      Ok(GLWindow { ctx, window: self })
     }
   }
 }
