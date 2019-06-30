@@ -24,7 +24,7 @@ fn main() -> Result<(), String> {
   sdl.gl_set_attribute(GLattr::ContextProfileMask, CONTEXT_PROFILE_CORE);
   sdl.gl_set_attribute(GLattr::ContextMajorVersion, 3);
   sdl.gl_set_attribute(GLattr::ContextMinorVersion, 3);
-  let _ctx = unsafe { window.gl_create_context()? };
+  let window = unsafe { window.try_into_gl()? };
 
   // ONCE WE HAVE A CONTEXT (not before!) we can load up the OpenGL functions
   gl::load_with(|s| unsafe { sdl.gl_get_proc_address(s) });
@@ -47,7 +47,7 @@ fn main() -> Result<(), String> {
     // clear the screen over and over.
     unsafe {
       gl::Clear(gl::COLOR_BUFFER_BIT);
-      window.gl_swap_window();
+      window.swap_window();
     };
   }
 
