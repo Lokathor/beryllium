@@ -77,7 +77,10 @@ impl<'sdl> Window<'sdl> {
   /// Because you need a valid `Window` to call this method, we don't need to
   /// mark it as `unsafe`.
   pub fn modal_message_box(
-    &self, box_type: MessageBox, title: &str, message: &str,
+    &self,
+    box_type: MessageBox,
+    title: &str,
+    message: &str,
   ) -> Result<(), String> {
     let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
     let message_null: Vec<u8> = message.bytes().chain(Some(0)).collect();
@@ -96,34 +99,21 @@ impl<'sdl> Window<'sdl> {
     }
   }
 
-  /// Makes a renderer for the window.
-  ///
-  /// # Safety
-  ///
-  /// * Each renderer must only be used with its own window
-  /// * Each renderer must only be used with textures that it created
-  ///
-  /// If you only have a single renderer then this is trivially proved, if you
-  /// make more than one renderer it's up to you to verify this.
-  pub unsafe fn create_renderer<'win>(
-    &'win self, driver_index: Option<usize>, flags: RendererFlags,
-  ) -> Result<Renderer<'sdl, 'win>, String> {
-    let index = driver_index.map(|u| u as i32).unwrap_or(-1);
-    let ptr = SDL_CreateRenderer(self.ptr, index, flags.0 as u32);
-    if ptr.is_null() {
-      Err(get_error())
-    } else {
-      Ok(Renderer {
-        ptr,
-        _marker: PhantomData,
-      })
-    }
+  /// Returns the title of the window in UTF-8 format or "" if there is no title.
+  pub fn title(&self) -> String {
+    unsafe { gather_string(SDL_GetWindowTitle(self.ptr)) }
+  }
+
+  /// Sets the title of the window.
+  pub fn set_title(&self, title: &str) {
+    let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
+    unsafe { SDL_SetWindowTitle(self.ptr, title_null.as_ptr() as *const c_char) }
   }
 
   /// Gets the logical size of the window (in screen coordinates).
   ///
-  /// Use the GL Drawable Size or Renderer Output Size checks to get the
-  /// physical pixel count, if you need that.
+  /// For physical pixel counts use the method appropriate to your backend:
+  /// [GLWindow::drawable_size] or [RendererWindow::output_size].
   pub fn size(&self) -> (i32, i32) {
     let mut w = 0;
     let mut h = 0;
@@ -185,46 +175,46 @@ impl<'sdl> Window<'sdl> {
     }
   }
 
-  /// Creates a context for this window and makes it current.
-  pub unsafe fn gl_create_context<'win>(&'win self) -> Result<GLContext<'sdl, 'win>, String> {
-    let ctx = SDL_GL_CreateContext(self.ptr);
-    if ctx.is_null() {
-      Err(get_error())
+  /// Attempts to promote this `Window` into a [RendererWindow](RendererWindow).
+  ///
+  /// You can request details via the flags and also `Some(index)` for a
+  /// particular driver index. If you request `None` then the first driver index
+  /// that supports the flags will be suggested.
+  ///
+  /// ## Failure
+  ///
+  /// Well [the wiki](https://wiki.libsdl.org/SDL_CreateRenderer) isn't super
+  /// precise about things that can make it fail, but at a minimum if you
+  /// request an impossible situation it'll probably fail.
+  ///
+  /// In case of failure, you get both this window back as a normal window and
+  /// also the error message.
+  pub unsafe fn try_into_renderer(
+    self,
+    driver_index: Option<usize>,
+    flags: RendererFlags,
+  ) -> Result<RendererWindow<'sdl>, (Self, String)> {
+    let index = driver_index.map(|u| u as i32).unwrap_or(-1);
+    let ptr = SDL_CreateRenderer(self.ptr, index, flags.0 as u32);
+    if ptr.is_null() {
+      Err((self, get_error()))
     } else {
-      Ok(GLContext {
-        ctx,
-        _marker: PhantomData,
-      })
+      Ok(RendererWindow { ptr, window: self })
     }
   }
 
-  /// Obtains the size of the drawable space in the window.
+  /// Attempts to promote this `Window` into a [GLWindow](GLWindow).
   ///
-  /// This gives you a number of "physical pixels", so it might be different
-  /// from the "logical pixels" value you get when you call
-  /// [size](Window::size). This is primarily for use with
-  /// [glViewport](https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glViewport.xhtml)
-  pub fn gl_get_drawable_size(&self) -> (i32, i32) {
-    let mut w = 0;
-    let mut h = 0;
-    unsafe { SDL_GL_GetDrawableSize(self.ptr, &mut w, &mut h) };
-    (w, h)
-  }
-
-  /// Swaps the window's OpenGL buffers.
+  /// ## Failure
   ///
-  /// If double buffering isn't enabled this just does nothing.
-  pub unsafe fn gl_swap_window(&self) {
-    SDL_GL_SwapWindow(self.ptr)
-  }
-
-  /// Makes the given context the current context in this window.
-  pub unsafe fn gl_make_current(&self, ctx: &GLContext) -> Result<(), String> {
-    let out = SDL_GL_MakeCurrent(self.ptr, ctx.ctx);
-    if out == 0 {
-      Ok(())
+  /// OpenGL is a nightmare and context creation can fail because of cosmic rays
+  /// or really even if there aren't cosmic rays.
+  pub fn try_into_gl(self) -> Result<GLWindow<'sdl>, (Self, String)> {
+    let ctx = unsafe { SDL_GL_CreateContext(self.ptr) };
+    if ctx.is_null() {
+      Err((self, get_error()))
     } else {
-      Err(get_error())
+      Ok(GLWindow { ctx, window: self })
     }
   }
 }

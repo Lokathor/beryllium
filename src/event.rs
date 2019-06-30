@@ -444,7 +444,7 @@ impl From<u8> for MouseButton {
       SDL_BUTTON_MIDDLE => MouseButton::Middle,
       SDL_BUTTON_RIGHT => MouseButton::Right,
       SDL_BUTTON_X1 => MouseButton::X1,
-      SDL_BUTTON_X2 => MouseButton::X1,
+      SDL_BUTTON_X2 => MouseButton::X2,
       _ => MouseButton::Unknown,
     }
   }
