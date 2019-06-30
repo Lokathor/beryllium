@@ -28,7 +28,7 @@ fn main() -> Result<(), String> {
   // Renderer that's easy to do. If you make more than one it's up to you to
   // keep it straight.
   let renderer = unsafe {
-    window.create_renderer(
+    window.try_into_renderer(
       None,
       RendererFlags::default()
         .with_accelerated(true)
