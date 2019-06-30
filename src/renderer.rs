@@ -53,7 +53,8 @@ impl<'sdl> RendererWindow<'sdl> {
   ///
   /// The pixel format might be different from the surface's pixel format.
   pub fn create_texture_from_surface<'ren>(
-    &'ren self, surf: &Surface,
+    &'ren self,
+    surf: &Surface,
   ) -> Result<Texture<'sdl, 'ren>, String> {
     let ptr: *mut SDL_Texture = unsafe { SDL_CreateTextureFromSurface(self.ptr, surf.ptr) };
     if ptr.is_null() {
@@ -99,6 +100,18 @@ impl<'sdl> RendererWindow<'sdl> {
   pub fn clear(&self) -> Result<(), String> {
     if unsafe { SDL_RenderClear(self.ptr) } == 0 {
       Ok(())
+    } else {
+      Err(get_error())
+    }
+  }
+
+  /// Obtains the output area size in physical pixels.
+  pub fn output_size(&self) -> Result<(i32, i32), String> {
+    let mut w = 0;
+    let mut h = 0;
+    let out = unsafe { SDL_GetRendererOutputSize(self.ptr, &mut w, &mut h) };
+    if out == 0 {
+      Ok((w, h))
     } else {
       Err(get_error())
     }

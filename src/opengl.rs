@@ -132,11 +132,18 @@ pub const CONTEXT_ROBUST_ACCESS_FLAG: i32 = SDL_GL_CONTEXT_ROBUST_ACCESS_FLAG as
 /// failure.
 pub const CONTEXT_RESET_ISOLATION_FLAG: i32 = SDL_GL_CONTEXT_RESET_ISOLATION_FLAG as i32;
 
-/// Handle for an OpenGL context.
+/// A GLWindow is a [Window] with an OpenGL context bundled in.
 ///
-/// # General Safety
+/// This will [Deref](core::ops::Deref) to the inner window, or you can call
+/// OpenGL related methods.
 ///
-/// The context must be current when you call any method here.
+/// ## General OpenGL Unsafety
+///
+/// It's possible to have more than one OpenGL context in the world. All of the
+/// `unsafe` methods here require that this context is the current one when
+/// calling them. Use [GLWindow::is_current] check and [GLWindow::make_current]
+/// if needed. Of course, if you only have a single OpenGL context in your
+/// program you'll always have the current one.
 #[derive(Debug)]
 pub struct GLWindow<'sdl> {
   pub(crate) ctx: SDL_GLContext,
@@ -208,6 +215,16 @@ impl<'sdl> GLWindow<'sdl> {
     self.ctx == cur
   }
 
+  /// Makes the given context the current context in this window.
+  pub fn make_current(&self) -> Result<(), String> {
+    let out = unsafe { SDL_GL_MakeCurrent(self.window.ptr, self.ctx) };
+    if out == 0 {
+      Ok(())
+    } else {
+      Err(get_error())
+    }
+  }
+
   /// Obtains the size of the drawable space in the window.
   ///
   /// This gives you a number of "physical pixels", so it might be different
@@ -226,15 +243,5 @@ impl<'sdl> GLWindow<'sdl> {
   /// If double buffering isn't enabled this just does nothing.
   pub unsafe fn swap_window(&self) {
     SDL_GL_SwapWindow(self.window.ptr)
-  }
-
-  /// Makes the given context the current context in this window.
-  pub unsafe fn make_current(&self) -> Result<(), String> {
-    let out = SDL_GL_MakeCurrent(self.window.ptr, self.ctx);
-    if out == 0 {
-      Ok(())
-    } else {
-      Err(get_error())
-    }
   }
 }

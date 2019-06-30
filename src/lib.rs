@@ -222,7 +222,9 @@ pub enum MessageBox {
 ///
 /// As with all GUI things, you must only call this from the main thread.
 pub unsafe fn lone_message_box(
-  box_type: MessageBox, title: &str, message: &str,
+  box_type: MessageBox,
+  title: &str,
+  message: &str,
 ) -> Result<(), String> {
   let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
   let message_null: Vec<u8> = message.bytes().chain(Some(0)).collect();
@@ -293,7 +295,13 @@ impl SDLToken {
   /// Note that not all possible flags have an effect! See [the
   /// wiki](https://wiki.libsdl.org/SDL_CreateWindow) for guidance.
   pub fn create_window<'sdl>(
-    &'sdl self, title: &str, x: i32, y: i32, w: i32, h: i32, flags: WindowFlags,
+    &'sdl self,
+    title: &str,
+    x: i32,
+    y: i32,
+    w: i32,
+    h: i32,
+    flags: WindowFlags,
   ) -> Result<Window<'sdl>, String> {
     let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
     let ptr = unsafe {
@@ -320,7 +328,10 @@ impl SDLToken {
   ///
   /// See [the wiki page](https://wiki.libsdl.org/SDL_CreateRGBSurface)
   pub fn create_rgb_surface(
-    &self, width: i32, height: i32, format: SurfaceFormat,
+    &self,
+    width: i32,
+    height: i32,
+    format: SurfaceFormat,
   ) -> Result<Surface<'_>, String> {
     let (depth, r_mask, g_mask, b_mask, a_mask) = match format {
       SurfaceFormat::Indexed4 => (4, 0, 0, 0, 0),
@@ -424,7 +435,8 @@ impl SDLToken {
   ///
   /// If successful, the device will initially be paused.
   pub fn open_default_audio_queue(
-    &self, request: DefaultAudioQueueRequest,
+    &self,
+    request: DefaultAudioQueueRequest,
   ) -> Result<AudioQueue<'_>, String> {
     //
     let mut desired_spec = SDL_AudioSpec::default();

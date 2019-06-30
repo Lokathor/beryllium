@@ -24,7 +24,7 @@ fn main() -> Result<(), String> {
   sdl.gl_set_attribute(GLattr::ContextProfileMask, CONTEXT_PROFILE_CORE);
   sdl.gl_set_attribute(GLattr::ContextMajorVersion, 3);
   sdl.gl_set_attribute(GLattr::ContextMinorVersion, 3);
-  let window = unsafe { window.try_into_gl()? };
+  let window = window.try_into_gl().map_err(|(_win, msg)| msg)?;
 
   // ONCE WE HAVE A CONTEXT (not before!) we can load up the OpenGL functions
   gl::load_with(|s| unsafe { sdl.gl_get_proc_address(s) });

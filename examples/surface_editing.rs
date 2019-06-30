@@ -28,12 +28,14 @@ fn main() -> Result<(), String> {
   // Renderer that's easy to do. If you make more than one it's up to you to
   // keep it straight.
   let renderer = unsafe {
-    window.try_into_renderer(
-      None,
-      RendererFlags::default()
-        .with_accelerated(true)
-        .with_present_vsync(true),
-    )?
+    window
+      .try_into_renderer(
+        None,
+        RendererFlags::default()
+          .with_accelerated(true)
+          .with_present_vsync(true),
+      )
+      .map_err(|(_win, msg)| msg)?
   };
 
   let mut mouse_points = vec![];
