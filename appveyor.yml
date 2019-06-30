@@ -1,5 +1,5 @@
 
-os: Visual Studio 2015
+os: Visual Studio 2017
 
 environment:
   # The pre-built SDL2 files that we have are for MSVC only.

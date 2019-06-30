@@ -62,31 +62,8 @@ fn main() -> Result<(), String> {
 // HERE BEGINS ALL THE LINK UP CODE TO CONNECT GLIUM AND BERYLLIUM
 
 /// This holds the backend parts that beryllium gives you.
-///
-/// We keep them in their raw form and keep a phantom link to the SDLToken
-/// because it makes the whole lifetime thing a lot easier to deal with.
 pub struct BerylliumBackend<'sdl> {
-  win_ptr: *mut beryllium::unsafe_raw_ffi::SDL_Window,
-  ctx: beryllium::unsafe_raw_ffi::SDL_GLContext,
-  _marker: PhantomData<&'sdl SDLToken>,
-}
-
-impl Drop for BerylliumBackend<'_> {
-  /// Because the backend parts are held in raw form, we have to manually,
-  /// carefully transmute them back to their "wrapped" form so that they can
-  /// perform their normal drop.
-  ///
-  /// Note: ManuallyDrop wouldn't improve things here, since the point of using
-  /// the raw forms is to fake out the lifetime system.
-  fn drop(&mut self) {
-    unsafe {
-      // We must drop the context first so it doesn't outlive the window.
-      let context: GLContext = core::mem::transmute(self.ctx);
-      drop(context);
-      let window: Window = core::mem::transmute(self.win_ptr);
-      drop(window);
-    }
-  }
+  window: GLWindow<'sdl>,
 }
 
 impl<'sdl> BerylliumBackend<'sdl> {
@@ -94,31 +71,10 @@ impl<'sdl> BerylliumBackend<'sdl> {
   ///
   /// You have to have set the correct variables ahead of time so that the
   /// correct context is created.
-  pub fn from_window(window: Window<'sdl>) -> Result<Self, String> {
-    unsafe {
-      let context: GLContext = window.gl_create_context()?;
-      let ctx: beryllium::unsafe_raw_ffi::SDL_GLContext = core::mem::transmute(context);
-      let win_ptr: *mut beryllium::unsafe_raw_ffi::SDL_Window = core::mem::transmute(window);
-      Ok(Self {
-        win_ptr,
-        ctx,
-        _marker: PhantomData,
-      })
-    }
-  }
-
-  /// Reference to the held Window.
-  pub fn window(&self) -> &Window<'sdl> {
-    let r: &*mut beryllium::unsafe_raw_ffi::SDL_Window = &self.win_ptr;
-    unsafe { &*(r as *const *mut beryllium::unsafe_raw_ffi::SDL_Window as *const Window<'sdl>) }
-  }
-
-  /// Reference to the held GLContext
-  pub fn context(&self) -> &GLContext<'sdl, 'sdl> {
-    let r: &beryllium::unsafe_raw_ffi::SDL_GLContext = &self.ctx;
-    unsafe {
-      &*(r as *const beryllium::unsafe_raw_ffi::SDL_GLContext as *const GLContext<'sdl, 'sdl>)
-    }
+  pub fn from_window(window: Window<'sdl>) -> Result<Self, (Window<'sdl>, String)> {
+    Ok(Self {
+      window: window.try_into_gl()?,
+    })
   }
 }
 
@@ -128,26 +84,30 @@ unsafe impl Backend for BerylliumBackend<'_> {
   fn swap_buffers(&self) -> Result<(), SwapBuffersError> {
     // Note: this can't return error messages to us, so we can't pass any error
     // messages to the caller. Good luck!
-    unsafe { self.window().gl_swap_window() };
+    unsafe { self.window.swap_window() };
     Ok(())
   }
+
   unsafe fn get_proc_address(&self, symbol: &str) -> *const c_void {
     // Note: We can make up a &SDLToken "out of nowhere" because if this window
     // exists then naturally SDL2 is currently initialized. We choose a
     // reference instead of an owned value so that we don't drop the token.
     (&*(&() as *const () as *const beryllium::SDLToken)).gl_get_proc_address(symbol)
   }
+
   fn get_framebuffer_dimensions(&self) -> (u32, u32) {
-    let (w, h) = self.window().gl_get_drawable_size();
+    let (w, h) = self.window.drawable_size();
     (w as u32, h as u32)
   }
+
   fn is_current(&self) -> bool {
-    self.context().is_current()
+    self.window.is_current()
   }
+
   unsafe fn make_current(&self) {
     self
-      .window()
-      .gl_make_current(self.context())
+      .window
+      .make_current()
       .expect("Could not make the context current!")
   }
 }
@@ -172,7 +132,7 @@ impl Facade for BerylliumFacade<'_> {
 impl<'sdl> BerylliumFacade<'sdl> {
   /// Reference to the deeply wrapped Window.
   pub fn window(&self) -> &Window {
-    self.backend.window()
+    &*self.backend.window
   }
 
   /// Starts a new draw frame.
@@ -190,7 +150,8 @@ impl<'sdl> BerylliumFacade<'sdl> {
   pub fn from_window(window: Window<'_>, _t: &'sdl SDLToken) -> Result<Self, String> {
     unsafe {
       let window_static: Window<'static> = core::mem::transmute(window);
-      let backend = Rc::new(BerylliumBackend::from_window(window_static)?);
+      let backend =
+        Rc::new(BerylliumBackend::from_window(window_static).map_err(|(_win, msg)| msg)?);
       let context = Context::new(backend.clone(), true, DebugCallbackBehavior::default())
         .map_err(|e| e.to_string())?;
       Ok(Self {

@@ -19,36 +19,38 @@ impl RendererFlags {
   }
 }
 
-/// Handle to some SDL2 rendering state.
+/// This is a [Widow] that also allows SDL2's cross-platform 2D rendering
+/// system.
 ///
-/// Helps you do things like upload data to the GPU and blit image data around.
-///
-/// **To be clear: This is not a super fast renderer.** It's easy to use and you
-/// can get an image on the screen, but if you want do much at all that's
-/// computationally expensive you'll need to use a proper hardware API (OpenGL,
-/// Vulkan, etc). Also, you cannot really mix this renderer with the hardware
-/// APIs. They both expect to have full control of the pixel process. Use this
-/// _or_ a hardware API.
+/// This is 2D only, but if you just want a rectangular bitmap on the screen
+/// (eg: an emulator or similar) then it's just fine.
 #[derive(Debug)]
-#[repr(transparent)]
-pub struct Renderer<'sdl, 'win> {
+pub struct RendererWindow<'sdl> {
   pub(crate) ptr: *mut SDL_Renderer,
-  pub(crate) _marker: PhantomData<&'win Window<'sdl>>,
+  pub(crate) window: Window<'sdl>,
 }
-impl<'sdl, 'win> Drop for Renderer<'sdl, 'win> {
+impl<'sdl> Drop for RendererWindow<'sdl> {
   fn drop(&mut self) {
     unsafe { SDL_DestroyRenderer(self.ptr) }
   }
 }
-impl<'sdl, 'win> Renderer<'sdl, 'win> {
+impl<'sdl> Deref for RendererWindow<'sdl> {
+  type Target = Window<'sdl>;
+
+  fn deref(&self) -> &Self::Target {
+    &self.window
+  }
+}
+impl<'sdl> RendererWindow<'sdl> {
   /// Makes a texture with the contents of the surface specified.
   ///
   /// The TextureAccess hint for textures from this is "static".
   ///
   /// The pixel format might be different from the surface's pixel format.
   pub fn create_texture_from_surface<'ren>(
-    &'ren self, surf: &Surface,
-  ) -> Result<Texture<'sdl, 'win, 'ren>, String> {
+    &'ren self,
+    surf: &Surface,
+  ) -> Result<Texture<'sdl, 'ren>, String> {
     let ptr: *mut SDL_Texture = unsafe { SDL_CreateTextureFromSurface(self.ptr, surf.ptr) };
     if ptr.is_null() {
       Err(get_error())
@@ -93,6 +95,18 @@ impl<'sdl, 'win> Renderer<'sdl, 'win> {
   pub fn clear(&self) -> Result<(), String> {
     if unsafe { SDL_RenderClear(self.ptr) } == 0 {
       Ok(())
+    } else {
+      Err(get_error())
+    }
+  }
+
+  /// Obtains the output area size in physical pixels.
+  pub fn output_size(&self) -> Result<(i32, i32), String> {
+    let mut w = 0;
+    let mut h = 0;
+    let out = unsafe { SDL_GetRendererOutputSize(self.ptr, &mut w, &mut h) };
+    if out == 0 {
+      Ok((w, h))
     } else {
       Err(get_error())
     }

@@ -414,7 +414,12 @@ impl SDLToken {
 
   /// Try to combine some `bpp` and mask values into a single `format` value.
   pub fn masks_to_pixel_format_enum(
-    &self, bpp: i32, r_mask: u32, g_mask: u32, b_mask: u32, a_mask: u32,
+    &self,
+    bpp: i32,
+    r_mask: u32,
+    g_mask: u32,
+    b_mask: u32,
+    a_mask: u32,
   ) -> PixelFormatEnum {
     PixelFormatEnum::from(
       unsafe { SDL_MasksToPixelFormatEnum(bpp, r_mask, g_mask, b_mask, a_mask) }
