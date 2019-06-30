@@ -19,16 +19,11 @@ impl RendererFlags {
   }
 }
 
-/// Handle to some SDL2 rendering state.
+/// This is a [Widow] that also allows SDL2's cross-platform 2D rendering
+/// system.
 ///
-/// Helps you do things like upload data to the GPU and blit image data around.
-///
-/// **To be clear: This is not a super fast renderer.** It's easy to use and you
-/// can get an image on the screen, but if you want do much at all that's
-/// computationally expensive you'll need to use a proper hardware API (OpenGL,
-/// Vulkan, etc). Also, you cannot really mix this renderer with the hardware
-/// APIs. They both expect to have full control of the pixel process. Use this
-/// _or_ a hardware API.
+/// This is 2D only, but if you just want a rectangular bitmap on the screen
+/// (eg: an emulator or similar) then it's just fine.
 #[derive(Debug)]
 pub struct RendererWindow<'sdl> {
   pub(crate) ptr: *mut SDL_Renderer,
