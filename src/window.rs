@@ -96,28 +96,15 @@ impl<'sdl> Window<'sdl> {
     }
   }
 
-  /// Makes a renderer for the window.
-  ///
-  /// # Safety
-  ///
-  /// * Each renderer must only be used with its own window
-  /// * Each renderer must only be used with textures that it created
-  ///
-  /// If you only have a single renderer then this is trivially proved, if you
-  /// make more than one renderer it's up to you to verify this.
-  pub unsafe fn create_renderer<'win>(
-    &'win self, driver_index: Option<usize>, flags: RendererFlags,
-  ) -> Result<Renderer<'sdl, 'win>, String> {
-    let index = driver_index.map(|u| u as i32).unwrap_or(-1);
-    let ptr = SDL_CreateRenderer(self.ptr, index, flags.0 as u32);
-    if ptr.is_null() {
-      Err(get_error())
-    } else {
-      Ok(Renderer {
-        ptr,
-        _marker: PhantomData,
-      })
-    }
+  /// Sets the title of the window.
+  pub fn set_title(&self, title: &str) {
+    let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
+    unsafe { SDL_SetWindowTitle(self.ptr, title_null.as_ptr() as *const c_char) }
+  }
+
+  /// Returns the title of the window in UTF-8 format or "" if there is no title.
+  pub fn title(&self) -> String {
+    unsafe { gather_string(SDL_GetWindowTitle(self.ptr)) }
   }
 
   /// Gets the logical size of the window (in screen coordinates).
@@ -185,46 +172,34 @@ impl<'sdl> Window<'sdl> {
     }
   }
 
+  /// Makes a renderer for the window.
+  ///
+  /// # Safety
+  ///
+  /// * Each renderer must only be used with its own window
+  /// * Each renderer must only be used with textures that it created
+  ///
+  /// If you only have a single renderer then this is trivially proved, if you
+  /// make more than one renderer it's up to you to verify this.
+  pub unsafe fn try_into_renderer(
+    self, driver_index: Option<usize>, flags: RendererFlags,
+  ) -> Result<RendererWindow<'sdl>, String> {
+    let index = driver_index.map(|u| u as i32).unwrap_or(-1);
+    let ptr = SDL_CreateRenderer(self.ptr, index, flags.0 as u32);
+    if ptr.is_null() {
+      Err(get_error())
+    } else {
+      Ok(RendererWindow { ptr, window: self })
+    }
+  }
+
   /// Creates a context for this window and makes it current.
-  pub unsafe fn gl_create_context<'win>(&'win self) -> Result<GLContext<'sdl, 'win>, String> {
+  pub unsafe fn try_into_gl(self) -> Result<GLWindow<'sdl>, String> {
     let ctx = SDL_GL_CreateContext(self.ptr);
     if ctx.is_null() {
       Err(get_error())
     } else {
-      Ok(GLContext {
-        ctx,
-        _marker: PhantomData,
-      })
-    }
-  }
-
-  /// Obtains the size of the drawable space in the window.
-  ///
-  /// This gives you a number of "physical pixels", so it might be different
-  /// from the "logical pixels" value you get when you call
-  /// [size](Window::size). This is primarily for use with
-  /// [glViewport](https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glViewport.xhtml)
-  pub fn gl_get_drawable_size(&self) -> (i32, i32) {
-    let mut w = 0;
-    let mut h = 0;
-    unsafe { SDL_GL_GetDrawableSize(self.ptr, &mut w, &mut h) };
-    (w, h)
-  }
-
-  /// Swaps the window's OpenGL buffers.
-  ///
-  /// If double buffering isn't enabled this just does nothing.
-  pub unsafe fn gl_swap_window(&self) {
-    SDL_GL_SwapWindow(self.ptr)
-  }
-
-  /// Makes the given context the current context in this window.
-  pub unsafe fn gl_make_current(&self, ctx: &GLContext) -> Result<(), String> {
-    let out = SDL_GL_MakeCurrent(self.ptr, ctx.ctx);
-    if out == 0 {
-      Ok(())
-    } else {
-      Err(get_error())
+      Ok(GLWindow { ctx, window: self })
     }
   }
 }

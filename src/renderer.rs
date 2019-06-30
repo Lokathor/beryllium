@@ -30,17 +30,23 @@ impl RendererFlags {
 /// APIs. They both expect to have full control of the pixel process. Use this
 /// _or_ a hardware API.
 #[derive(Debug)]
-#[repr(transparent)]
-pub struct Renderer<'sdl, 'win> {
+pub struct RendererWindow<'sdl> {
   pub(crate) ptr: *mut SDL_Renderer,
-  pub(crate) _marker: PhantomData<&'win Window<'sdl>>,
+  pub(crate) window: Window<'sdl>,
 }
-impl<'sdl, 'win> Drop for Renderer<'sdl, 'win> {
+impl<'sdl> Drop for RendererWindow<'sdl> {
   fn drop(&mut self) {
     unsafe { SDL_DestroyRenderer(self.ptr) }
   }
 }
-impl<'sdl, 'win> Renderer<'sdl, 'win> {
+impl<'sdl> Deref for RendererWindow<'sdl> {
+  type Target = Window<'sdl>;
+
+  fn deref(&self) -> &Self::Target {
+    &self.window
+  }
+}
+impl<'sdl> RendererWindow<'sdl> {
   /// Makes a texture with the contents of the surface specified.
   ///
   /// The TextureAccess hint for textures from this is "static".
@@ -48,7 +54,7 @@ impl<'sdl, 'win> Renderer<'sdl, 'win> {
   /// The pixel format might be different from the surface's pixel format.
   pub fn create_texture_from_surface<'ren>(
     &'ren self, surf: &Surface,
-  ) -> Result<Texture<'sdl, 'win, 'ren>, String> {
+  ) -> Result<Texture<'sdl, 'ren>, String> {
     let ptr: *mut SDL_Texture = unsafe { SDL_CreateTextureFromSurface(self.ptr, surf.ptr) };
     if ptr.is_null() {
       Err(get_error())
