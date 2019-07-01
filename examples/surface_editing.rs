@@ -70,8 +70,8 @@ fn main() -> Result<(), String> {
         for (x, y) in mouse_points.drain(..) {
           // Note: pitch values are provided **in bytes**, so cast to the pixel
           // type after you offset to the start of the target row.
-          let row_ptr = ptr.offset((y * pitch) as isize) as *mut u32;
-          row_ptr.offset(x as isize).write(core::u32::MAX);
+          let row_ptr = ptr.add(y * pitch) as *mut u32;
+          row_ptr.add(x).write(core::u32::MAX);
         }
       })?;
     }
