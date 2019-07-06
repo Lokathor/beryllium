@@ -8,7 +8,7 @@ use beryllium::*;
 fn main() -> Result<(), String> {
   // Safety Rules: You must only init SDL2 from the main thread, and you must
   // not double initialize it.
-  let sdl = unsafe { beryllium::init() }?;
+  let sdl = beryllium::init()?;
 
   let _window = sdl.create_window(
     "Window Demo",            // title
