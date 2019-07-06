@@ -3,7 +3,7 @@
 use beryllium::*;
 
 fn main() -> Result<(), String> {
-  let sdl = unsafe { init()? };
+  let sdl = init()?;
 
   const FREQUENCY: i32 = 48000;
   const TWO_PI: f32 = core::f32::consts::PI * 2.0;

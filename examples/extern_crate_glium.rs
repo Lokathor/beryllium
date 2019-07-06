@@ -21,7 +21,7 @@ use std::rc::Rc;
 
 fn main() -> Result<(), String> {
   // Init SDL2
-  let sdl = unsafe { beryllium::init() }?;
+  let sdl = beryllium::init()?;
 
   // Make a window (include the flag for OpenGL support!)
   let window = sdl.create_window(

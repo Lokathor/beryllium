@@ -21,7 +21,7 @@ fn main() -> Result<(), String> {
   }
 
   // This is the same as the `window` example
-  let sdl = unsafe { beryllium::init() }?;
+  let sdl = beryllium::init()?;
   let window = sdl.create_window(
     "Simple Message Box Window",             // title
     WINDOW_POSITION_CENTERED,                // x
