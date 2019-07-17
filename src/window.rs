@@ -110,6 +110,16 @@ impl<'sdl> Window<'sdl> {
     unsafe { SDL_SetWindowTitle(self.ptr, title_null.as_ptr() as *const c_char) }
   }
 
+  /// Use this function to show a window.
+  pub fn show(&self) {
+    unsafe { SDL_ShowWindow(self.ptr) }
+  }
+
+  /// Use this function to hide a window.
+  pub fn hide(&self) {
+    unsafe { SDL_HideWindow(self.ptr) }
+  }
+
   /// Gets the logical size of the window (in screen coordinates).
   ///
   /// For physical pixel counts use the method appropriate to your backend:
