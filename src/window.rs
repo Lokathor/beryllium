@@ -140,9 +140,28 @@ impl<'sdl> Window<'sdl> {
   }
 
   /// Obtains info about the fullscreen settings of the window.
-  pub fn display_mode(&self) -> Result<DisplayMode, String> {
+  ///
+  /// Use this function to get info about the display mode that the Window uses when it's fullscreen.
+  pub fn window_display_mode(&self) -> Result<DisplayMode, String> {
     let mut mode = SDL_DisplayMode::default();
     let out = unsafe { SDL_GetWindowDisplayMode(self.ptr, &mut mode) };
+    if out == 0 {
+      Ok(DisplayMode::from(mode))
+    } else {
+      Err(get_error())
+    }
+  }
+
+  /// Obtains info about the monitor settings that the center of the window is being displayed on.
+  ///
+  /// Use this function to get information about the Desktop display mode (even if a Window is currently fullscreen).
+  pub fn desktop_display_mode(&self) -> Result<DisplayMode, String> {
+    let index = unsafe { SDL_GetWindowDisplayIndex(self.ptr) };
+    if index < 0 {
+      return Err(get_error());
+    }
+    let mut mode = SDL_DisplayMode::default();
+    let out = unsafe { SDL_GetDesktopDisplayMode(index, &mut mode) };
     if out == 0 {
       Ok(DisplayMode::from(mode))
     } else {
