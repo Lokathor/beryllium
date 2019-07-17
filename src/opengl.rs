@@ -60,7 +60,7 @@ pub enum GLattr {
   /// OpenGL context minor version
   ContextMinorVersion = SDL_GL_CONTEXT_MINOR_VERSION,
 
-  /// some combination of 0 or more of elements of the SDL_GLWindowFlag enumeration; defaults to 0
+  /// some combination of 0 or more of elements of the SDL_GLContextFlag enumeration; defaults to 0
   ContextFlags = SDL_GL_CONTEXT_FLAGS,
 
   /// type of GL context (Core, Compatibility, ES), default value depends on platform
