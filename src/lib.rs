@@ -248,17 +248,21 @@ pub unsafe fn lone_message_box(
 /// * You cannot double initialize SDL2, you'll get an error.
 /// * If SDL2 fails to initialize you'll get an error and it will revert itself
 ///   to an uninitialized state, perhaps allowing you to try again.
-///
-/// # Safety
-///
-/// * This can only be called from the main thread (because of a
-///   [macOS](https://tinyurl.com/y5bv7g4v) limit built into Cocoa).
-pub unsafe fn init() -> Result<SDLToken, String> {
+/// * If you call this function on macOS or iOS and are not on the main thread,
+///   you get an error.
+pub fn init() -> Result<SDLToken, String> {
+  #[cfg(any(target_os = "macos", target_os = "ios"))] {
+    use objc::{msg_send, sel, sel_impl, class};
+    let is_main: bool = unsafe { msg_send![class!(NSThread), isMainThread] };
+    if !is_main {
+      return Err("beryllium::init() must be called on the main thread!".to_string());
+    }
+  }
   if I_THINK_THAT_SDL2_IS_ACTIVE.swap(true, Ordering::SeqCst) {
     // Note(Lokathor): `swap` gives the old value back, so if we get back `true`
     // that means it was already active, so that's an error.
     Err("The library is currently initialized!".to_string())
-  } else if SDL_Init(SDL_INIT_EVERYTHING) == 0 {
+  } else if unsafe { SDL_Init(SDL_INIT_EVERYTHING) } == 0 {
     Ok(SDLToken {
       _marker: PhantomData,
     })

@@ -1,7 +1,7 @@
 use beryllium::*;
 
 fn main() -> Result<(), String> {
-  let sdl = unsafe { init()? };
+  let sdl = init()?;
 
   let joystick_count = sdl.number_of_joysticks()?;
   assert!(joystick_count >= 0);

@@ -7,7 +7,7 @@
 use beryllium::*;
 
 fn main() -> Result<(), String> {
-  let sdl = unsafe { beryllium::init()? };
+  let sdl = beryllium::init()?;
 
   let window = sdl.create_window(
     "Surface Demo",           // title
