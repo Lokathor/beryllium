@@ -2,10 +2,15 @@
 name = "beryllium"
 description = "An opinionated set of high level wrappers for the `fermium` SDL2 bindings."
 repository = "https://github.com/Lokathor/beryllium"
-version = "0.0.14-alpha.0"
+version = "0.0.15-alpha.0"
 authors = ["Lokathor <zefria@gmail.com>"]
 edition = "2018"
 license = "Zlib"
+
+# This forces docs.rs to build us on windows, which has the simplest build for
+# docs.rs to perform.
+[package.metadata.docs.rs]
+default-target = "x86_64-pc-windows-msvc"
 
 [dependencies]
 fermium = "0.0.15"
@@ -27,8 +32,3 @@ dynamic_link = ["fermium/dynamic_link"]
 [badges]
 appveyor = { repository = "Lokathor/beryllium" }
 travis-ci = { repository = "Lokathor/beryllium" }
-
-# This forces docs.rs to build us on windows, which has the simplest build for
-# docs.rs to perform.
-[package.metadata.docs.rs]
-default-target = "x86_64-pc-windows-msvc"

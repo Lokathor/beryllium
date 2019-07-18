@@ -158,6 +158,15 @@ unsafe fn gather_string(ptr: *const c_char) -> String {
   String::from_utf8_lossy(useful_bytes).into_owned()
 }
 
+/// Converts a bool into a SDL_bool.
+fn into_sdl_bool(flag: bool) -> SDL_bool::Type {
+  if flag {
+    SDL_TRUE
+  } else {
+    SDL_FALSE
+  }
+}
+
 /// A version number.
 #[derive(Debug, Default, Clone, Copy)]
 #[allow(missing_docs)]
@@ -251,8 +260,9 @@ pub unsafe fn lone_message_box(
 /// * If you call this function on macOS or iOS and are not on the main thread,
 ///   you get an error.
 pub fn init() -> Result<SDLToken, String> {
-  #[cfg(any(target_os = "macos", target_os = "ios"))] {
-    use objc::{msg_send, sel, sel_impl, class};
+  #[cfg(any(target_os = "macos", target_os = "ios"))]
+  {
+    use objc::{class, msg_send, sel, sel_impl};
     let is_main: bool = unsafe { msg_send![class!(NSThread), isMainThread] };
     if !is_main {
       return Err("beryllium::init() must be called on the main thread!".to_string());
