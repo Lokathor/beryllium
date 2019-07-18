@@ -160,9 +160,10 @@ unsafe fn gather_string(ptr: *const c_char) -> String {
 
 /// Converts a bool into a SDL_bool.
 fn into_sdl_bool(flag: bool) -> SDL_bool::Type {
-  match flag {
-    true => SDL_TRUE,
-    false => SDL_FALSE,
+  if flag {
+    SDL_TRUE
+  } else {
+    SDL_FALSE
   }
 }
 
