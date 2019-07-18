@@ -99,6 +99,23 @@ impl<'sdl> Window<'sdl> {
     }
   }
 
+  /// Use this function to get the window flags.
+  pub fn flags(&self) -> WindowFlags {
+    let mut flags = WindowFlags::default();
+    flags.0 = unsafe { SDL_GetWindowFlags(self.ptr) } as i32;
+    flags
+  }
+
+  /// Returns the user-resizable state of a window.
+  pub fn resizable(&self) -> bool {
+    self.flags().resizable()
+  }
+
+  /// Use this function to set the user-resizable state of a window.
+  pub fn set_resizable(&self, resizable: bool) {
+    unsafe { SDL_SetWindowResizable(self.ptr, into_sdl_bool(resizable)) }
+  }
+
   /// Returns the title of the window in UTF-8 format or "" if there is no title.
   pub fn title(&self) -> String {
     unsafe { gather_string(SDL_GetWindowTitle(self.ptr)) }
