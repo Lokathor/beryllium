@@ -102,7 +102,7 @@ impl<'sdl> Window<'sdl> {
   /// Use this function to get the window flags.
   pub fn flags(&self) -> WindowFlags {
     let mut flags = WindowFlags::default();
-    flags.0 = unsafe { SDL_GetWindowFlags(self.ptr) } as i32;
+    flags.0 = unsafe { SDL_GetWindowFlags(self.ptr) } as SDL_WindowFlags::Type;
     flags
   }
 
