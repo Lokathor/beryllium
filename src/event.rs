@@ -509,7 +509,7 @@ impl From<SDL_Keysym> for KeyInfo {
 /// * AC = Application Control
 /// * Kbd = Keyboard
 /// * KP = Keypad
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[cfg_attr(windows, repr(i32))]
 #[cfg_attr(not(windows), repr(u32))]
 #[allow(missing_docs)]
