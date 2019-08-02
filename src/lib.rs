@@ -17,9 +17,7 @@
 //! on the main thread.
 //!
 //! ```no_run
-//! let sdl = unsafe {
-//!   beryllium::init().expect("Couldn't initialize SDL2!")
-//! };
+//! let sdl = beryllium::init().expect("Couldn't initialize SDL2!");
 //! ```
 //!
 //! Initialization gives you an [SDLToken](SDLToken) (no, I will not change the
