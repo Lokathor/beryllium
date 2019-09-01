@@ -227,11 +227,14 @@ fn create_ash_instance(ash_entry: &ash::Entry, sdl_window: &beryllium::Window) -
 
   // Validation layers get enabled if the debug utils extension
   // and the Khronos standard layer is present.
-  let mut use_validation_layers = false;
-  if check_if_instance_extension_present(ash::extensions::ext::DebugUtils::name().as_ptr(), available_instance_extensions.as_slice()) {
+  let use_validation_layers = if check_if_instance_extension_present(
+    ash::extensions::ext::DebugUtils::name().as_ptr(),
+    available_instance_extensions.as_slice()) {
     instance_extensions_to_use.push(ash::extensions::ext::DebugUtils::name().as_ptr());
-    use_validation_layers = true;
-  }
+    true
+  } else {
+    false
+  };
   assert!(validate_instance_extensions(instance_extensions_to_use.as_slice(), &available_instance_extensions),
           "Error. Not all required extensions are available.");
 
@@ -394,7 +397,7 @@ fn find_surface_format(available_formats: &[vk::SurfaceFormatKHR]) -> Option<vk:
     }
   }
   if surface_format_to_use.format == vk::Format::UNDEFINED {
-    return None;
+    None
   } else {
     Some(surface_format_to_use)
   }
