@@ -150,8 +150,8 @@ pub use rect::*;
 pub use fermium as unsafe_raw_ffi;
 
 /// Imports the `ash` crate when using the Vulkan feature.
-#[cfg(any(not(any(target_os = "ios", target_os = "macos")), feature = "vulkan"))]
-pub extern crate ash;
+ #[cfg(all(not(any(target_os = "ios", target_os = "macos")), feature = "vulkan"))]
+pub use ash;
 
 /// Grabs up the data from a null terminated string pointer.
 unsafe fn gather_string(ptr: *const c_char) -> String {
