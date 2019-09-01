@@ -149,8 +149,10 @@ pub use rect::*;
 /// In case of emergency, you can break the glass.
 pub use fermium as unsafe_raw_ffi;
 
+/// Handle for a Vulkan instance.
 #[derive(Debug)]
 pub struct VkInstance(pub *mut u8);
+/// Handle for a Vulkan surface.
 #[derive(Debug)]
 pub struct VkSurfaceKHR(pub u64);
 
