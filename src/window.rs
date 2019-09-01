@@ -1,5 +1,8 @@
 use super::*;
 
+#[cfg(any(not(any(target_os = "ios", target_os = "macos")), feature = "vulkan"))]
+use crate::ash::vk::Handle;
+
 /// Flags that a window might have.
 ///
 /// This is for use with [create_window](SDLToken::create_window) as well as
@@ -269,14 +272,46 @@ impl<'sdl> Window<'sdl> {
   /// ## Failure
   /// 
   /// Fails if window was not created with the Vulkan `WindowFlag`
-  pub fn create_vk_surface(&self, vk_instance: crate::VkInstance) -> Option<crate::VkSurfaceKHR> {
+  #[cfg(any(not(any(target_os = "ios", target_os = "macos")), feature = "vulkan"))]
+  pub fn create_vk_surface(&self, vk_instance: ash::vk::Instance) -> Option<ash::vk::SurfaceKHR> {
     let mut temp_surface: fermium::VkSurfaceKHR = std::ptr::null_mut();
-    let instance: fermium::VkInstance = vk_instance.0 as fermium::VkInstance;
-    let sdl_bool_result: SDL_bool::Type = unsafe { SDL_Vulkan_CreateSurface(self.ptr, instance, &mut temp_surface) };
+    let instance: fermium::VkInstance = vk_instance.as_raw() as fermium::VkInstance;
+    let sdl_bool_result = unsafe { SDL_Vulkan_CreateSurface(self.ptr, instance, &mut temp_surface) };
     if sdl_bool_result == SDL_TRUE {
-      Some(crate::VkSurfaceKHR(temp_surface as u64))
+      Some(ash::vk::SurfaceKHR::from_raw(temp_surface as u64))
     } else {
       None
+    }
+  }
+
+  /// Returns the Vulkan instance extensions required to create a VkSurfaceKHR from this window.
+  #[cfg(any(not(any(target_os = "ios", target_os = "macos")), feature = "vulkan"))]
+  pub fn required_vk_extensions(&self) -> Vec<*const c_char> {
+    let mut extension_count: std::os::raw::c_uint = 0;
+    let get_extensions_result = unsafe { SDL_Vulkan_GetInstanceExtensions(self.ptr, &mut extension_count, std::ptr::null_mut()) };
+    if get_extensions_result == SDL_FALSE {
+      return Default::default();
+    }
+    let mut extension_vec = Vec::<*const c_char>::new();
+    extension_vec.resize(extension_count as usize, std::ptr::null());
+    let get_extensions_result = unsafe { SDL_Vulkan_GetInstanceExtensions(self.ptr, &mut extension_count, extension_vec.as_mut_ptr()) };
+    if get_extensions_result == SDL_FALSE {
+      return Default::default();
+    }
+    extension_vec
+  }
+
+  /// Returns the drawable size for Vulkan when rendering to this window.
+  #[cfg(any(not(any(target_os = "ios", target_os = "macos")), feature = "vulkan"))]
+  pub fn vk_drawable_size(&self) -> ash::vk::Extent2D {
+    let mut width: std::os::raw::c_int = 0;
+    let mut height: std::os::raw::c_int = 0;
+    unsafe {
+      SDL_Vulkan_GetDrawableSize(self.ptr, &mut width, &mut height);
+    }
+    ash::vk::Extent2D{
+      width: width as u32,
+      height: height as u32
     }
   }
 }

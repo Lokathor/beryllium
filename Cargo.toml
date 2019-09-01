@@ -7,15 +7,23 @@ authors = ["Lokathor <zefria@gmail.com>"]
 edition = "2018"
 license = "Zlib"
 
-# This forces docs.rs to build us on windows, which has the simplest build for
-# docs.rs to perform.
-[package.metadata.docs.rs]
-default-target = "x86_64-pc-windows-msvc"
+[features]
+default = []
+dynamic_link = ["fermium/dynamic_link"]
+vulkan = ["ash"]
+
+[[example]]
+name = "extern_crate_ash"
+path = "examples/extern_crate_ash.rs"
+required-features = ["vulkan"]
+
+# Note: Other examples should still be fine to leave implicit
 
 [dependencies]
 fermium = "0.0.15"
 phantom-fields = "^0.1.2"
 libc = "0.2"
+ash = { version = "0.29", optional = true }
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 objc = "0.2.6"
@@ -23,11 +31,11 @@ objc = "0.2.6"
 [dev-dependencies]
 gl = "0.12"
 glium = "0.25"
-ash = "0.29"
 
-[features]
-default = []
-dynamic_link = ["fermium/dynamic_link"]
+# This forces docs.rs to build us on windows, which has the simplest build for
+# docs.rs to perform.
+[package.metadata.docs.rs]
+default-target = "x86_64-pc-windows-msvc"
 
 [badges]
 appveyor = { repository = "Lokathor/beryllium" }

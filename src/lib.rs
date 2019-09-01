@@ -149,12 +149,9 @@ pub use rect::*;
 /// In case of emergency, you can break the glass.
 pub use fermium as unsafe_raw_ffi;
 
-/// Handle for a Vulkan instance.
-#[derive(Debug)]
-pub struct VkInstance(pub *mut u8);
-/// Handle for a Vulkan surface.
-#[derive(Debug)]
-pub struct VkSurfaceKHR(pub u64);
+/// Imports the `ash` crate when using the Vulkan feature.
+#[cfg(any(not(any(target_os = "ios", target_os = "macos")), feature = "vulkan"))]
+pub extern crate ash;
 
 /// Grabs up the data from a null terminated string pointer.
 unsafe fn gather_string(ptr: *const c_char) -> String {
