@@ -264,7 +264,12 @@ impl<'sdl> Window<'sdl> {
     }
   }
 
-  pub fn try_create_vk_surface(&self, vk_instance: crate::VkInstance) -> Option<crate::VkSurfaceKHR> {
+  /// Tries to generate a Vulkan surface handle to the window by using an existing Vulkan instance handle.
+  /// 
+  /// ## Failure
+  /// 
+  /// Fails if window was not created with the Vulkan `WindowFlag`
+  pub fn create_vk_surface(&self, vk_instance: crate::VkInstance) -> Option<crate::VkSurfaceKHR> {
     let mut temp_surface: fermium::VkSurfaceKHR = std::ptr::null_mut();
     let instance: fermium::VkInstance = vk_instance.0 as fermium::VkInstance;
     let sdl_bool_result: SDL_bool::Type = unsafe { SDL_Vulkan_CreateSurface(self.ptr, instance, &mut temp_surface) };
