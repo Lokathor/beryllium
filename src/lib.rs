@@ -149,6 +149,11 @@ pub use rect::*;
 /// In case of emergency, you can break the glass.
 pub use fermium as unsafe_raw_ffi;
 
+#[derive(Debug)]
+pub struct VkInstance(pub *mut u8);
+#[derive(Debug)]
+pub struct VkSurfaceKHR(pub u64);
+
 /// Grabs up the data from a null terminated string pointer.
 unsafe fn gather_string(ptr: *const c_char) -> String {
   let len = SDL_strlen(ptr);
