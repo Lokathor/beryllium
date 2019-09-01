@@ -223,7 +223,7 @@ fn create_ash_instance(ash_entry: &ash::Entry, sdl_window: &beryllium::Window) -
 
   // We need to query which instance extensions are available, and which are required by the Beryllium window.
   let available_instance_extensions = ash_entry.enumerate_instance_extension_properties().unwrap();
-  let mut instance_extensions_to_use = sdl_window.required_vulkan_extensions();
+  let mut instance_extensions_to_use = sdl_window.required_vk_extensions();
 
   // Validation layers get enabled if the debug utils extension
   // and the Khronos standard layer is present.
