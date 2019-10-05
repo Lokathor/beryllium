@@ -130,7 +130,7 @@ unsafe impl<'sdl> raw_window_handle::HasRawWindowHandle for Window<'sdl> {
           RawWindowHandle::Xlib(XlibHandle {
             window: unsafe { wm_info.info.x11.window },
             display: unsafe { wm_info.info.x11.display as *mut core::ffi::c_void },
-            ..WaylandHandle::empty()
+            ..XlibHandle::empty()
           })
         }
         #[cfg(target_os = "macos")]
