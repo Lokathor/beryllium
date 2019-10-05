@@ -81,8 +81,18 @@ impl<'sdl> Drop for Window<'sdl> {
 
 unsafe impl<'sdl> raw_window_handle::HasRawWindowHandle for Window<'sdl> {
   fn raw_window_handle(&self) -> raw_window_handle::RawWindowHandle {
+    #[cfg(any(
+      target_os = "linux",
+      target_os = "dragonfly",
+      target_os = "freebsd",
+      target_os = "netbsd",
+      target_os = "openbsd"
+    ))]
+    use raw_window_handle::unix::{WaylandHandle, XcbHandle, XlibHandle};
     #[cfg(windows)]
     use raw_window_handle::windows::WindowsHandle;
+    #[cfg(target_os = "macos")]
+    use raw_window_handle::macos::MacOSHandle;
     use raw_window_handle::RawWindowHandle;
     let mut wm_info = fermium::SDL_SysWMinfo::default();
     let b = unsafe { fermium::SDL_GetWindowWMInfo(self.ptr, &mut wm_info) };
@@ -95,7 +105,43 @@ unsafe impl<'sdl> raw_window_handle::HasRawWindowHandle for Window<'sdl> {
             ..WindowsHandle::empty()
           })
         }
-        _ => panic!("The current window subsystem is not supported by the raw-window-handle API and Osspial wrote the trait to be infallible despite that clearly not always being the case. https://github.com/rust-windowing/raw-window-handle/issues/new"),
+        #[cfg(any(
+          target_os = "linux",
+          target_os = "dragonfly",
+          target_os = "freebsd",
+          target_os = "netbsd",
+          target_os = "openbsd"
+        ))]
+        fermium::SDL_SYSWM_WAYLAND => {
+          RawWindowHandle::Wayland(WaylandHandle {
+            surface: unsafe { wm_info.info.wl.surface as *mut core::ffi::c_void },
+            display: unsafe { wm_info.info.wl.display as *mut core::ffi::c_void },
+            ..WaylandHandle::empty()
+          })
+        }
+        #[cfg(any(
+          target_os = "linux",
+          target_os = "dragonfly",
+          target_os = "freebsd",
+          target_os = "netbsd",
+          target_os = "openbsd"
+        ))]
+        fermium::SDL_SYSWM_X11 => {
+          RawWindowHandle::Xlib(XlibHandle {
+            window: unsafe { wm_info.info.x11.window },
+            display: unsafe { wm_info.info.x11.display as *mut core::ffi::c_void },
+            ..WaylandHandle::empty()
+          })
+        }
+        #[cfg(target_os = "macos")]
+        fermium::SDL_SYSWM_COCOA => {
+          RawWindowHandle::MacOS(MacOSHandle {
+            ns_window: unsafe { wm_info.info.cocoa.window as *mut core::ffi::c_void },
+            ns_view: unsafe { unimplemented!() as *mut core::ffi::c_void },
+            ..MacOSHandle::empty()
+          })
+        }
+        _ => panic!("SDL2 is using a window subsystem that is not supported by the raw-window-handle API and Osspial wrote the trait to be infallible despite that clearly not always being the case. https://github.com/rust-windowing/raw-window-handle/issues/new"),
       }
     } else {
       panic!("Could not retrieve window info and Osspial wrote the trait to be infallible despite that clearly not always being the case. https://github.com/rust-windowing/raw-window-handle/issues/new");
@@ -198,8 +244,6 @@ impl<'sdl> Window<'sdl> {
   pub fn set_minimum_size(&self, width: i32, height: i32) {
     unsafe { fermium::SDL_SetWindowMinimumSize(self.ptr, width, height) }
   }
-
-
 
   /// Obtains info about the fullscreen settings of the window.
   ///
