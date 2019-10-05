@@ -103,12 +103,12 @@ pub enum ControllerAxis {
 impl From<u8> for ControllerAxis {
   fn from(axis: u8) -> Self {
     match fermium::SDL_GameControllerAxis::from(axis) {
-      SDL_CONTROLLER_AXIS_LEFTX => ControllerAxis::LeftX,
-      SDL_CONTROLLER_AXIS_LEFTY => ControllerAxis::LeftY,
-      SDL_CONTROLLER_AXIS_RIGHTX => ControllerAxis::RightX,
-      SDL_CONTROLLER_AXIS_RIGHTY => ControllerAxis::RightY,
-      SDL_CONTROLLER_AXIS_TRIGGERLEFT => ControllerAxis::LeftTrigger,
-      SDL_CONTROLLER_AXIS_TRIGGERRIGHT => ControllerAxis::RightTrigger,
+      fermium::SDL_CONTROLLER_AXIS_LEFTX => ControllerAxis::LeftX,
+      fermium::SDL_CONTROLLER_AXIS_LEFTY => ControllerAxis::LeftY,
+      fermium::SDL_CONTROLLER_AXIS_RIGHTX => ControllerAxis::RightX,
+      fermium::SDL_CONTROLLER_AXIS_RIGHTY => ControllerAxis::RightY,
+      fermium::SDL_CONTROLLER_AXIS_TRIGGERLEFT => ControllerAxis::LeftTrigger,
+      fermium::SDL_CONTROLLER_AXIS_TRIGGERRIGHT => ControllerAxis::RightTrigger,
       _ => ControllerAxis::Invalid,
     }
   }
