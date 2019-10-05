@@ -181,13 +181,6 @@ impl From<fermium::SDL_version> for Version {
 ///
 /// This might be later than the one you compiled with, but it will be fully
 /// SemVer compatible.
-///
-/// ```rust
-/// let v = beryllium::version();
-/// assert_eq!(v.major, 2);
-/// assert!(v.minor >= 0);
-/// assert!(v.patch >= 9);
-/// ```
 pub fn version() -> Version {
   let mut sdl_version = fermium::SDL_version::default();
   unsafe { fermium::SDL_GetVersion(&mut sdl_version) };
