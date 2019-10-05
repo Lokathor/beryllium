@@ -22,6 +22,8 @@ install:
   - set PATH=%PATH%;%USERPROFILE%\.cargo\bin
   - rustc -vV
   - cargo -vV
+  - cargo install fermium
+  - fermium
 
 build: false
 
