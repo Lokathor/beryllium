@@ -135,12 +135,10 @@ unsafe impl<'sdl> raw_window_handle::HasRawWindowHandle for Window<'sdl> {
         }
         #[cfg(target_os = "macos")]
         fermium::SDL_SYSWM_COCOA => {
-          use objc::{msg_send, sel};
-          let ns_window = unsafe { wm_info.info.cocoa.window };
-          let ns_view = unsafe { msg_send![unsafe { wm_info.info.cocoa.window }, contentView] };
           RawWindowHandle::MacOS(MacOSHandle {
-            ns_window: ns_window as *mut c_void,
-            ns_view: ns_view as *mut c_void,
+            ns_window: unsafe { wm_info.info.cocoa.window } as *mut c_void,
+            // Note(Lokathor): the spec lets me do this
+            ns_view: null_mut(),
             ..MacOSHandle::empty()
           })
         }
