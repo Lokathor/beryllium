@@ -81,6 +81,8 @@ impl<'sdl> Drop for Window<'sdl> {
 
 unsafe impl<'sdl> raw_window_handle::HasRawWindowHandle for Window<'sdl> {
   fn raw_window_handle(&self) -> raw_window_handle::RawWindowHandle {
+    #[cfg(target_os = "macos")]
+    use raw_window_handle::macos::MacOSHandle;
     #[cfg(any(
       target_os = "linux",
       target_os = "dragonfly",
@@ -91,8 +93,6 @@ unsafe impl<'sdl> raw_window_handle::HasRawWindowHandle for Window<'sdl> {
     use raw_window_handle::unix::{WaylandHandle, XcbHandle, XlibHandle};
     #[cfg(windows)]
     use raw_window_handle::windows::WindowsHandle;
-    #[cfg(target_os = "macos")]
-    use raw_window_handle::macos::MacOSHandle;
     use raw_window_handle::RawWindowHandle;
     let mut wm_info = fermium::SDL_SysWMinfo::default();
     let b = unsafe { fermium::SDL_GetWindowWMInfo(self.ptr, &mut wm_info) };
@@ -135,9 +135,12 @@ unsafe impl<'sdl> raw_window_handle::HasRawWindowHandle for Window<'sdl> {
         }
         #[cfg(target_os = "macos")]
         fermium::SDL_SYSWM_COCOA => {
+          use objc::msg_send;
+          let ns_window = unsafe { wm_info.info.cocoa.window as *mut core::ffi::c_void };
+          let ns_view = unsafe { msg_send![ns_window, contentView] };
           RawWindowHandle::MacOS(MacOSHandle {
-            ns_window: unsafe { wm_info.info.cocoa.window as *mut core::ffi::c_void },
-            ns_view: unsafe { core::ptr::null_mut() },
+            ns_window,
+            ns_view,
             ..MacOSHandle::empty()
           })
         }
