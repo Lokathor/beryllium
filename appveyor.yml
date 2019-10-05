@@ -9,10 +9,10 @@ environment:
   # into our CI. Until then, no GNU CI support.
   matrix:
     # 32-bit MSVC
-    - channel: 1.33.0
+    - channel: 1.36.0
       target: i686-pc-windows-msvc
     # 64-bit MSVC
-    - channel: 1.33.0
+    - channel: 1.36.0
       target: x86_64-pc-windows-msvc
 
 install:
