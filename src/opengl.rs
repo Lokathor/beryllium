@@ -107,7 +107,8 @@ pub const CONTEXT_DEBUG_FLAG: i32 = fermium::SDL_GL_CONTEXT_DEBUG_FLAG as i32;
 /// into a "forward compatible" mode, which means that no deprecated
 /// functionality will be supported, possibly at a gain in performance, and only
 /// applies to GL 3.0 and later contexts.
-pub const CONTEXT_FORWARD_COMPATIBLE_FLAG: i32 = fermium::SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG as i32;
+pub const CONTEXT_FORWARD_COMPATIBLE_FLAG: i32 =
+  fermium::SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG as i32;
 
 /// A flag for use with [`GLattr::ContextFlags`].
 ///

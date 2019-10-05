@@ -227,7 +227,9 @@ impl PixelFormatEnum {
   pub fn is_indexed(self) -> bool {
     !self.is_fourcc()
       && match self.pixel_type() {
-        BerylliumPixelType::Index1 | BerylliumPixelType::Index4 | BerylliumPixelType::Index8 => true,
+        BerylliumPixelType::Index1 | BerylliumPixelType::Index4 | BerylliumPixelType::Index8 => {
+          true
+        }
         _ => false,
       }
   }
@@ -236,7 +238,9 @@ impl PixelFormatEnum {
   pub fn is_packed(self) -> bool {
     !self.is_fourcc()
       && match self.pixel_type() {
-        BerylliumPixelType::Packed8 | BerylliumPixelType::Packed16 | BerylliumPixelType::Packed32 => true,
+        BerylliumPixelType::Packed8
+        | BerylliumPixelType::Packed16
+        | BerylliumPixelType::Packed32 => true,
         _ => false,
       }
   }
@@ -278,7 +282,7 @@ impl PixelFormatEnum {
 }
 
 /// The name is weird because i goofed up `fermium-0.1`.
-/// 
+///
 /// This will be fixed in 0.2
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(windows, repr(i32))]
@@ -424,10 +428,9 @@ impl SDLToken {
     b_mask: u32,
     a_mask: u32,
   ) -> PixelFormatEnum {
-    PixelFormatEnum::from(
-      unsafe { fermium::SDL_MasksToPixelFormatEnum(bpp, r_mask, g_mask, b_mask, a_mask) }
-        as fermium::SDL_PixelFormatEnum,
-    )
+    PixelFormatEnum::from(unsafe {
+      fermium::SDL_MasksToPixelFormatEnum(bpp, r_mask, g_mask, b_mask, a_mask)
+    } as fermium::SDL_PixelFormatEnum)
   }
 
   /// Converts this `format` into the appropriate `bpp` and mask values.

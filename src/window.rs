@@ -10,27 +10,12 @@ pub struct WindowFlags(pub(crate) fermium::SDL_WindowFlags);
 #[allow(bad_style)]
 type SDL_WindowFlags_Type = fermium::SDL_WindowFlags;
 use fermium::{
-  SDL_WINDOW_FULLSCREEN,
-  SDL_WINDOW_OPENGL,
-  SDL_WINDOW_SHOWN,
-SDL_WINDOW_HIDDEN,
-SDL_WINDOW_BORDERLESS,
-SDL_WINDOW_RESIZABLE,
-SDL_WINDOW_MINIMIZED,
-SDL_WINDOW_MAXIMIZED,
-SDL_WINDOW_INPUT_GRABBED,
-SDL_WINDOW_INPUT_FOCUS,
-SDL_WINDOW_MOUSE_FOCUS,
-SDL_WINDOW_FULLSCREEN_DESKTOP,
-SDL_WINDOW_FOREIGN,
-SDL_WINDOW_ALLOW_HIGHDPI,
-SDL_WINDOW_MOUSE_CAPTURE,
-SDL_WINDOW_ALWAYS_ON_TOP,
-SDL_WINDOW_SKIP_TASKBAR,
-SDL_WINDOW_UTILITY,
-SDL_WINDOW_TOOLTIP,
-SDL_WINDOW_POPUP_MENU,
-SDL_WINDOW_VULKAN,
+  SDL_WINDOW_ALLOW_HIGHDPI, SDL_WINDOW_ALWAYS_ON_TOP, SDL_WINDOW_BORDERLESS, SDL_WINDOW_FOREIGN,
+  SDL_WINDOW_FULLSCREEN, SDL_WINDOW_FULLSCREEN_DESKTOP, SDL_WINDOW_HIDDEN, SDL_WINDOW_INPUT_FOCUS,
+  SDL_WINDOW_INPUT_GRABBED, SDL_WINDOW_MAXIMIZED, SDL_WINDOW_MINIMIZED, SDL_WINDOW_MOUSE_CAPTURE,
+  SDL_WINDOW_MOUSE_FOCUS, SDL_WINDOW_OPENGL, SDL_WINDOW_POPUP_MENU, SDL_WINDOW_RESIZABLE,
+  SDL_WINDOW_SHOWN, SDL_WINDOW_SKIP_TASKBAR, SDL_WINDOW_TOOLTIP, SDL_WINDOW_UTILITY,
+  SDL_WINDOW_VULKAN,
 };
 #[allow(missing_docs)]
 impl WindowFlags {
@@ -93,6 +78,31 @@ impl<'sdl> Drop for Window<'sdl> {
     unsafe { fermium::SDL_DestroyWindow(self.ptr) }
   }
 }
+
+unsafe impl<'sdl> raw_window_handle::HasRawWindowHandle for Window<'sdl> {
+  fn raw_window_handle(&self) -> raw_window_handle::RawWindowHandle {
+    #[cfg(windows)]
+    use raw_window_handle::windows::WindowsHandle;
+    use raw_window_handle::RawWindowHandle;
+    let mut wm_info = fermium::SDL_SysWMinfo::default();
+    let b = unsafe { fermium::SDL_GetWindowWMInfo(self.ptr, &mut wm_info) };
+    if b == fermium::SDL_TRUE {
+      match wm_info.subsystem {
+        #[cfg(windows)]
+        fermium::SDL_SYSWM_WINDOWS => {
+          RawWindowHandle::Windows(WindowsHandle {
+            hwnd: unsafe { wm_info.info.win.window as *mut core::ffi::c_void },
+            ..WindowsHandle::empty()
+          })
+        }
+        _ => panic!("The current window subsystem is not supported by the raw-window-handle API and Osspial wrote the trait to be infallible despite that clearly not always being the case. https://github.com/rust-windowing/raw-window-handle/issues/new"),
+      }
+    } else {
+      panic!("Could not retrieve window info and Osspial wrote the trait to be infallible despite that clearly not always being the case. https://github.com/rust-windowing/raw-window-handle/issues/new");
+    }
+  }
+}
+
 impl<'sdl> Window<'sdl> {
   /// Like the [lone_message_box](lone_message_box) function, but
   /// modal to this `Window`.

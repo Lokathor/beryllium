@@ -397,12 +397,14 @@ impl From<fermium::SDL_Event> for Event {
           },
           _ => Event::UnknownEventType,
         },
-        fermium::SDL_CONTROLLERBUTTONDOWN | fermium::SDL_CONTROLLERBUTTONUP => Event::ControllerButton {
-          timestamp: event.cbutton.timestamp,
-          joystick_id: JoystickID(event.cbutton.which),
-          button: ControllerButton::from(event.cbutton.button),
-          pressed: u32::from(event.cbutton.state) == fermium::SDL_PRESSED,
-        },
+        fermium::SDL_CONTROLLERBUTTONDOWN | fermium::SDL_CONTROLLERBUTTONUP => {
+          Event::ControllerButton {
+            timestamp: event.cbutton.timestamp,
+            joystick_id: JoystickID(event.cbutton.which),
+            button: ControllerButton::from(event.cbutton.button),
+            pressed: u32::from(event.cbutton.state) == fermium::SDL_PRESSED,
+          }
+        }
         fermium::SDL_CONTROLLERDEVICEADDED => Event::ControllerDeviceAdded {
           timestamp: event.cdevice.timestamp,
           joystick_id: JoystickID(event.cdevice.which),
@@ -1007,10 +1009,7 @@ impl TryFrom<i32> for Keycode {
 }
 #[test]
 pub fn test_sdlk_a() {
-  assert_eq!(
-    Keycode::try_from(fermium::SDLK_a as i32),
-    Ok(Keycode::A)
-  );
+  assert_eq!(Keycode::try_from(fermium::SDLK_a as i32), Ok(Keycode::A));
 }
 
 /// Different "scancode" values that can come in.

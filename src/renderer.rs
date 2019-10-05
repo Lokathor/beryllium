@@ -9,10 +9,10 @@ pub struct RendererFlags(pub(crate) fermium::SDL_RendererFlags);
 // Note(Lokathor): dumb stuff for the proc macro
 #[allow(bad_style)]
 type SDL_RendererFlags_Type = fermium::SDL_RendererFlags;
-use fermium::{SDL_RENDERER_ACCELERATED,
-SDL_RENDERER_PRESENTVSYNC,
-SDL_RENDERER_SOFTWARE,
-SDL_RENDERER_TARGETTEXTURE};
+use fermium::{
+  SDL_RENDERER_ACCELERATED, SDL_RENDERER_PRESENTVSYNC, SDL_RENDERER_SOFTWARE,
+  SDL_RENDERER_TARGETTEXTURE,
+};
 #[allow(missing_docs)]
 impl RendererFlags {
   phantom_fields! {
@@ -56,7 +56,8 @@ impl<'sdl> RendererWindow<'sdl> {
     &'ren self,
     surf: &Surface,
   ) -> Result<Texture<'sdl, 'ren>, String> {
-    let ptr: *mut fermium::SDL_Texture = unsafe { fermium::SDL_CreateTextureFromSurface(self.ptr, surf.ptr) };
+    let ptr: *mut fermium::SDL_Texture =
+      unsafe { fermium::SDL_CreateTextureFromSurface(self.ptr, surf.ptr) };
     if ptr.is_null() {
       Err(get_error())
     } else {
@@ -88,7 +89,8 @@ impl<'sdl> RendererWindow<'sdl> {
 
   /// Assigns the color used for drawing.
   pub fn set_draw_color(&self, color: Color) -> Result<(), String> {
-    let out = unsafe { fermium::SDL_SetRenderDrawColor(self.ptr, color.r, color.g, color.b, color.a) };
+    let out =
+      unsafe { fermium::SDL_SetRenderDrawColor(self.ptr, color.r, color.g, color.b, color.a) };
     if out == 0 {
       Ok(())
     } else {

@@ -73,7 +73,8 @@ impl<'sdl> Controller<'sdl> {
 
   /// Attempts to get the joystick ID of this controller.
   pub fn joystick_id(&self) -> Result<JoystickID, String> {
-    let joystick_ptr: *mut fermium::SDL_Joystick = unsafe { fermium::SDL_GameControllerGetJoystick(self.ptr) };
+    let joystick_ptr: *mut fermium::SDL_Joystick =
+      unsafe { fermium::SDL_GameControllerGetJoystick(self.ptr) };
     if joystick_ptr.is_null() {
       Err(get_error())
     } else {

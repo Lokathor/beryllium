@@ -361,8 +361,9 @@ impl SDLToken {
         a_mask,
       } => (32, r_mask, g_mask, b_mask, a_mask),
     };
-    let ptr: *mut fermium::SDL_Surface =
-      unsafe { fermium::SDL_CreateRGBSurface(0, width, height, depth, r_mask, g_mask, b_mask, a_mask) };
+    let ptr: *mut fermium::SDL_Surface = unsafe {
+      fermium::SDL_CreateRGBSurface(0, width, height, depth, r_mask, g_mask, b_mask, a_mask)
+    };
     if ptr.is_null() {
       Err(get_error())
     } else {
@@ -464,8 +465,9 @@ impl SDLToken {
     //
     let mut obtained_spec = fermium::SDL_AudioSpec::default();
     //
-    let audio_device_id =
-      unsafe { fermium::SDL_OpenAudioDevice(null(), 0, &desired_spec, &mut obtained_spec, changes) };
+    let audio_device_id = unsafe {
+      fermium::SDL_OpenAudioDevice(null(), 0, &desired_spec, &mut obtained_spec, changes)
+    };
     if audio_device_id == 0 {
       Err(get_error())
     } else {
