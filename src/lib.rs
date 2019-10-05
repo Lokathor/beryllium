@@ -1,4 +1,4 @@
-#![no_std]
+#![cfg_attr(not(target_os = "macos"), no_std)]
 #![warn(missing_docs)]
 #![deny(missing_debug_implementations)]
 #![deny(unreachable_patterns)]
@@ -96,6 +96,23 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::vec::Vec;
+
+#[cfg(feature = "impl_global_alloc")]
+struct BerylliumGlobalAlloc;
+
+#[cfg(feature = "impl_global_alloc")]
+unsafe impl core::alloc::GlobalAlloc for BerylliumGlobalAlloc {
+  unsafe fn alloc(&self, layout: core::alloc::Layout) -> *mut u8 {
+    fermium::SDL_malloc(layout.size()) as *mut u8
+  }
+  unsafe fn dealloc(&self, ptr: *mut u8, _layout: core::alloc::Layout) {
+    fermium::SDL_free(ptr as *mut c_void)
+  }
+}
+
+#[cfg(feature = "impl_global_alloc")]
+#[cfg_attr(feature = "impl_global_alloc", global_allocator)]
+static A: BerylliumGlobalAlloc = BerylliumGlobalAlloc;
 
 use core::{
   convert::TryFrom,

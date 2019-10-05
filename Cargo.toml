@@ -31,6 +31,7 @@ ash = "0.29"
 default = ["link_dynamic"]
 link_dynamic = ["fermium/link_dynamic"]
 link_static = ["fermium/link_static"]
+impl_global_alloc = []
 
 [badges]
 appveyor = { repository = "Lokathor/beryllium" }
