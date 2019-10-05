@@ -101,7 +101,7 @@ use core::{
   sync::atomic::{AtomicBool, Ordering},
 };
 
-use libc::c_char;
+use fermium::c_char;
 use phantom_fields::phantom_fields;
 
 mod surface;

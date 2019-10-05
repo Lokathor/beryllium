@@ -17,7 +17,6 @@ default-target = "x86_64-pc-windows-msvc"
 [dependencies]
 fermium = { version = "0.1", default-features = false }
 phantom-fields = "^0.1.2"
-libc = "0.2"
 raw-window-handle = "0.2"
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
