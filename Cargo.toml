@@ -7,7 +7,7 @@ authors = ["Lokathor <zefria@gmail.com>"]
 edition = "2018"
 license = "Zlib"
 keywords = ["sdl2"]
-categories = [""]
+categories = ["api-bindings", "multimedia", "game-engines", "no-std"]
 
 # This forces docs.rs to build us on windows, which has the simplest build for
 # docs.rs to perform.

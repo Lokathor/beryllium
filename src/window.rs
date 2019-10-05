@@ -101,7 +101,7 @@ unsafe impl<'sdl> raw_window_handle::HasRawWindowHandle for Window<'sdl> {
         #[cfg(windows)]
         fermium::SDL_SYSWM_WINDOWS => {
           RawWindowHandle::Windows(WindowsHandle {
-            hwnd: unsafe { wm_info.info.win.window as *mut core::ffi::c_void },
+            hwnd: unsafe { wm_info.info.win.window as *mut c_void },
             ..WindowsHandle::empty()
           })
         }
@@ -114,8 +114,8 @@ unsafe impl<'sdl> raw_window_handle::HasRawWindowHandle for Window<'sdl> {
         ))]
         fermium::SDL_SYSWM_WAYLAND => {
           RawWindowHandle::Wayland(WaylandHandle {
-            surface: unsafe { wm_info.info.wl.surface as *mut core::ffi::c_void },
-            display: unsafe { wm_info.info.wl.display as *mut core::ffi::c_void },
+            surface: unsafe { wm_info.info.wl.surface as *mut c_void },
+            display: unsafe { wm_info.info.wl.display as *mut c_void },
             ..WaylandHandle::empty()
           })
         }
@@ -129,18 +129,18 @@ unsafe impl<'sdl> raw_window_handle::HasRawWindowHandle for Window<'sdl> {
         fermium::SDL_SYSWM_X11 => {
           RawWindowHandle::Xlib(XlibHandle {
             window: unsafe { wm_info.info.x11.window },
-            display: unsafe { wm_info.info.x11.display as *mut core::ffi::c_void },
+            display: unsafe { wm_info.info.x11.display as *mut c_void },
             ..XlibHandle::empty()
           })
         }
         #[cfg(target_os = "macos")]
         fermium::SDL_SYSWM_COCOA => {
           use objc::msg_send;
-          let ns_window = unsafe { wm_info.info.cocoa.window as *mut core::ffi::c_void };
-          let ns_view = unsafe { msg_send![ns_window, contentView] };
+          let ns_window = unsafe { wm_info.info.cocoa.window };
+          let ns_view = unsafe { msg_send![unsafe { wm_info.info.cocoa.window }, contentView] };
           RawWindowHandle::MacOS(MacOSHandle {
-            ns_window,
-            ns_view,
+            ns_window: ns_window as *mut c_void,
+            ns_view: ns_view as *mut c_void,
             ..MacOSHandle::empty()
           })
         }
