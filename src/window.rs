@@ -191,12 +191,12 @@ impl<'sdl> Window<'sdl> {
 
   /// Sets the maximum logical size of the window.
   pub fn set_maximum_size(&self, width: i32, height: i32) {
-    unsafe { SDL_SetWindowMaximumSize(self.ptr, width, height) }
+    unsafe { fermium::SDL_SetWindowMaximumSize(self.ptr, width, height) }
   }
 
   /// Sets the minimum logical size of the window.
   pub fn set_minimum_size(&self, width: i32, height: i32) {
-    unsafe { SDL_SetWindowMinimumSize(self.ptr, width, height) }
+    unsafe { fermium::SDL_SetWindowMinimumSize(self.ptr, width, height) }
   }
 
 
