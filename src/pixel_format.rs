@@ -532,7 +532,7 @@ impl PixelFormat<'_> {
       match NonNull::new((*self.nn.as_ptr()).palette) {
         // Note(Lokathor): Hey can't you use map here? Naw, the lifetimes get weird.
         Some(nn) => Some(
-          &*(&nn as *const std::ptr::NonNull<fermium::SDL_Palette> as *const palette::Palette<'_>),
+          &*(&nn as *const core::ptr::NonNull<fermium::SDL_Palette> as *const palette::Palette<'_>),
         ),
         None => None,
       }

@@ -1,3 +1,4 @@
+#![no_std]
 #![warn(missing_docs)]
 #![deny(missing_debug_implementations)]
 #![deny(unreachable_patterns)]
@@ -90,6 +91,11 @@
 //! parts have been rewritten in Rust.
 
 pub use fermium;
+
+extern crate alloc;
+use alloc::string::String;
+use alloc::string::ToString;
+use alloc::vec::Vec;
 
 use core::{
   convert::TryFrom,
