@@ -12,27 +12,27 @@ impl AudioFormat {
     big_endian: 12,
     signed: 15,
   }
-  pub const S8: AudioFormat = AudioFormat(AUDIO_S8 as u16);
-  pub const U8: AudioFormat = AudioFormat(AUDIO_U8 as u16);
-  pub const S16LSB: AudioFormat = AudioFormat(AUDIO_S16LSB as u16);
-  pub const S16MSB: AudioFormat = AudioFormat(AUDIO_S16MSB as u16);
-  pub const S16SYS: AudioFormat = AudioFormat(AUDIO_S16SYS as u16);
-  pub const S16: AudioFormat = AudioFormat(AUDIO_S16 as u16);
-  pub const U16LSB: AudioFormat = AudioFormat(AUDIO_U16LSB as u16);
-  pub const U16MSB: AudioFormat = AudioFormat(AUDIO_U16MSB as u16);
-  pub const U16SYS: AudioFormat = AudioFormat(AUDIO_U16SYS as u16);
-  pub const U16: AudioFormat = AudioFormat(AUDIO_U16 as u16);
-  pub const S32LSB: AudioFormat = AudioFormat(AUDIO_S32LSB as u16);
-  pub const S32MSB: AudioFormat = AudioFormat(AUDIO_S32MSB as u16);
-  pub const S32SYS: AudioFormat = AudioFormat(AUDIO_S32SYS as u16);
-  pub const S32: AudioFormat = AudioFormat(AUDIO_S32 as u16);
-  pub const F32LSB: AudioFormat = AudioFormat(AUDIO_F32LSB as u16);
-  pub const F32MSB: AudioFormat = AudioFormat(AUDIO_F32MSB as u16);
-  pub const F32SYS: AudioFormat = AudioFormat(AUDIO_F32SYS as u16);
-  pub const F32: AudioFormat = AudioFormat(AUDIO_F32 as u16);
+  pub const S8: AudioFormat = AudioFormat(fermium::AUDIO_S8 as u16);
+  pub const U8: AudioFormat = AudioFormat(fermium::AUDIO_U8 as u16);
+  pub const S16LSB: AudioFormat = AudioFormat(fermium::AUDIO_S16LSB as u16);
+  pub const S16MSB: AudioFormat = AudioFormat(fermium::AUDIO_S16MSB as u16);
+  pub const S16SYS: AudioFormat = AudioFormat(fermium::AUDIO_S16SYS as u16);
+  pub const S16: AudioFormat = AudioFormat(fermium::AUDIO_S16 as u16);
+  pub const U16LSB: AudioFormat = AudioFormat(fermium::AUDIO_U16LSB as u16);
+  pub const U16MSB: AudioFormat = AudioFormat(fermium::AUDIO_U16MSB as u16);
+  pub const U16SYS: AudioFormat = AudioFormat(fermium::AUDIO_U16SYS as u16);
+  pub const U16: AudioFormat = AudioFormat(fermium::AUDIO_U16 as u16);
+  pub const S32LSB: AudioFormat = AudioFormat(fermium::AUDIO_S32LSB as u16);
+  pub const S32MSB: AudioFormat = AudioFormat(fermium::AUDIO_S32MSB as u16);
+  pub const S32SYS: AudioFormat = AudioFormat(fermium::AUDIO_S32SYS as u16);
+  pub const S32: AudioFormat = AudioFormat(fermium::AUDIO_S32 as u16);
+  pub const F32LSB: AudioFormat = AudioFormat(fermium::AUDIO_F32LSB as u16);
+  pub const F32MSB: AudioFormat = AudioFormat(fermium::AUDIO_F32MSB as u16);
+  pub const F32SYS: AudioFormat = AudioFormat(fermium::AUDIO_F32SYS as u16);
+  pub const F32: AudioFormat = AudioFormat(fermium::AUDIO_F32 as u16);
 }
-impl From<SDL_AudioFormat> for AudioFormat {
-  fn from(format: SDL_AudioFormat) -> Self {
+impl From<fermium::SDL_AudioFormat> for AudioFormat {
+  fn from(format: fermium::SDL_AudioFormat) -> Self {
     Self(format)
   }
 }
@@ -59,7 +59,7 @@ pub struct DefaultAudioQueueRequest {
 /// Handle to an audio device in "queue" mode, and info about its settings.
 #[derive(Debug)]
 pub struct AudioQueue<'sdl> {
-  pub(crate) dev: SDL_AudioDeviceID,
+  pub(crate) dev: fermium::SDL_AudioDeviceID,
   pub(crate) frequency: i32,
   pub(crate) format: AudioFormat,
   pub(crate) channels: u8,
@@ -70,7 +70,7 @@ pub struct AudioQueue<'sdl> {
 }
 impl<'sdl> Drop for AudioQueue<'sdl> {
   fn drop(&mut self) {
-    unsafe { SDL_CloseAudioDevice(self.dev) }
+    unsafe { fermium::SDL_CloseAudioDevice(self.dev) }
   }
 }
 impl<'sdl> AudioQueue<'sdl> {
@@ -100,7 +100,7 @@ impl<'sdl> AudioQueue<'sdl> {
   }
   /// Sets the device into paused state or not.
   pub fn set_paused(&self, pause_on: bool) {
-    unsafe { SDL_PauseAudioDevice(self.dev, pause_on as i32) }
+    unsafe { fermium::SDL_PauseAudioDevice(self.dev, pause_on as i32) }
   }
   /// Gets the current number of bytes of queued audio.
   ///
@@ -111,11 +111,11 @@ impl<'sdl> AudioQueue<'sdl> {
   /// hits 0. The queue size will go to 0 as expected if you clear it while
   /// playback it paused.
   pub fn queued_audio_size(&self) -> usize {
-    unsafe { SDL_GetQueuedAudioSize(self.dev) as usize }
+    unsafe { fermium::SDL_GetQueuedAudioSize(self.dev) as usize }
   }
   /// Clears any queued data that has not yet been sent to the sound card.
   pub fn clear(&self) {
-    unsafe { SDL_ClearQueuedAudio(self.dev) }
+    unsafe { fermium::SDL_ClearQueuedAudio(self.dev) }
   }
   /// Pushes audio data into the queue.
   ///
@@ -125,7 +125,7 @@ impl<'sdl> AudioQueue<'sdl> {
     assert!(data.len() < core::u32::MAX as usize);
     let ptr = data.as_ptr() as *const c_void;
     let len = data.len() as u32;
-    let err = unsafe { SDL_QueueAudio(self.dev, ptr, len) };
+    let err = unsafe { fermium::SDL_QueueAudio(self.dev, ptr, len) };
     if err == 0 {
       Ok(())
     } else {

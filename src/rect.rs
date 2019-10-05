@@ -18,8 +18,8 @@ pub struct Rect {
   pub w: i32,
   pub h: i32,
 }
-impl From<SDL_Rect> for Rect {
-  fn from(other: SDL_Rect) -> Self {
+impl From<fermium::SDL_Rect> for Rect {
+  fn from(other: fermium::SDL_Rect) -> Self {
     Self {
       x: other.x,
       y: other.y,
@@ -28,7 +28,7 @@ impl From<SDL_Rect> for Rect {
     }
   }
 }
-impl From<Rect> for SDL_Rect {
+impl From<Rect> for fermium::SDL_Rect {
   fn from(other: Rect) -> Self {
     Self {
       x: other.x,
