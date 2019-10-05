@@ -90,7 +90,7 @@ unsafe impl<'sdl> raw_window_handle::HasRawWindowHandle for Window<'sdl> {
       target_os = "netbsd",
       target_os = "openbsd"
     ))]
-    use raw_window_handle::unix::{WaylandHandle, XcbHandle, XlibHandle};
+    use raw_window_handle::unix::{WaylandHandle, XlibHandle};
     #[cfg(windows)]
     use raw_window_handle::windows::WindowsHandle;
     use raw_window_handle::RawWindowHandle;
