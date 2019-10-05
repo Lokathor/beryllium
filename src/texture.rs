@@ -7,11 +7,11 @@ use super::*;
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct Texture<'sdl, 'ren> {
-  pub(crate) ptr: *mut SDL_Texture,
+  pub(crate) ptr: *mut fermium::SDL_Texture,
   pub(crate) _marker: PhantomData<&'ren RendererWindow<'sdl>>,
 }
 impl<'sdl, 'ren> Drop for Texture<'sdl, 'ren> {
   fn drop(&mut self) {
-    unsafe { SDL_DestroyTexture(self.ptr) }
+    unsafe { fermium::SDL_DestroyTexture(self.ptr) }
   }
 }

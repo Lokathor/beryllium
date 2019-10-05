@@ -12,24 +12,24 @@ pub struct JoystickID(pub i32);
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct Controller<'sdl> {
-  pub(crate) ptr: *mut SDL_GameController,
+  pub(crate) ptr: *mut fermium::SDL_GameController,
   pub(crate) _marker: PhantomData<&'sdl SDLToken>,
 }
 impl<'sdl> Drop for Controller<'sdl> {
   fn drop(&mut self) {
-    unsafe { SDL_GameControllerClose(self.ptr) }
+    unsafe { fermium::SDL_GameControllerClose(self.ptr) }
   }
 }
 impl<'sdl> Controller<'sdl> {
   /// Obtains the mapping string, if available.
   pub fn mapping_string(&self) -> Option<String> {
-    let ptr = unsafe { SDL_GameControllerMapping(self.ptr) };
+    let ptr = unsafe { fermium::SDL_GameControllerMapping(self.ptr) };
     if ptr.is_null() {
       None
     } else {
       unsafe {
         let out = Some(gather_string(ptr));
-        SDL_free(ptr as *mut _);
+        fermium::SDL_free(ptr as *mut _);
         out
       }
     }
@@ -37,7 +37,7 @@ impl<'sdl> Controller<'sdl> {
 
   /// The implementation defined name for this controller.
   pub fn name(&self) -> Option<String> {
-    let ptr = unsafe { SDL_GameControllerName(self.ptr) };
+    let ptr = unsafe { fermium::SDL_GameControllerName(self.ptr) };
     if ptr.is_null() {
       None
     } else {
@@ -47,7 +47,7 @@ impl<'sdl> Controller<'sdl> {
 
   /// Checks that the controller is currently connected.
   pub fn is_attached(&self) -> bool {
-    SDL_TRUE == unsafe { SDL_GameControllerGetAttached(self.ptr) }
+    fermium::SDL_TRUE == unsafe { fermium::SDL_GameControllerGetAttached(self.ptr) }
   }
 
   /// Gives the axis value of the specified axis.
@@ -58,7 +58,7 @@ impl<'sdl> Controller<'sdl> {
   /// Also gives 0 on failure. You could call [get_error](get_error) if you
   /// want.
   pub fn axis(&self, axis: ControllerAxis) -> i16 {
-    unsafe { SDL_GameControllerGetAxis(self.ptr, axis as fermium::SDL_GameControllerAxis) }
+    unsafe { fermium::SDL_GameControllerGetAxis(self.ptr, axis as fermium::SDL_GameControllerAxis) }
   }
 
   /// Gives if the given button is pressed.
@@ -67,17 +67,17 @@ impl<'sdl> Controller<'sdl> {
   /// sort of error. You can call [get_error](get_error) if you really want.
   pub fn button(&self, button: ControllerButton) -> bool {
     1 == unsafe {
-      SDL_GameControllerGetButton(self.ptr, button as fermium::SDL_GameControllerButton)
+      fermium::SDL_GameControllerGetButton(self.ptr, button as fermium::SDL_GameControllerButton)
     }
   }
 
   /// Attempts to get the joystick ID of this controller.
   pub fn joystick_id(&self) -> Result<JoystickID, String> {
-    let joystick_ptr: *mut SDL_Joystick = unsafe { SDL_GameControllerGetJoystick(self.ptr) };
+    let joystick_ptr: *mut fermium::SDL_Joystick = unsafe { fermium::SDL_GameControllerGetJoystick(self.ptr) };
     if joystick_ptr.is_null() {
       Err(get_error())
     } else {
-      let out = unsafe { SDL_JoystickInstanceID(joystick_ptr) };
+      let out = unsafe { fermium::SDL_JoystickInstanceID(joystick_ptr) };
       if out < 0 {
         Err(get_error())
       } else {
@@ -92,13 +92,13 @@ impl<'sdl> Controller<'sdl> {
 #[repr(i32)]
 #[allow(missing_docs)]
 pub enum ControllerAxis {
-  Invalid = SDL_CONTROLLER_AXIS_INVALID,
-  LeftX = SDL_CONTROLLER_AXIS_LEFTX,
-  LeftY = SDL_CONTROLLER_AXIS_LEFTY,
-  RightX = SDL_CONTROLLER_AXIS_RIGHTX,
-  RightY = SDL_CONTROLLER_AXIS_RIGHTY,
-  LeftTrigger = SDL_CONTROLLER_AXIS_TRIGGERLEFT,
-  RightTrigger = SDL_CONTROLLER_AXIS_TRIGGERRIGHT,
+  Invalid = fermium::SDL_CONTROLLER_AXIS_INVALID,
+  LeftX = fermium::SDL_CONTROLLER_AXIS_LEFTX,
+  LeftY = fermium::SDL_CONTROLLER_AXIS_LEFTY,
+  RightX = fermium::SDL_CONTROLLER_AXIS_RIGHTX,
+  RightY = fermium::SDL_CONTROLLER_AXIS_RIGHTY,
+  LeftTrigger = fermium::SDL_CONTROLLER_AXIS_TRIGGERLEFT,
+  RightTrigger = fermium::SDL_CONTROLLER_AXIS_TRIGGERRIGHT,
 }
 impl From<u8> for ControllerAxis {
   fn from(axis: u8) -> Self {
@@ -133,41 +133,41 @@ impl From<u8> for ControllerAxis {
 #[repr(i32)]
 #[allow(missing_docs)]
 pub enum ControllerButton {
-  Invalid = SDL_CONTROLLER_BUTTON_INVALID,
-  South = SDL_CONTROLLER_BUTTON_A,
-  East = SDL_CONTROLLER_BUTTON_B,
-  West = SDL_CONTROLLER_BUTTON_X,
-  North = SDL_CONTROLLER_BUTTON_Y,
-  Back = SDL_CONTROLLER_BUTTON_BACK,
-  Guide = SDL_CONTROLLER_BUTTON_GUIDE,
-  Start = SDL_CONTROLLER_BUTTON_START,
-  LeftStick = SDL_CONTROLLER_BUTTON_LEFTSTICK,
-  RightStick = SDL_CONTROLLER_BUTTON_RIGHTSTICK,
-  L1 = SDL_CONTROLLER_BUTTON_LEFTSHOULDER,
-  R1 = SDL_CONTROLLER_BUTTON_RIGHTSHOULDER,
-  Up = SDL_CONTROLLER_BUTTON_DPAD_UP,
-  Down = SDL_CONTROLLER_BUTTON_DPAD_DOWN,
-  Left = SDL_CONTROLLER_BUTTON_DPAD_LEFT,
-  Right = SDL_CONTROLLER_BUTTON_DPAD_RIGHT,
+  Invalid = fermium::SDL_CONTROLLER_BUTTON_INVALID,
+  South = fermium::SDL_CONTROLLER_BUTTON_A,
+  East = fermium::SDL_CONTROLLER_BUTTON_B,
+  West = fermium::SDL_CONTROLLER_BUTTON_X,
+  North = fermium::SDL_CONTROLLER_BUTTON_Y,
+  Back = fermium::SDL_CONTROLLER_BUTTON_BACK,
+  Guide = fermium::SDL_CONTROLLER_BUTTON_GUIDE,
+  Start = fermium::SDL_CONTROLLER_BUTTON_START,
+  LeftStick = fermium::SDL_CONTROLLER_BUTTON_LEFTSTICK,
+  RightStick = fermium::SDL_CONTROLLER_BUTTON_RIGHTSTICK,
+  L1 = fermium::SDL_CONTROLLER_BUTTON_LEFTSHOULDER,
+  R1 = fermium::SDL_CONTROLLER_BUTTON_RIGHTSHOULDER,
+  Up = fermium::SDL_CONTROLLER_BUTTON_DPAD_UP,
+  Down = fermium::SDL_CONTROLLER_BUTTON_DPAD_DOWN,
+  Left = fermium::SDL_CONTROLLER_BUTTON_DPAD_LEFT,
+  Right = fermium::SDL_CONTROLLER_BUTTON_DPAD_RIGHT,
 }
 impl From<u8> for ControllerButton {
   fn from(button: u8) -> Self {
     match fermium::SDL_GameControllerButton::from(button) {
-      SDL_CONTROLLER_BUTTON_A => ControllerButton::South,
-      SDL_CONTROLLER_BUTTON_B => ControllerButton::East,
-      SDL_CONTROLLER_BUTTON_X => ControllerButton::West,
-      SDL_CONTROLLER_BUTTON_Y => ControllerButton::North,
-      SDL_CONTROLLER_BUTTON_BACK => ControllerButton::Back,
-      SDL_CONTROLLER_BUTTON_GUIDE => ControllerButton::Guide,
-      SDL_CONTROLLER_BUTTON_START => ControllerButton::Start,
-      SDL_CONTROLLER_BUTTON_LEFTSTICK => ControllerButton::LeftStick,
-      SDL_CONTROLLER_BUTTON_RIGHTSTICK => ControllerButton::RightStick,
-      SDL_CONTROLLER_BUTTON_LEFTSHOULDER => ControllerButton::L1,
-      SDL_CONTROLLER_BUTTON_RIGHTSHOULDER => ControllerButton::R1,
-      SDL_CONTROLLER_BUTTON_DPAD_UP => ControllerButton::Up,
-      SDL_CONTROLLER_BUTTON_DPAD_DOWN => ControllerButton::Down,
-      SDL_CONTROLLER_BUTTON_DPAD_LEFT => ControllerButton::Left,
-      SDL_CONTROLLER_BUTTON_DPAD_RIGHT => ControllerButton::Right,
+      fermium::SDL_CONTROLLER_BUTTON_A => ControllerButton::South,
+      fermium::SDL_CONTROLLER_BUTTON_B => ControllerButton::East,
+      fermium::SDL_CONTROLLER_BUTTON_X => ControllerButton::West,
+      fermium::SDL_CONTROLLER_BUTTON_Y => ControllerButton::North,
+      fermium::SDL_CONTROLLER_BUTTON_BACK => ControllerButton::Back,
+      fermium::SDL_CONTROLLER_BUTTON_GUIDE => ControllerButton::Guide,
+      fermium::SDL_CONTROLLER_BUTTON_START => ControllerButton::Start,
+      fermium::SDL_CONTROLLER_BUTTON_LEFTSTICK => ControllerButton::LeftStick,
+      fermium::SDL_CONTROLLER_BUTTON_RIGHTSTICK => ControllerButton::RightStick,
+      fermium::SDL_CONTROLLER_BUTTON_LEFTSHOULDER => ControllerButton::L1,
+      fermium::SDL_CONTROLLER_BUTTON_RIGHTSHOULDER => ControllerButton::R1,
+      fermium::SDL_CONTROLLER_BUTTON_DPAD_UP => ControllerButton::Up,
+      fermium::SDL_CONTROLLER_BUTTON_DPAD_DOWN => ControllerButton::Down,
+      fermium::SDL_CONTROLLER_BUTTON_DPAD_LEFT => ControllerButton::Left,
+      fermium::SDL_CONTROLLER_BUTTON_DPAD_RIGHT => ControllerButton::Right,
       _ => ControllerButton::Invalid,
     }
   }

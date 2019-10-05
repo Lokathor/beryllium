@@ -14,53 +14,53 @@ use super::*;
 #[cfg_attr(not(windows), repr(u32))]
 #[allow(missing_docs)]
 pub enum PixelFormatEnum {
-  Unknown = SDL_PIXELFORMAT_UNKNOWN,
-  Index1lsb = SDL_PIXELFORMAT_INDEX1LSB,
-  Index1msb = SDL_PIXELFORMAT_INDEX1MSB,
-  Index4lsb = SDL_PIXELFORMAT_INDEX4LSB,
-  Index4msb = SDL_PIXELFORMAT_INDEX4MSB,
-  Index8 = SDL_PIXELFORMAT_INDEX8,
-  RGB332 = SDL_PIXELFORMAT_RGB332,
-  RGB444 = SDL_PIXELFORMAT_RGB444,
-  RGB555 = SDL_PIXELFORMAT_RGB555,
-  BGR555 = SDL_PIXELFORMAT_BGR555,
-  ARGB4444 = SDL_PIXELFORMAT_ARGB4444,
-  RGBA4444 = SDL_PIXELFORMAT_RGBA4444,
-  ABGR4444 = SDL_PIXELFORMAT_ABGR4444,
-  BGRA4444 = SDL_PIXELFORMAT_BGRA4444,
-  ARGB1555 = SDL_PIXELFORMAT_ARGB1555,
-  RGBA5551 = SDL_PIXELFORMAT_RGBA5551,
-  ABGR1555 = SDL_PIXELFORMAT_ABGR1555,
-  BGRA5551 = SDL_PIXELFORMAT_BGRA5551,
-  RGB565 = SDL_PIXELFORMAT_RGB565,
-  BGR565 = SDL_PIXELFORMAT_BGR565,
-  RGB24 = SDL_PIXELFORMAT_RGB24,
-  BGR24 = SDL_PIXELFORMAT_BGR24,
-  RGB888 = SDL_PIXELFORMAT_RGB888,
-  RGBX8888 = SDL_PIXELFORMAT_RGBX8888,
-  BGR888 = SDL_PIXELFORMAT_BGR888,
-  BGRX8888 = SDL_PIXELFORMAT_BGRX8888,
-  ARGB8888 = SDL_PIXELFORMAT_ARGB8888,
-  RGBA8888 = SDL_PIXELFORMAT_RGBA8888,
-  ABGR8888 = SDL_PIXELFORMAT_ABGR8888,
-  BGRA8888 = SDL_PIXELFORMAT_BGRA8888,
-  ARGB2101010 = SDL_PIXELFORMAT_ARGB2101010,
+  Unknown = fermium::SDL_PIXELFORMAT_UNKNOWN,
+  Index1lsb = fermium::SDL_PIXELFORMAT_INDEX1LSB,
+  Index1msb = fermium::SDL_PIXELFORMAT_INDEX1MSB,
+  Index4lsb = fermium::SDL_PIXELFORMAT_INDEX4LSB,
+  Index4msb = fermium::SDL_PIXELFORMAT_INDEX4MSB,
+  Index8 = fermium::SDL_PIXELFORMAT_INDEX8,
+  RGB332 = fermium::SDL_PIXELFORMAT_RGB332,
+  RGB444 = fermium::SDL_PIXELFORMAT_RGB444,
+  RGB555 = fermium::SDL_PIXELFORMAT_RGB555,
+  BGR555 = fermium::SDL_PIXELFORMAT_BGR555,
+  ARGB4444 = fermium::SDL_PIXELFORMAT_ARGB4444,
+  RGBA4444 = fermium::SDL_PIXELFORMAT_RGBA4444,
+  ABGR4444 = fermium::SDL_PIXELFORMAT_ABGR4444,
+  BGRA4444 = fermium::SDL_PIXELFORMAT_BGRA4444,
+  ARGB1555 = fermium::SDL_PIXELFORMAT_ARGB1555,
+  RGBA5551 = fermium::SDL_PIXELFORMAT_RGBA5551,
+  ABGR1555 = fermium::SDL_PIXELFORMAT_ABGR1555,
+  BGRA5551 = fermium::SDL_PIXELFORMAT_BGRA5551,
+  RGB565 = fermium::SDL_PIXELFORMAT_RGB565,
+  BGR565 = fermium::SDL_PIXELFORMAT_BGR565,
+  RGB24 = fermium::SDL_PIXELFORMAT_RGB24,
+  BGR24 = fermium::SDL_PIXELFORMAT_BGR24,
+  RGB888 = fermium::SDL_PIXELFORMAT_RGB888,
+  RGBX8888 = fermium::SDL_PIXELFORMAT_RGBX8888,
+  BGR888 = fermium::SDL_PIXELFORMAT_BGR888,
+  BGRX8888 = fermium::SDL_PIXELFORMAT_BGRX8888,
+  ARGB8888 = fermium::SDL_PIXELFORMAT_ARGB8888,
+  RGBA8888 = fermium::SDL_PIXELFORMAT_RGBA8888,
+  ABGR8888 = fermium::SDL_PIXELFORMAT_ABGR8888,
+  BGRA8888 = fermium::SDL_PIXELFORMAT_BGRA8888,
+  ARGB2101010 = fermium::SDL_PIXELFORMAT_ARGB2101010,
   /// Planar mode: Y + V + U (3 planes)
-  YV12 = SDL_PIXELFORMAT_YV12,
+  YV12 = fermium::SDL_PIXELFORMAT_YV12,
   /// Planar mode: Y + U + V (3 planes)
-  IYUV = SDL_PIXELFORMAT_IYUV,
+  IYUV = fermium::SDL_PIXELFORMAT_IYUV,
   /// Packed mode: Y0+U0+Y1+V0 (1 plane)
-  YUY2 = SDL_PIXELFORMAT_YUY2,
+  YUY2 = fermium::SDL_PIXELFORMAT_YUY2,
   /// Packed mode: U0+Y0+V0+Y1 (1 plane)
-  UYVY = SDL_PIXELFORMAT_UYVY,
+  UYVY = fermium::SDL_PIXELFORMAT_UYVY,
   /// Packed mode: Y0+V0+Y1+U0 (1 plane)
-  YVYU = SDL_PIXELFORMAT_YVYU,
+  YVYU = fermium::SDL_PIXELFORMAT_YVYU,
   /// Planar mode: Y + U/V interleaved (2 planes)
-  NV12 = SDL_PIXELFORMAT_NV12,
+  NV12 = fermium::SDL_PIXELFORMAT_NV12,
   /// Planar mode: Y + V/U interleaved (2 planes)
-  NV21 = SDL_PIXELFORMAT_NV21,
+  NV21 = fermium::SDL_PIXELFORMAT_NV21,
   /// Android video texture format
-  ExternalOES = SDL_PIXELFORMAT_EXTERNAL_OES,
+  ExternalOES = fermium::SDL_PIXELFORMAT_EXTERNAL_OES,
 }
 #[cfg(target_endian = "big")]
 impl PixelFormatEnum {
@@ -84,8 +84,8 @@ impl PixelFormatEnum {
   /// Platform specific alias for ABGR
   pub const ABGR32: Self = PixelFormatEnum::RGBA8888;
 }
-impl From<SDL_PixelFormatEnum> for PixelFormatEnum {
-  fn from(pf: SDL_PixelFormatEnum) -> Self {
+impl From<fermium::SDL_PixelFormatEnum> for PixelFormatEnum {
+  fn from(pf: fermium::SDL_PixelFormatEnum) -> Self {
     match pf {
       SDL_PIXELFORMAT_INDEX1LSB => PixelFormatEnum::Index1lsb,
       SDL_PIXELFORMAT_INDEX1MSB => PixelFormatEnum::Index1msb,
@@ -285,18 +285,18 @@ impl PixelFormatEnum {
 #[cfg_attr(not(windows), repr(u32))]
 #[allow(missing_docs)]
 pub enum BerylliumPixelType {
-  Unknown = SDL_PIXELTYPE_UNKNOWN,
-  Index1 = SDL_PIXELTYPE_INDEX1,
-  Index4 = SDL_PIXELTYPE_INDEX4,
-  Index8 = SDL_PIXELTYPE_INDEX8,
-  Packed8 = SDL_PIXELTYPE_PACKED8,
-  Packed16 = SDL_PIXELTYPE_PACKED16,
-  Packed32 = SDL_PIXELTYPE_PACKED32,
-  ArrayU8 = SDL_PIXELTYPE_ARRAYU8,
-  ArrayU16 = SDL_PIXELTYPE_ARRAYU16,
-  ArrayU32 = SDL_PIXELTYPE_ARRAYU32,
-  ArrayF16 = SDL_PIXELTYPE_ARRAYF16,
-  ArrayF32 = SDL_PIXELTYPE_ARRAYF32,
+  Unknown = fermium::SDL_PIXELTYPE_UNKNOWN,
+  Index1 = fermium::SDL_PIXELTYPE_INDEX1,
+  Index4 = fermium::SDL_PIXELTYPE_INDEX4,
+  Index8 = fermium::SDL_PIXELTYPE_INDEX8,
+  Packed8 = fermium::SDL_PIXELTYPE_PACKED8,
+  Packed16 = fermium::SDL_PIXELTYPE_PACKED16,
+  Packed32 = fermium::SDL_PIXELTYPE_PACKED32,
+  ArrayU8 = fermium::SDL_PIXELTYPE_ARRAYU8,
+  ArrayU16 = fermium::SDL_PIXELTYPE_ARRAYU16,
+  ArrayU32 = fermium::SDL_PIXELTYPE_ARRAYU32,
+  ArrayF16 = fermium::SDL_PIXELTYPE_ARRAYF16,
+  ArrayF32 = fermium::SDL_PIXELTYPE_ARRAYF32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -312,9 +312,9 @@ pub enum PixelOrder {
 #[cfg_attr(not(windows), repr(u32))]
 #[allow(missing_docs)]
 pub enum BitmapPixelOrder {
-  None = SDL_BITMAPORDER_NONE,
-  _4321 = SDL_BITMAPORDER_4321,
-  _1234 = SDL_BITMAPORDER_1234,
+  None = fermium::SDL_BITMAPORDER_NONE,
+  _4321 = fermium::SDL_BITMAPORDER_4321,
+  _1234 = fermium::SDL_BITMAPORDER_1234,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -322,15 +322,15 @@ pub enum BitmapPixelOrder {
 #[cfg_attr(not(windows), repr(u32))]
 #[allow(missing_docs)]
 pub enum PackedPixelOrder {
-  None = SDL_PACKEDORDER_NONE,
-  XRGB = SDL_PACKEDORDER_XRGB,
-  RGBX = SDL_PACKEDORDER_RGBX,
-  ARGB = SDL_PACKEDORDER_ARGB,
-  RGBA = SDL_PACKEDORDER_RGBA,
-  XBGR = SDL_PACKEDORDER_XBGR,
-  BGRX = SDL_PACKEDORDER_BGRX,
-  ABGR = SDL_PACKEDORDER_ABGR,
-  BGRA = SDL_PACKEDORDER_BGRA,
+  None = fermium::SDL_PACKEDORDER_NONE,
+  XRGB = fermium::SDL_PACKEDORDER_XRGB,
+  RGBX = fermium::SDL_PACKEDORDER_RGBX,
+  ARGB = fermium::SDL_PACKEDORDER_ARGB,
+  RGBA = fermium::SDL_PACKEDORDER_RGBA,
+  XBGR = fermium::SDL_PACKEDORDER_XBGR,
+  BGRX = fermium::SDL_PACKEDORDER_BGRX,
+  ABGR = fermium::SDL_PACKEDORDER_ABGR,
+  BGRA = fermium::SDL_PACKEDORDER_BGRA,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -338,13 +338,13 @@ pub enum PackedPixelOrder {
 #[cfg_attr(not(windows), repr(u32))]
 #[allow(missing_docs)]
 pub enum ArrayPixelOrder {
-  None = SDL_ARRAYORDER_NONE,
-  RGB = SDL_ARRAYORDER_RGB,
-  RGBA = SDL_ARRAYORDER_RGBA,
-  ARGB = SDL_ARRAYORDER_ARGB,
-  BGR = SDL_ARRAYORDER_BGR,
-  BGRA = SDL_ARRAYORDER_BGRA,
-  ABGR = SDL_ARRAYORDER_ABGR,
+  None = fermium::SDL_ARRAYORDER_NONE,
+  RGB = fermium::SDL_ARRAYORDER_RGB,
+  RGBA = fermium::SDL_ARRAYORDER_RGBA,
+  ARGB = fermium::SDL_ARRAYORDER_ARGB,
+  BGR = fermium::SDL_ARRAYORDER_BGR,
+  BGRA = fermium::SDL_ARRAYORDER_BGRA,
+  ABGR = fermium::SDL_ARRAYORDER_ABGR,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -352,15 +352,15 @@ pub enum ArrayPixelOrder {
 #[cfg_attr(not(windows), repr(u32))]
 #[allow(missing_docs)]
 pub enum PixelLayout {
-  None = SDL_PACKEDLAYOUT_NONE,
-  _332 = SDL_PACKEDLAYOUT_332,
-  _4444 = SDL_PACKEDLAYOUT_4444,
-  _1555 = SDL_PACKEDLAYOUT_1555,
-  _5551 = SDL_PACKEDLAYOUT_5551,
-  _565 = SDL_PACKEDLAYOUT_565,
-  _8888 = SDL_PACKEDLAYOUT_8888,
-  _2101010 = SDL_PACKEDLAYOUT_2101010,
-  _1010102 = SDL_PACKEDLAYOUT_1010102,
+  None = fermium::SDL_PACKEDLAYOUT_NONE,
+  _332 = fermium::SDL_PACKEDLAYOUT_332,
+  _4444 = fermium::SDL_PACKEDLAYOUT_4444,
+  _1555 = fermium::SDL_PACKEDLAYOUT_1555,
+  _5551 = fermium::SDL_PACKEDLAYOUT_5551,
+  _565 = fermium::SDL_PACKEDLAYOUT_565,
+  _8888 = fermium::SDL_PACKEDLAYOUT_8888,
+  _2101010 = fermium::SDL_PACKEDLAYOUT_2101010,
+  _1010102 = fermium::SDL_PACKEDLAYOUT_1010102,
 }
 
 /// A handle to the information about a particular pixel layout.
@@ -378,14 +378,14 @@ pub enum PixelLayout {
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct PixelFormat<'sdl> {
-  pub(crate) nn: NonNull<SDL_PixelFormat>,
+  pub(crate) nn: NonNull<fermium::SDL_PixelFormat>,
   pub(crate) _marker: PhantomData<&'sdl SDLToken>,
 }
 
 impl SDLToken {
   /// Allocates a new `PixelFormat` according to the enum given.
   pub fn new_pixel_format(&self, format: PixelFormatEnum) -> Result<PixelFormat<'_>, String> {
-    match NonNull::new(unsafe { SDL_AllocFormat(format as u32) }) {
+    match NonNull::new(unsafe { fermium::SDL_AllocFormat(format as u32) }) {
       Some(nn) => Ok(PixelFormat {
         nn,
         _marker: PhantomData,
@@ -397,7 +397,7 @@ impl SDLToken {
 
 impl Drop for PixelFormat<'_> {
   fn drop(&mut self) {
-    unsafe { SDL_FreeFormat(self.nn.as_ptr()) }
+    unsafe { fermium::SDL_FreeFormat(self.nn.as_ptr()) }
   }
 }
 
@@ -408,8 +408,8 @@ impl SDLToken {
   /// it's here if you want to double check SDL2's opinion of things.
   pub fn get_pixel_format_name(&self, format: PixelFormatEnum) -> String {
     unsafe {
-      let ptr: *const c_char = SDL_GetPixelFormatName(format as u32);
-      let len = SDL_strlen(ptr);
+      let ptr: *const c_char = fermium::SDL_GetPixelFormatName(format as u32);
+      let len = fermium::SDL_strlen(ptr);
       let useful_bytes = from_raw_parts(ptr as *const u8, len);
       String::from_utf8_lossy(useful_bytes).into_owned()
     }
@@ -425,7 +425,7 @@ impl SDLToken {
     a_mask: u32,
   ) -> PixelFormatEnum {
     PixelFormatEnum::from(
-      unsafe { SDL_MasksToPixelFormatEnum(bpp, r_mask, g_mask, b_mask, a_mask) }
+      unsafe { fermium::SDL_MasksToPixelFormatEnum(bpp, r_mask, g_mask, b_mask, a_mask) }
         as fermium::SDL_PixelFormatEnum,
     )
   }
@@ -438,7 +438,7 @@ impl SDLToken {
     let mut b_mask = 0;
     let mut a_mask = 0;
     unsafe {
-      SDL_PixelFormatEnumToMasks(
+      fermium::SDL_PixelFormatEnumToMasks(
         format as u32,
         &mut bpp,
         &mut r_mask,
@@ -462,7 +462,7 @@ impl PixelFormat<'_> {
       b: 0,
       a: 0xFF,
     };
-    unsafe { SDL_GetRGB(pixel, self.nn.as_ptr(), &mut out.r, &mut out.g, &mut out.b) };
+    unsafe { fermium::SDL_GetRGB(pixel, self.nn.as_ptr(), &mut out.r, &mut out.g, &mut out.b) };
     out
   }
 
@@ -473,7 +473,7 @@ impl PixelFormat<'_> {
   pub fn get_rgba(&self, pixel: u32) -> Color {
     let mut out = Color::default();
     unsafe {
-      SDL_GetRGBA(
+      fermium::SDL_GetRGBA(
         pixel,
         self.nn.as_ptr(),
         &mut out.r,
@@ -492,7 +492,7 @@ impl PixelFormat<'_> {
   /// * The pixel format data is always in the lowest bits, so you can safely
   ///   downcast pixel values to `u16` and `u8` as appropriate.
   pub fn map_rgb(&self, color: Color) -> u32 {
-    unsafe { SDL_MapRGB(self.nn.as_ptr(), color.r, color.g, color.b) }
+    unsafe { fermium::SDL_MapRGB(self.nn.as_ptr(), color.r, color.g, color.b) }
   }
 
   /// Maps a [Color] value into an RGBA pixel value in this format.
@@ -503,14 +503,14 @@ impl PixelFormat<'_> {
   /// * The pixel format data is always in the lowest bits, so you can safely
   ///   downcast pixel values to `u16` and `u8` as appropriate.
   pub fn map_rgba(&self, color: Color) -> u32 {
-    unsafe { SDL_MapRGBA(self.nn.as_ptr(), color.r, color.g, color.b, color.a) }
+    unsafe { fermium::SDL_MapRGBA(self.nn.as_ptr(), color.r, color.g, color.b, color.a) }
   }
 
   /// Reassigns the [Palette] for this `PixelFormat`
   pub fn set_palette(&mut self, palette: &Palette) -> Result<(), String> {
     // Note(Lokathor): This must take `&mut self` to ensure you don't have an
     // active reference to the palette.
-    let out = unsafe { SDL_SetPixelFormatPalette(self.nn.as_ptr(), palette.nn.as_ptr()) };
+    let out = unsafe { fermium::SDL_SetPixelFormatPalette(self.nn.as_ptr(), palette.nn.as_ptr()) };
     if out == 0 {
       Ok(())
     } else {
@@ -520,7 +520,7 @@ impl PixelFormat<'_> {
 
   /// The enum value of this pixel format.
   pub fn format(&self) -> PixelFormatEnum {
-    PixelFormatEnum::from(unsafe { (*self.nn.as_ptr()).format } as SDL_PixelFormatEnum)
+    PixelFormatEnum::from(unsafe { (*self.nn.as_ptr()).format } as fermium::SDL_PixelFormatEnum)
   }
 
   /// Obtains the palette of this format, if any.

@@ -7,83 +7,83 @@ use super::*;
 #[cfg_attr(not(windows), repr(u32))]
 pub enum GLattr {
   /// the minimum number of bits for the red channel of the color buffer; defaults to 3
-  RedSize = SDL_GL_RED_SIZE,
+  RedSize = fermium::SDL_GL_RED_SIZE,
 
   /// the minimum number of bits for the green channel of the color buffer; defaults to 3
-  GreenSize = SDL_GL_GREEN_SIZE,
+  GreenSize = fermium::SDL_GL_GREEN_SIZE,
 
   /// the minimum number of bits for the blue channel of the color buffer; defaults to 2
-  BlueSize = SDL_GL_BLUE_SIZE,
+  BlueSize = fermium::SDL_GL_BLUE_SIZE,
 
   /// the minimum number of bits for the alpha channel of the color buffer; defaults to 0
-  AlphaSize = SDL_GL_ALPHA_SIZE,
+  AlphaSize = fermium::SDL_GL_ALPHA_SIZE,
 
   /// the minimum number of bits for frame buffer size; defaults to 0
-  BufferSize = SDL_GL_BUFFER_SIZE,
+  BufferSize = fermium::SDL_GL_BUFFER_SIZE,
 
   /// whether the output is single or double buffered; defaults to double buffering on
-  DoubleBuffer = SDL_GL_DOUBLEBUFFER,
+  DoubleBuffer = fermium::SDL_GL_DOUBLEBUFFER,
 
   /// the minimum number of bits in the depth buffer; defaults to 16
-  DepthSize = SDL_GL_DEPTH_SIZE,
+  DepthSize = fermium::SDL_GL_DEPTH_SIZE,
 
   /// the minimum number of bits in the stencil buffer; defaults to 0
-  StencilSize = SDL_GL_STENCIL_SIZE,
+  StencilSize = fermium::SDL_GL_STENCIL_SIZE,
 
   /// the minimum number of bits for the red channel of the accumulation buffer; defaults to 0
-  AccumRedSize = SDL_GL_ACCUM_RED_SIZE,
+  AccumRedSize = fermium::SDL_GL_ACCUM_RED_SIZE,
 
   /// the minimum number of bits for the green channel of the accumulation buffer; defaults to 0
-  AccumGreenSize = SDL_GL_ACCUM_GREEN_SIZE,
+  AccumGreenSize = fermium::SDL_GL_ACCUM_GREEN_SIZE,
 
   /// the minimum number of bits for the blue channel of the accumulation buffer; defaults to 0
-  AccumBlueSize = SDL_GL_ACCUM_BLUE_SIZE,
+  AccumBlueSize = fermium::SDL_GL_ACCUM_BLUE_SIZE,
 
   /// the minimum number of bits for the alpha channel of the accumulation buffer; defaults to 0
-  AccumAlphaSize = SDL_GL_ACCUM_ALPHA_SIZE,
+  AccumAlphaSize = fermium::SDL_GL_ACCUM_ALPHA_SIZE,
 
   /// whether the output is stereo 3D; defaults to off
-  Stereo = SDL_GL_STEREO,
+  Stereo = fermium::SDL_GL_STEREO,
 
   /// the number of buffers used for multisample anti-aliasing; defaults to 0; see Remarks for details
-  MultisampleBuffers = SDL_GL_MULTISAMPLEBUFFERS,
+  MultisampleBuffers = fermium::SDL_GL_MULTISAMPLEBUFFERS,
 
   /// the number of samples used around the current pixel used for multisample anti-aliasing; defaults to 0; see Remarks for details
-  MultisampleSamples = SDL_GL_MULTISAMPLESAMPLES,
+  MultisampleSamples = fermium::SDL_GL_MULTISAMPLESAMPLES,
 
   /// set to 1 to require hardware acceleration, set to 0 to force software rendering; defaults to allow either
-  AcceleratedVisuals = SDL_GL_ACCELERATED_VISUAL,
+  AcceleratedVisuals = fermium::SDL_GL_ACCELERATED_VISUAL,
 
   /// OpenGL context major version
-  ContextMajorVersion = SDL_GL_CONTEXT_MAJOR_VERSION,
+  ContextMajorVersion = fermium::SDL_GL_CONTEXT_MAJOR_VERSION,
 
   /// OpenGL context minor version
-  ContextMinorVersion = SDL_GL_CONTEXT_MINOR_VERSION,
+  ContextMinorVersion = fermium::SDL_GL_CONTEXT_MINOR_VERSION,
 
   /// some combination of 0 or more of elements of the SDL_GLContextFlag enumeration; defaults to 0
-  ContextFlags = SDL_GL_CONTEXT_FLAGS,
+  ContextFlags = fermium::SDL_GL_CONTEXT_FLAGS,
 
   /// type of GL context (Core, Compatibility, ES), default value depends on platform
-  ContextProfileMask = SDL_GL_CONTEXT_PROFILE_MASK,
+  ContextProfileMask = fermium::SDL_GL_CONTEXT_PROFILE_MASK,
 
   /// OpenGL context sharing; defaults to 0
-  ShareWithCurrentContext = SDL_GL_SHARE_WITH_CURRENT_CONTEXT,
+  ShareWithCurrentContext = fermium::SDL_GL_SHARE_WITH_CURRENT_CONTEXT,
 
   /// requests sRGB capable visual; defaults to 0
-  FramebufferSRGBCapable = SDL_GL_FRAMEBUFFER_SRGB_CAPABLE,
+  FramebufferSRGBCapable = fermium::SDL_GL_FRAMEBUFFER_SRGB_CAPABLE,
 
   /// sets context the release behavior; defaults to 1
-  ContextReleaseBehavior = SDL_GL_CONTEXT_RELEASE_BEHAVIOR,
+  ContextReleaseBehavior = fermium::SDL_GL_CONTEXT_RELEASE_BEHAVIOR,
 }
 
 /// Requests an OpenGL Compatibility context.
-pub const CONTEXT_PROFILE_COMPATIBILITY: i32 = SDL_GL_CONTEXT_PROFILE_COMPATIBILITY as i32;
+pub const CONTEXT_PROFILE_COMPATIBILITY: i32 = fermium::SDL_GL_CONTEXT_PROFILE_COMPATIBILITY as i32;
 
 /// Requests an OpenGL Core context.
-pub const CONTEXT_PROFILE_CORE: i32 = SDL_GL_CONTEXT_PROFILE_CORE as i32;
+pub const CONTEXT_PROFILE_CORE: i32 = fermium::SDL_GL_CONTEXT_PROFILE_CORE as i32;
 
 /// Requests an OpenGL ES context.
-pub const CONTEXT_PROFILE_ES: i32 = SDL_GL_CONTEXT_PROFILE_ES as i32;
+pub const CONTEXT_PROFILE_ES: i32 = fermium::SDL_GL_CONTEXT_PROFILE_ES as i32;
 
 /// A flag for use with [`GLattr::ContextFlags`].
 ///
@@ -95,7 +95,7 @@ pub const CONTEXT_PROFILE_ES: i32 = SDL_GL_CONTEXT_PROFILE_ES as i32;
 /// might offer better developer insights, possibly at a loss of performance
 /// (although a given GL implementation may or may not do anything differently
 /// in the presence of this flag).
-pub const CONTEXT_DEBUG_FLAG: i32 = SDL_GL_CONTEXT_DEBUG_FLAG as i32;
+pub const CONTEXT_DEBUG_FLAG: i32 = fermium::SDL_GL_CONTEXT_DEBUG_FLAG as i32;
 
 /// A flag for use with [`GLattr::ContextFlags`].
 ///
@@ -107,7 +107,7 @@ pub const CONTEXT_DEBUG_FLAG: i32 = SDL_GL_CONTEXT_DEBUG_FLAG as i32;
 /// into a "forward compatible" mode, which means that no deprecated
 /// functionality will be supported, possibly at a gain in performance, and only
 /// applies to GL 3.0 and later contexts.
-pub const CONTEXT_FORWARD_COMPATIBLE_FLAG: i32 = SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG as i32;
+pub const CONTEXT_FORWARD_COMPATIBLE_FLAG: i32 = fermium::SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG as i32;
 
 /// A flag for use with [`GLattr::ContextFlags`].
 ///
@@ -119,7 +119,7 @@ pub const CONTEXT_FORWARD_COMPATIBLE_FLAG: i32 = SDL_GL_CONTEXT_FORWARD_COMPATIB
 /// GL context that supports the GL_ARB_robustness extension--a mode that offers
 /// a few APIs that are safer than the usual defaults (think `snprintf()` vs
 /// `sprintf()`).
-pub const CONTEXT_ROBUST_ACCESS_FLAG: i32 = SDL_GL_CONTEXT_ROBUST_ACCESS_FLAG as i32;
+pub const CONTEXT_ROBUST_ACCESS_FLAG: i32 = fermium::SDL_GL_CONTEXT_ROBUST_ACCESS_FLAG as i32;
 
 /// A flag for use with [`GLattr::ContextFlags`].
 ///
@@ -130,7 +130,7 @@ pub const CONTEXT_ROBUST_ACCESS_FLAG: i32 = SDL_GL_CONTEXT_ROBUST_ACCESS_FLAG as
 /// don't support equivalent functionality. This flag is intended to require the
 /// GL to make promises about what to do in the face of driver or hardware
 /// failure.
-pub const CONTEXT_RESET_ISOLATION_FLAG: i32 = SDL_GL_CONTEXT_RESET_ISOLATION_FLAG as i32;
+pub const CONTEXT_RESET_ISOLATION_FLAG: i32 = fermium::SDL_GL_CONTEXT_RESET_ISOLATION_FLAG as i32;
 
 /// A GLWindow is a [Window] with an OpenGL context bundled in.
 ///
@@ -146,12 +146,12 @@ pub const CONTEXT_RESET_ISOLATION_FLAG: i32 = SDL_GL_CONTEXT_RESET_ISOLATION_FLA
 /// program you'll always have the current one.
 #[derive(Debug)]
 pub struct GLWindow<'sdl> {
-  pub(crate) ctx: SDL_GLContext,
+  pub(crate) ctx: fermium::SDL_GLContext,
   pub(crate) window: Window<'sdl>,
 }
 impl<'sdl> Drop for GLWindow<'sdl> {
   fn drop(&mut self) {
-    unsafe { SDL_GL_DeleteContext(self.ctx) }
+    unsafe { fermium::SDL_GL_DeleteContext(self.ctx) }
   }
 }
 impl<'sdl> Deref for GLWindow<'sdl> {
@@ -165,7 +165,7 @@ impl<'sdl> GLWindow<'sdl> {
   /// Checks if the given extension is available in this context.
   pub unsafe fn extension_supported(&self, name: &str) -> bool {
     let name_null: Vec<u8> = name.bytes().chain(Some(0)).collect();
-    SDL_TRUE == SDL_GL_ExtensionSupported(name_null.as_ptr() as *const c_char)
+    fermium::SDL_TRUE == fermium::SDL_GL_ExtensionSupported(name_null.as_ptr() as *const c_char)
   }
 
   /// Obtains the actual value of the attribute for this context.
@@ -174,7 +174,7 @@ impl<'sdl> GLWindow<'sdl> {
   /// match, because yay.
   pub unsafe fn get_attribute(&self, attr: GLattr) -> Result<i32, String> {
     let mut output = 0;
-    if 0 == SDL_GL_GetAttribute(attr as fermium::SDL_GLattr, &mut output) {
+    if 0 == fermium::SDL_GL_GetAttribute(attr as fermium::SDL_GLattr, &mut output) {
       Ok(output)
     } else {
       Err(get_error())
@@ -191,7 +191,7 @@ impl<'sdl> GLWindow<'sdl> {
   /// default". You can also call [get_error](get_error) to potentially find out
   /// more.
   pub unsafe fn swap_interval(&self) -> i32 {
-    SDL_GL_GetSwapInterval()
+    fermium::SDL_GL_GetSwapInterval()
   }
 
   /// Attempts to set the swap interval value.
@@ -201,7 +201,7 @@ impl<'sdl> GLWindow<'sdl> {
   /// Note that if you request adaptive vsync and get an error it is likely that
   /// standard vsync might still be available as a fallback.
   pub unsafe fn set_swap_interval(&self, interval: i32) -> Result<(), String> {
-    let out = SDL_GL_SetSwapInterval(interval);
+    let out = fermium::SDL_GL_SetSwapInterval(interval);
     if out == 0 {
       Ok(())
     } else {
@@ -211,13 +211,13 @@ impl<'sdl> GLWindow<'sdl> {
 
   /// Checks if this context is current.
   pub fn is_current(&self) -> bool {
-    let cur = unsafe { SDL_GL_GetCurrentContext() };
+    let cur = unsafe { fermium::SDL_GL_GetCurrentContext() };
     self.ctx == cur
   }
 
   /// Makes the given context the current context in this window.
   pub fn make_current(&self) -> Result<(), String> {
-    let out = unsafe { SDL_GL_MakeCurrent(self.window.ptr, self.ctx) };
+    let out = unsafe { fermium::SDL_GL_MakeCurrent(self.window.ptr, self.ctx) };
     if out == 0 {
       Ok(())
     } else {
@@ -234,7 +234,7 @@ impl<'sdl> GLWindow<'sdl> {
   pub fn drawable_size(&self) -> (i32, i32) {
     let mut w = 0;
     let mut h = 0;
-    unsafe { SDL_GL_GetDrawableSize(self.window.ptr, &mut w, &mut h) };
+    unsafe { fermium::SDL_GL_GetDrawableSize(self.window.ptr, &mut w, &mut h) };
     (w, h)
   }
 
@@ -242,6 +242,6 @@ impl<'sdl> GLWindow<'sdl> {
   ///
   /// If double buffering isn't enabled this just does nothing.
   pub unsafe fn swap_window(&self) {
-    SDL_GL_SwapWindow(self.window.ptr)
+    fermium::SDL_GL_SwapWindow(self.window.ptr)
   }
 }
