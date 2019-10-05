@@ -137,7 +137,7 @@ unsafe impl<'sdl> raw_window_handle::HasRawWindowHandle for Window<'sdl> {
         fermium::SDL_SYSWM_COCOA => {
           RawWindowHandle::MacOS(MacOSHandle {
             ns_window: unsafe { wm_info.info.cocoa.window as *mut core::ffi::c_void },
-            ns_view: unsafe { unimplemented!() as *mut core::ffi::c_void },
+            ns_view: unsafe { core::ptr::null_mut() },
             ..MacOSHandle::empty()
           })
         }
