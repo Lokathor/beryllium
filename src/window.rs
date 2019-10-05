@@ -189,6 +189,18 @@ impl<'sdl> Window<'sdl> {
     unsafe { fermium::SDL_SetWindowSize(self.ptr, width, height) }
   }
 
+  /// Sets the maximum logical size of the window.
+  pub fn set_maximum_size(&self, width: i32, height: i32) {
+    unsafe { SDL_SetWindowMaximumSize(self.ptr, width, height) }
+  }
+
+  /// Sets the minimum logical size of the window.
+  pub fn set_minimum_size(&self, width: i32, height: i32) {
+    unsafe { SDL_SetWindowMinimumSize(self.ptr, width, height) }
+  }
+
+
+
   /// Obtains info about the fullscreen settings of the window.
   ///
   /// Use this function to get info about the display mode that the Window uses when it's fullscreen.
