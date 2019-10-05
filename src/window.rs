@@ -6,9 +6,9 @@ use super::*;
 /// other methods that examine the state of a window.
 #[derive(Debug, Default, Clone, Copy)]
 #[repr(transparent)]
-pub struct WindowFlags(pub(crate) SDL_WindowFlags::Type);
+pub struct WindowFlags(pub(crate) SDL_WindowFlags);
 #[allow(bad_style)]
-type SDL_WindowFlags_Type = SDL_WindowFlags::Type;
+type SDL_WindowFlags_Type = SDL_WindowFlags;
 #[allow(missing_docs)]
 impl WindowFlags {
   phantom_fields! {
@@ -102,7 +102,7 @@ impl<'sdl> Window<'sdl> {
   /// Use this function to get the window flags.
   pub fn flags(&self) -> WindowFlags {
     let mut flags = WindowFlags::default();
-    flags.0 = unsafe { SDL_GetWindowFlags(self.ptr) } as SDL_WindowFlags::Type;
+    flags.0 = unsafe { SDL_GetWindowFlags(self.ptr) } as SDL_WindowFlags;
     flags
   }
 
@@ -297,7 +297,7 @@ pub struct DisplayMode {
 impl From<SDL_DisplayMode> for DisplayMode {
   fn from(sdl_mode: SDL_DisplayMode) -> Self {
     Self {
-      format: PixelFormatEnum::from(sdl_mode.format as fermium::_bindgen_ty_6::Type),
+      format: PixelFormatEnum::from(sdl_mode.format as SDL_PixelFormatEnum),
       width: sdl_mode.w,
       height: sdl_mode.h,
       refresh_rate: sdl_mode.refresh_rate,

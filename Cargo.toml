@@ -2,10 +2,12 @@
 name = "beryllium"
 description = "An opinionated set of high level wrappers for the `fermium` SDL2 bindings."
 repository = "https://github.com/Lokathor/beryllium"
-version = "0.0.18-alpha.0"
+version = "0.1.0-alpha.0"
 authors = ["Lokathor <zefria@gmail.com>"]
 edition = "2018"
 license = "Zlib"
+keywords = ["sdl2"]
+categories = [""]
 
 # This forces docs.rs to build us on windows, which has the simplest build for
 # docs.rs to perform.
@@ -13,7 +15,7 @@ license = "Zlib"
 default-target = "x86_64-pc-windows-msvc"
 
 [dependencies]
-fermium = "0.0.15"
+fermium = { version = "0.1", default-features = false }
 phantom-fields = "^0.1.2"
 libc = "0.2"
 
@@ -26,8 +28,9 @@ glium = "0.25"
 ash = "0.29"
 
 [features]
-default = []
-dynamic_link = ["fermium/dynamic_link"]
+default = ["link_dynamic"]
+link_dynamic = ["fermium/link_dynamic"]
+link_static = ["fermium/link_static"]
 
 [badges]
 appveyor = { repository = "Lokathor/beryllium" }

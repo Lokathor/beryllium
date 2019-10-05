@@ -174,7 +174,7 @@ impl<'sdl> GLWindow<'sdl> {
   /// match, because yay.
   pub unsafe fn get_attribute(&self, attr: GLattr) -> Result<i32, String> {
     let mut output = 0;
-    if 0 == SDL_GL_GetAttribute(attr as fermium::SDL_GLattr::Type, &mut output) {
+    if 0 == SDL_GL_GetAttribute(attr as fermium::SDL_GLattr, &mut output) {
       Ok(output)
     } else {
       Err(get_error())

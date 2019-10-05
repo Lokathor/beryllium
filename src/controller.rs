@@ -58,7 +58,7 @@ impl<'sdl> Controller<'sdl> {
   /// Also gives 0 on failure. You could call [get_error](get_error) if you
   /// want.
   pub fn axis(&self, axis: ControllerAxis) -> i16 {
-    unsafe { SDL_GameControllerGetAxis(self.ptr, axis as fermium::SDL_GameControllerAxis::Type) }
+    unsafe { SDL_GameControllerGetAxis(self.ptr, axis as fermium::SDL_GameControllerAxis) }
   }
 
   /// Gives if the given button is pressed.
@@ -67,7 +67,7 @@ impl<'sdl> Controller<'sdl> {
   /// sort of error. You can call [get_error](get_error) if you really want.
   pub fn button(&self, button: ControllerButton) -> bool {
     1 == unsafe {
-      SDL_GameControllerGetButton(self.ptr, button as fermium::SDL_GameControllerButton::Type)
+      SDL_GameControllerGetButton(self.ptr, button as fermium::SDL_GameControllerButton)
     }
   }
 
@@ -102,7 +102,7 @@ pub enum ControllerAxis {
 }
 impl From<u8> for ControllerAxis {
   fn from(axis: u8) -> Self {
-    match fermium::SDL_GameControllerAxis::Type::from(axis) {
+    match fermium::SDL_GameControllerAxis::from(axis) {
       SDL_CONTROLLER_AXIS_LEFTX => ControllerAxis::LeftX,
       SDL_CONTROLLER_AXIS_LEFTY => ControllerAxis::LeftY,
       SDL_CONTROLLER_AXIS_RIGHTX => ControllerAxis::RightX,
@@ -152,7 +152,7 @@ pub enum ControllerButton {
 }
 impl From<u8> for ControllerButton {
   fn from(button: u8) -> Self {
-    match fermium::SDL_GameControllerButton::Type::from(button) {
+    match fermium::SDL_GameControllerButton::from(button) {
       SDL_CONTROLLER_BUTTON_A => ControllerButton::South,
       SDL_CONTROLLER_BUTTON_B => ControllerButton::East,
       SDL_CONTROLLER_BUTTON_X => ControllerButton::West,

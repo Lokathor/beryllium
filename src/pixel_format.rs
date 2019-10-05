@@ -84,8 +84,8 @@ impl PixelFormatEnum {
   /// Platform specific alias for ABGR
   pub const ABGR32: Self = PixelFormatEnum::RGBA8888;
 }
-impl From<fermium::_bindgen_ty_6::Type> for PixelFormatEnum {
-  fn from(pf: fermium::_bindgen_ty_6::Type) -> Self {
+impl From<SDL_PixelFormatEnum> for PixelFormatEnum {
+  fn from(pf: SDL_PixelFormatEnum) -> Self {
     match pf {
       SDL_PIXELFORMAT_INDEX1LSB => PixelFormatEnum::Index1lsb,
       SDL_PIXELFORMAT_INDEX1MSB => PixelFormatEnum::Index1msb,
@@ -132,21 +132,21 @@ impl From<fermium::_bindgen_ty_6::Type> for PixelFormatEnum {
 impl PixelFormatEnum {
   /// The type of the pixel format.
   ///
-  /// All unknown types convert to `PixelType::Unknown`, of course.
-  pub fn pixel_type(self) -> PixelType {
-    match ((self as u32 >> 24) & 0x0F) as fermium::_bindgen_ty_1::Type {
-      SDL_PIXELTYPE_INDEX1 => PixelType::Index1,
-      SDL_PIXELTYPE_INDEX4 => PixelType::Index4,
-      SDL_PIXELTYPE_INDEX8 => PixelType::Index8,
-      SDL_PIXELTYPE_PACKED8 => PixelType::Packed8,
-      SDL_PIXELTYPE_PACKED16 => PixelType::Packed16,
-      SDL_PIXELTYPE_PACKED32 => PixelType::Packed32,
-      SDL_PIXELTYPE_ARRAYU8 => PixelType::ArrayU8,
-      SDL_PIXELTYPE_ARRAYU16 => PixelType::ArrayU16,
-      SDL_PIXELTYPE_ARRAYU32 => PixelType::ArrayU32,
-      SDL_PIXELTYPE_ARRAYF16 => PixelType::ArrayF16,
-      SDL_PIXELTYPE_ARRAYF32 => PixelType::ArrayF32,
-      _ => PixelType::Unknown,
+  /// All unknown types convert to `BerylliumPixelType::Unknown`, of course.
+  pub fn pixel_type(self) -> BerylliumPixelType {
+    match ((self as u32 >> 24) & 0x0F) as fermium::PixelType {
+      SDL_PIXELTYPE_INDEX1 => BerylliumPixelType::Index1,
+      SDL_PIXELTYPE_INDEX4 => BerylliumPixelType::Index4,
+      SDL_PIXELTYPE_INDEX8 => BerylliumPixelType::Index8,
+      SDL_PIXELTYPE_PACKED8 => BerylliumPixelType::Packed8,
+      SDL_PIXELTYPE_PACKED16 => BerylliumPixelType::Packed16,
+      SDL_PIXELTYPE_PACKED32 => BerylliumPixelType::Packed32,
+      SDL_PIXELTYPE_ARRAYU8 => BerylliumPixelType::ArrayU8,
+      SDL_PIXELTYPE_ARRAYU16 => BerylliumPixelType::ArrayU16,
+      SDL_PIXELTYPE_ARRAYU32 => BerylliumPixelType::ArrayU32,
+      SDL_PIXELTYPE_ARRAYF16 => BerylliumPixelType::ArrayF16,
+      SDL_PIXELTYPE_ARRAYF32 => BerylliumPixelType::ArrayF32,
+      _ => BerylliumPixelType::Unknown,
     }
   }
 
@@ -156,7 +156,7 @@ impl PixelFormatEnum {
   pub fn pixel_order(self) -> PixelOrder {
     let bits = (self as u32 >> 20) & 0x0F;
     if self.is_packed() {
-      match bits as fermium::_bindgen_ty_4::Type {
+      match bits as fermium::PackedOrder {
         SDL_PACKEDORDER_ABGR => PixelOrder::Packed(PackedPixelOrder::ABGR),
         SDL_PACKEDORDER_ARGB => PixelOrder::Packed(PackedPixelOrder::ARGB),
         SDL_PACKEDORDER_BGRA => PixelOrder::Packed(PackedPixelOrder::BGRA),
@@ -168,7 +168,7 @@ impl PixelFormatEnum {
         _ => PixelOrder::Packed(PackedPixelOrder::None),
       }
     } else if self.is_array() {
-      match bits as fermium::_bindgen_ty_4::Type {
+      match bits as fermium::ArrayOrder {
         SDL_ARRAYORDER_ABGR => PixelOrder::Array(ArrayPixelOrder::ABGR),
         SDL_ARRAYORDER_ARGB => PixelOrder::Array(ArrayPixelOrder::ARGB),
         SDL_ARRAYORDER_BGR => PixelOrder::Array(ArrayPixelOrder::BGR),
@@ -178,7 +178,7 @@ impl PixelFormatEnum {
         _ => PixelOrder::Array(ArrayPixelOrder::None),
       }
     } else {
-      match bits as fermium::_bindgen_ty_2::Type {
+      match bits as fermium::BitmapOrder {
         SDL_BITMAPORDER_1234 => PixelOrder::Bitmap(BitmapPixelOrder::_1234),
         SDL_BITMAPORDER_4321 => PixelOrder::Bitmap(BitmapPixelOrder::_4321),
         _ => PixelOrder::Bitmap(BitmapPixelOrder::None),
@@ -190,7 +190,7 @@ impl PixelFormatEnum {
   ///
   /// Converts any possible unknown layout to `PixelLayout::None`.
   pub fn pixel_layout(self) -> PixelLayout {
-    match ((self as u32 >> 16) & 0x0F) as fermium::_bindgen_ty_1::Type {
+    match ((self as u32 >> 16) & 0x0F) as fermium::PixelType {
       SDL_PACKEDLAYOUT_332 => PixelLayout::_332,
       SDL_PACKEDLAYOUT_4444 => PixelLayout::_4444,
       SDL_PACKEDLAYOUT_1555 => PixelLayout::_1555,
@@ -227,7 +227,7 @@ impl PixelFormatEnum {
   pub fn is_indexed(self) -> bool {
     !self.is_fourcc()
       && match self.pixel_type() {
-        PixelType::Index1 | PixelType::Index4 | PixelType::Index8 => true,
+        BerylliumPixelType::Index1 | BerylliumPixelType::Index4 | BerylliumPixelType::Index8 => true,
         _ => false,
       }
   }
@@ -236,7 +236,7 @@ impl PixelFormatEnum {
   pub fn is_packed(self) -> bool {
     !self.is_fourcc()
       && match self.pixel_type() {
-        PixelType::Packed8 | PixelType::Packed16 | PixelType::Packed32 => true,
+        BerylliumPixelType::Packed8 | BerylliumPixelType::Packed16 | BerylliumPixelType::Packed32 => true,
         _ => false,
       }
   }
@@ -245,11 +245,11 @@ impl PixelFormatEnum {
   pub fn is_array(self) -> bool {
     !self.is_fourcc()
       && match self.pixel_type() {
-        PixelType::ArrayU8
-        | PixelType::ArrayU16
-        | PixelType::ArrayU32
-        | PixelType::ArrayF16
-        | PixelType::ArrayF32 => true,
+        BerylliumPixelType::ArrayU8
+        | BerylliumPixelType::ArrayU16
+        | BerylliumPixelType::ArrayU32
+        | BerylliumPixelType::ArrayF16
+        | BerylliumPixelType::ArrayF32 => true,
         _ => false,
       }
   }
@@ -277,11 +277,14 @@ impl PixelFormatEnum {
   }
 }
 
+/// The name is weird because i goofed up `fermium-0.1`.
+/// 
+/// This will be fixed in 0.2
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(windows, repr(i32))]
 #[cfg_attr(not(windows), repr(u32))]
 #[allow(missing_docs)]
-pub enum PixelType {
+pub enum BerylliumPixelType {
   Unknown = SDL_PIXELTYPE_UNKNOWN,
   Index1 = SDL_PIXELTYPE_INDEX1,
   Index4 = SDL_PIXELTYPE_INDEX4,
@@ -423,7 +426,7 @@ impl SDLToken {
   ) -> PixelFormatEnum {
     PixelFormatEnum::from(
       unsafe { SDL_MasksToPixelFormatEnum(bpp, r_mask, g_mask, b_mask, a_mask) }
-        as fermium::_bindgen_ty_6::Type,
+        as fermium::SDL_PixelFormatEnum,
     )
   }
 
@@ -517,7 +520,7 @@ impl PixelFormat<'_> {
 
   /// The enum value of this pixel format.
   pub fn format(&self) -> PixelFormatEnum {
-    PixelFormatEnum::from(unsafe { (*self.nn.as_ptr()).format } as fermium::_bindgen_ty_6::Type)
+    PixelFormatEnum::from(unsafe { (*self.nn.as_ptr()).format } as SDL_PixelFormatEnum)
   }
 
   /// Obtains the palette of this format, if any.

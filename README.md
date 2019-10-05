@@ -4,13 +4,11 @@
 [![crates.io](https://img.shields.io/crates/v/beryllium.svg)](https://crates.io/crates/beryllium)
 [![docs.rs](https://docs.rs/beryllium/badge.svg)](https://docs.rs/beryllium/)
 
-# THIS CRATE IS REVOKED AND BANNED YOU CANNOT USE IT BECAUSE C IS TERRIBLE
-
-please have a good day
-
 # beryllium
 An opinionated set of "high level" wrappers for the
-[fermium](https://github.com/Lokathor/fermium) SDL2 bindings.
+[fermium](https://docs.rs/fermium) SDL2 bindings.
+
+Compared to the usual [sdl2](https://docs.rs/sdl2)
 
 There are [examples](/examples/) available if you want to see it in action.
 
@@ -71,16 +69,3 @@ This line won't have any effect on the build outside Windows, so no worries.
 ## License
 
 This crate uses the Zlib license, the same license that SDL2 itself uses.
-
-### Contribution
-
-**PLEASE DO NOT PR TO MASTER**
-
-All new development goes to a
-[dev](https://github.com/Lokathor/beryllium/tree/dev) branch. Updates are only
-transferred to the `master` branch when it's time to do a new release to
-crates.io.
-
-Some call it odd, but I just like having the `master` branch always reflect the
-latest available on crates.io whenever possible to keep confusion to a minimum
-when jumping between the two websites.

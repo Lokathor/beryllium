@@ -1,24 +1,52 @@
 
-os: Visual Studio 2017
+os: Visual Studio 2015
+
+matrix:
+  fast_finish: true
 
 environment:
-  # The pre-built SDL2 files that we have are for MSVC only.
+  # Note(Lokathor): When someone submits the GNU files we can add the GNU stuff
+  # into our CI. Until then, no GNU CI support.
   matrix:
-    - channel: 1.36.0
+    # 32-bit MSVC
+    - channel: 1.33.0
+      target: i686-pc-windows-msvc
+    # 64-bit MSVC
+    - channel: 1.33.0
       target: x86_64-pc-windows-msvc
 
 install:
+  # Setup Rust
   - appveyor DownloadFile https://win.rustup.rs/ -FileName rustup-init.exe
   - rustup-init -y --default-toolchain %channel% --default-host %target%
   - set PATH=%PATH%;%USERPROFILE%\.cargo\bin
-  - rustup component add clippy
   - rustc -vV
   - cargo -vV
 
 build: false
 
 test_script:
-  - cargo clippy --all --all-features --all-targets -- -D warnings
+  # dynamic 2.0.8
   - cargo build
-  - cargo test -- --test-threads=1
-
+  - cargo test
+  - cargo clean
+  # dynamic 2.0.9
+  - cargo build --features="bind_SDL2_2_0_9"
+  - cargo test --features="bind_SDL2_2_0_9" -- --test-threads=1
+  - cargo clean
+  # dynamic 2.0.10
+  - cargo build --features="bind_SDL2_2_0_10"
+  - cargo test --features="bind_SDL2_2_0_10" -- --test-threads=1
+  - cargo clean
+  # static 2.0.8
+  - cargo build --no-default-features --features="link_static"
+  - cargo test --no-default-features --features="link_static" -- --test-threads=1
+  - cargo clean
+  # static 2.0.9
+  - cargo build --no-default-features --features="link_static,bind_SDL2_2_0_9"
+  - cargo test --no-default-features --features="link_static,bind_SDL2_2_0_9" -- --test-threads=1
+  - cargo clean
+  # static 2.0.10
+  - cargo build --no-default-features --features="link_static,bind_SDL2_2_0_10"
+  - cargo test --no-default-features --features="link_static,bind_SDL2_2_0_10" -- --test-threads=1
+  - cargo clean

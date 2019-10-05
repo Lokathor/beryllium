@@ -5,9 +5,9 @@ use super::*;
 /// See [Window::create_renderer](Window::create_renderer]
 #[derive(Debug, Default, Clone, Copy)]
 #[repr(transparent)]
-pub struct RendererFlags(pub(crate) SDL_RendererFlags::Type);
+pub struct RendererFlags(pub(crate) SDL_RendererFlags);
 #[allow(bad_style)]
-type SDL_RendererFlags_Type = SDL_RendererFlags::Type;
+type SDL_RendererFlags_Type = SDL_RendererFlags;
 #[allow(missing_docs)]
 impl RendererFlags {
   phantom_fields! {

@@ -1,43 +1,45 @@
 
-language: rust
 git:
   quiet: true
 
-rust:
-  - 1.36.0
+language: rust
 
 cache:
   cargo
 
-os:
-  - linux
-  - osx
+rust:
+  - 1.33.0
 
-branches:
-  only:
-    - staging
-    - trying
-    - master
-    - dev
-    - lokathor
+matrix:
+  include:
+    - os: linux
+      dist: bionic
+    - os: osx
 
-before_script:
+install:
+  - rustup component add rustfmt
+  - cargo install-update -a
   - |
-    if [[ $TRAVIS_OS == "osx" ]]
+    if [[ $TRAVIS_OS_NAME == "linux" ]]
     then
+      # https://packages.ubuntu.com/bionic/libsdl2-dev
+      sudo apt-get -qq install libsdl2-dev
+    else
       # https://formulae.brew.sh/formula/sdl2#default
       brew install sdl2
-    else
-      # the package managers often have very old versions of SDL2, we just build
-      # the correct version from source
-      sudo ./install-sdl2.sh
     fi
+  # Run these to confirm that the SDL2 installation is working
+  - sdl2-config --version
   - sdl2-config --cflags
   - sdl2-config --libs
   - sdl2-config --static-libs
-  - rustup component add clippy
 
 script:
-  - cargo clippy --all --all-features --all-targets -- -D warnings
+  # dynamic
   - cargo build
-  - cargo test -- --test-threads=1
+  - cargo test
+  - cargo clean
+  # static
+  - cargo build --no-default-features --features="link_static"
+  - cargo test --no-default-features --features="link_static" -- --test-threads=1
+  - cargo clean

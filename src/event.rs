@@ -274,7 +274,7 @@ impl From<SDL_Event> for Event {
   /// So, it's not lossless I guess. Whatever.
   fn from(event: SDL_Event) -> Self {
     unsafe {
-      match event.type_ as SDL_EventType::Type {
+      match event.type_ as SDL_EventType {
         SDL_QUIT => Event::Quit {
           timestamp: event.quit.timestamp,
         },
@@ -316,8 +316,8 @@ impl From<SDL_Event> for Event {
           },
           x: event.wheel.x,
           y: event.wheel.y,
-          is_flipped: event.wheel.direction as fermium::SDL_MouseWheelDirection::Type
-            == fermium::SDL_MouseWheelDirection::SDL_MOUSEWHEEL_FLIPPED,
+          is_flipped: event.wheel.direction as fermium::SDL_MouseWheelDirection
+            == fermium::SDL_MOUSEWHEEL_FLIPPED,
         },
         SDL_KEYDOWN | SDL_KEYUP => Event::Keyboard {
           timestamp: event.key.timestamp,
@@ -326,7 +326,7 @@ impl From<SDL_Event> for Event {
           repeat_count: event.key.repeat,
           key_info: KeyInfo::from(event.key.keysym),
         },
-        SDL_WINDOWEVENT => match event.window.event as fermium::SDL_WindowEventID::Type {
+        SDL_WINDOWEVENT => match event.window.event as fermium::SDL_WindowEventID {
           SDL_WINDOWEVENT_MOVED => Event::WindowMoved {
             timestamp: event.window.timestamp,
             window_id: event.window.windowID,
@@ -760,7 +760,7 @@ impl TryFrom<i32> for Keycode {
   type Error = ();
   fn try_from(t: i32) -> Result<Self, Self::Error> {
     #[allow(non_upper_case_globals)]
-    match t as fermium::_bindgen_ty_7::Type {
+    match t as fermium::SDLK {
       SDLK_0 => Ok(Keycode::_0),
       SDLK_1 => Ok(Keycode::_1),
       SDLK_2 => Ok(Keycode::_2),
@@ -1008,7 +1008,7 @@ impl TryFrom<i32> for Keycode {
 #[test]
 pub fn test_sdlk_a() {
   assert_eq!(
-    Keycode::try_from(fermium::_bindgen_ty_7::SDLK_a as i32),
+    Keycode::try_from(fermium::SDLK_a as i32),
     Ok(Keycode::A)
   );
 }
@@ -1274,9 +1274,9 @@ pub enum Scancode {
   Y = SDL_SCANCODE_Y,
   Z = SDL_SCANCODE_Z,
 }
-impl TryFrom<fermium::SDL_Scancode::Type> for Scancode {
+impl TryFrom<fermium::SDL_Scancode> for Scancode {
   type Error = ();
-  fn try_from(t: fermium::SDL_Scancode::Type) -> Result<Self, Self::Error> {
+  fn try_from(t: fermium::SDL_Scancode) -> Result<Self, Self::Error> {
     match t {
       SDL_SCANCODE_0 => Ok(Scancode::_0),
       SDL_SCANCODE_1 => Ok(Scancode::_1),

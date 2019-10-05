@@ -89,6 +89,8 @@
 //! So it's not a lot, and it probably won't ever be a lot, but some _small_
 //! parts have been rewritten in Rust.
 
+pub use fermium;
+
 use core::{
   convert::TryFrom,
   ffi::c_void,
@@ -99,13 +101,7 @@ use core::{
   sync::atomic::{AtomicBool, Ordering},
 };
 
-use fermium::{
-  SDL_EventType::*, SDL_GLattr::*, SDL_GLcontextFlag::*, SDL_GLprofile::*,
-  SDL_GameControllerAxis::*, SDL_GameControllerButton::*, SDL_Keymod::*, SDL_RendererFlags::*,
-  SDL_Scancode::*, SDL_WindowEventID::*, SDL_WindowFlags::*, SDL_bool::*, _bindgen_ty_1::*,
-  _bindgen_ty_2::*, _bindgen_ty_3::*, _bindgen_ty_4::*, _bindgen_ty_5::*, _bindgen_ty_6::*,
-  _bindgen_ty_7::*, *,
-};
+pub(crate) use fermium::*;
 
 use libc::c_char;
 use phantom_fields::phantom_fields;
@@ -157,7 +153,7 @@ unsafe fn gather_string(ptr: *const c_char) -> String {
 }
 
 /// Converts a bool into a SDL_bool.
-fn into_sdl_bool(flag: bool) -> SDL_bool::Type {
+fn into_sdl_bool(flag: bool) -> SDL_bool {
   if flag {
     SDL_TRUE
   } else {
@@ -214,9 +210,9 @@ pub fn get_error() -> String {
 #[cfg_attr(not(windows), repr(u32))]
 #[allow(missing_docs)]
 pub enum MessageBox {
-  Error = fermium::SDL_MessageBoxFlags::SDL_MESSAGEBOX_ERROR,
-  Warning = fermium::SDL_MessageBoxFlags::SDL_MESSAGEBOX_WARNING,
-  Information = fermium::SDL_MessageBoxFlags::SDL_MESSAGEBOX_INFORMATION,
+  Error = fermium::SDL_MESSAGEBOX_ERROR,
+  Warning = fermium::SDL_MESSAGEBOX_WARNING,
+  Information = fermium::SDL_MESSAGEBOX_INFORMATION,
 }
 
 /// Shows a basic, stand alone message box.
@@ -494,7 +490,7 @@ impl SDLToken {
   /// request". Once you create the context you should examine it to see what
   /// you actually got.
   pub fn gl_set_attribute(&self, attr: GLattr, value: i32) -> bool {
-    0 == unsafe { SDL_GL_SetAttribute(attr as fermium::SDL_GLattr::Type, value) }
+    0 == unsafe { SDL_GL_SetAttribute(attr as fermium::SDL_GLattr, value) }
   }
 
   /// Resets all previously set attributes to their default values.
