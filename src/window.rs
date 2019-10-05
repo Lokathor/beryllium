@@ -144,10 +144,13 @@ unsafe impl<'sdl> raw_window_handle::HasRawWindowHandle for Window<'sdl> {
             ..MacOSHandle::empty()
           })
         }
-        _ => panic!("SDL2 is using a window subsystem that is not supported by the raw-window-handle API and Osspial wrote the trait to be infallible despite that clearly not always being the case. https://github.com/rust-windowing/raw-window-handle/issues/new"),
+        fermium::SDL_SYSWM_UIKIT | fermium::SDL_SYSWM_ANDROID => {
+          panic!("SDL2 is using a window subsystem (iOS or Android) that's supported by the raw-window-handle API but not supported yet by beryllium. Whoever did the work to make fermium/beryllium work on iOS and/or Android should have solved this but they didn't. https://github.com/Lokathor/beryllium/issues/new");
+        }
+        other => panic!("SDL2 is using a window subsystem that is not even supported by the raw-window-handle API, and Osspial wrote the trait to be infallible despite that clearly not always being the case, so now you got this panic. https://github.com/rust-windowing/raw-window-handle/issues/new Window Info was: {:?}",other),
       }
     } else {
-      panic!("Could not retrieve window info and Osspial wrote the trait to be infallible despite that clearly not always being the case. https://github.com/rust-windowing/raw-window-handle/issues/new");
+      panic!("Could not retrieve any SDL2 window info, and Osspial wrote the trait to be infallible despite that clearly not always being the case, so now you got this panic. https://github.com/rust-windowing/raw-window-handle/issues/new");
     }
   }
 }
