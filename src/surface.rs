@@ -74,12 +74,12 @@ impl SurfaceFormat {
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct Surface<'sdl> {
-  pub(crate) ptr: *mut SDL_Surface,
+  pub(crate) ptr: *mut fermium::SDL_Surface,
   pub(crate) _marker: PhantomData<&'sdl SDLToken>,
 }
 impl<'sdl> Drop for Surface<'sdl> {
   fn drop(&mut self) {
-    unsafe { SDL_FreeSurface(self.ptr) }
+    unsafe { fermium::SDL_FreeSurface(self.ptr) }
   }
 }
 impl<'sdl> Surface<'sdl> {
@@ -95,10 +95,10 @@ impl<'sdl> Surface<'sdl> {
   ///   * `y * pitch + x * size_of::<PixelType>()`
   ///   * Stay in bounds and all that jazz
   pub unsafe fn lock_edit<F: FnMut(*mut u8)>(&mut self, mut op: F) -> Result<(), String> {
-    let lock_output = SDL_LockSurface(self.ptr);
+    let lock_output = fermium::SDL_LockSurface(self.ptr);
     if lock_output == 0 {
       op((*self.ptr).pixels as *mut u8);
-      SDL_UnlockSurface(self.ptr);
+      fermium::SDL_UnlockSurface(self.ptr);
       Ok(())
     } else {
       Err(get_error())
@@ -122,8 +122,8 @@ impl<'sdl> Surface<'sdl> {
 
   /// The current clipping rectangle for blits.
   pub fn clip_rect(&self) -> Rect {
-    let mut rect = SDL_Rect::default();
-    unsafe { SDL_GetClipRect(self.ptr, &mut rect) };
+    let mut rect = fermium::SDL_Rect::default();
+    unsafe { fermium::SDL_GetClipRect(self.ptr, &mut rect) };
     rect.into()
   }
 
@@ -141,10 +141,10 @@ impl<'sdl> Surface<'sdl> {
   pub fn set_clip_rect(&self, opt_rect: Option<Rect>) -> bool {
     match opt_rect {
       Some(rect) => {
-        let r: SDL_Rect = rect.into();
-        SDL_TRUE == unsafe { SDL_SetClipRect(self.ptr, &r) }
+        let r: fermium::SDL_Rect = rect.into();
+        fermium::SDL_TRUE == unsafe { fermium::SDL_SetClipRect(self.ptr, &r) }
       }
-      None => SDL_TRUE == unsafe { SDL_SetClipRect(self.ptr, null()) },
+      None => fermium::SDL_TRUE == unsafe { fermium::SDL_SetClipRect(self.ptr, null()) },
     }
   }
 
@@ -161,7 +161,7 @@ impl<'sdl> Surface<'sdl> {
   pub fn set_palette(&mut self, palette: &Palette) -> Result<(), String> {
     // Note(Lokathor): This must take `&mut self` to ensure you don't have an
     // active reference to the palette.
-    let out = unsafe { SDL_SetSurfacePalette(self.ptr, palette.nn.as_ptr()) };
+    let out = unsafe { fermium::SDL_SetSurfacePalette(self.ptr, palette.nn.as_ptr()) };
     if out == 0 {
       Ok(())
     } else {

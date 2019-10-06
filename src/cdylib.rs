@@ -17,7 +17,7 @@ pub struct CDyLib<'sdl> {
 }
 impl<'sdl> Drop for CDyLib<'sdl> {
   fn drop(&mut self) {
-    unsafe { SDL_UnloadObject(self.nn.as_ptr()) }
+    unsafe { fermium::SDL_UnloadObject(self.nn.as_ptr()) }
   }
 }
 impl<'sdl> CDyLib<'sdl> {
@@ -40,6 +40,6 @@ impl<'sdl> CDyLib<'sdl> {
   pub unsafe fn find_function(&self, name: &str) -> Option<NonNull<c_void>> {
     let name_null: Vec<u8> = name.bytes().chain(Some(0)).collect();
     let name_ptr: *const c_char = name_null.as_ptr() as *const c_char;
-    NonNull::new(SDL_LoadFunction(self.nn.as_ptr(), name_ptr))
+    NonNull::new(fermium::SDL_LoadFunction(self.nn.as_ptr(), name_ptr))
   }
 }

@@ -23,8 +23,8 @@ pub struct Color {
   /// Alpha / opacity
   pub a: u8,
 }
-impl From<SDL_Color> for Color {
-  fn from(other: SDL_Color) -> Self {
+impl From<fermium::SDL_Color> for Color {
+  fn from(other: fermium::SDL_Color) -> Self {
     Self {
       r: other.r,
       g: other.g,
@@ -33,7 +33,7 @@ impl From<SDL_Color> for Color {
     }
   }
 }
-impl From<Color> for SDL_Color {
+impl From<Color> for fermium::SDL_Color {
   fn from(other: Color) -> Self {
     Self {
       r: other.r,
@@ -79,7 +79,7 @@ impl From<Color> for SDL_Color {
 #[derive(Debug)] // TODO: We probably want a custom Debug impl
 #[repr(transparent)]
 pub struct Palette<'sdl> {
-  pub(crate) nn: NonNull<SDL_Palette>,
+  pub(crate) nn: NonNull<fermium::SDL_Palette>,
   pub(crate) _marker: PhantomData<&'sdl SDLToken>,
 }
 
@@ -96,7 +96,7 @@ impl SDLToken {
     if color_count < 2 {
       return Err("beryllium error: color_count of a palette must be at least 2".to_string());
     }
-    match NonNull::new(unsafe { SDL_AllocPalette(color_count as i32) }) {
+    match NonNull::new(unsafe { fermium::SDL_AllocPalette(color_count as i32) }) {
       Some(nn) => Ok(Palette {
         nn,
         _marker: PhantomData,
@@ -108,7 +108,7 @@ impl SDLToken {
 
 impl Drop for Palette<'_> {
   fn drop(&mut self) {
-    unsafe { SDL_FreePalette(self.nn.as_ptr()) }
+    unsafe { fermium::SDL_FreePalette(self.nn.as_ptr()) }
   }
 }
 
@@ -136,9 +136,9 @@ impl Palette<'_> {
     let clipped_length = (self.len() - start).min(new_colors.len());
     debug_assert!(start + clipped_length <= self.len());
     let out = unsafe {
-      SDL_SetPaletteColors(
+      fermium::SDL_SetPaletteColors(
         self.nn.as_ptr(),
-        new_colors.as_ptr() as *const SDL_Color,
+        new_colors.as_ptr() as *const fermium::SDL_Color,
         start as i32,
         clipped_length as i32,
       )
@@ -191,7 +191,7 @@ impl Clone for Palette<'_> {
   /// * If the colors cannot be copied over this will panic. It should be
   ///   impossible for that to fail, but hey.
   fn clone(&self) -> Self {
-    match NonNull::new(unsafe { SDL_AllocPalette(self.len() as i32) }) {
+    match NonNull::new(unsafe { fermium::SDL_AllocPalette(self.len() as i32) }) {
       Some(nn) => {
         let out = Self {
           nn,

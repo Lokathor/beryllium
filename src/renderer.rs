@@ -5,9 +5,14 @@ use super::*;
 /// See [Window::create_renderer](Window::create_renderer]
 #[derive(Debug, Default, Clone, Copy)]
 #[repr(transparent)]
-pub struct RendererFlags(pub(crate) SDL_RendererFlags::Type);
+pub struct RendererFlags(pub(crate) fermium::SDL_RendererFlags);
+// Note(Lokathor): dumb stuff for the proc macro
 #[allow(bad_style)]
-type SDL_RendererFlags_Type = SDL_RendererFlags::Type;
+type SDL_RendererFlags_Type = fermium::SDL_RendererFlags;
+use fermium::{
+  SDL_RENDERER_ACCELERATED, SDL_RENDERER_PRESENTVSYNC, SDL_RENDERER_SOFTWARE,
+  SDL_RENDERER_TARGETTEXTURE,
+};
 #[allow(missing_docs)]
 impl RendererFlags {
   phantom_fields! {
@@ -26,12 +31,12 @@ impl RendererFlags {
 /// (eg: an emulator or similar) then it's just fine.
 #[derive(Debug)]
 pub struct RendererWindow<'sdl> {
-  pub(crate) ptr: *mut SDL_Renderer,
+  pub(crate) ptr: *mut fermium::SDL_Renderer,
   pub(crate) window: Window<'sdl>,
 }
 impl<'sdl> Drop for RendererWindow<'sdl> {
   fn drop(&mut self) {
-    unsafe { SDL_DestroyRenderer(self.ptr) }
+    unsafe { fermium::SDL_DestroyRenderer(self.ptr) }
   }
 }
 impl<'sdl> Deref for RendererWindow<'sdl> {
@@ -51,7 +56,8 @@ impl<'sdl> RendererWindow<'sdl> {
     &'ren self,
     surf: &Surface,
   ) -> Result<Texture<'sdl, 'ren>, String> {
-    let ptr: *mut SDL_Texture = unsafe { SDL_CreateTextureFromSurface(self.ptr, surf.ptr) };
+    let ptr: *mut fermium::SDL_Texture =
+      unsafe { fermium::SDL_CreateTextureFromSurface(self.ptr, surf.ptr) };
     if ptr.is_null() {
       Err(get_error())
     } else {
@@ -66,7 +72,7 @@ impl<'sdl> RendererWindow<'sdl> {
   pub fn draw_color(&self) -> Result<Color, String> {
     let mut color = Color::default();
     let out = unsafe {
-      SDL_GetRenderDrawColor(
+      fermium::SDL_GetRenderDrawColor(
         self.ptr,
         &mut color.r,
         &mut color.g,
@@ -83,7 +89,8 @@ impl<'sdl> RendererWindow<'sdl> {
 
   /// Assigns the color used for drawing.
   pub fn set_draw_color(&self, color: Color) -> Result<(), String> {
-    let out = unsafe { SDL_SetRenderDrawColor(self.ptr, color.r, color.g, color.b, color.a) };
+    let out =
+      unsafe { fermium::SDL_SetRenderDrawColor(self.ptr, color.r, color.g, color.b, color.a) };
     if out == 0 {
       Ok(())
     } else {
@@ -93,7 +100,7 @@ impl<'sdl> RendererWindow<'sdl> {
 
   /// Clears the render target with the current draw color.
   pub fn clear(&self) -> Result<(), String> {
-    if unsafe { SDL_RenderClear(self.ptr) } == 0 {
+    if unsafe { fermium::SDL_RenderClear(self.ptr) } == 0 {
       Ok(())
     } else {
       Err(get_error())
@@ -104,7 +111,7 @@ impl<'sdl> RendererWindow<'sdl> {
   pub fn output_size(&self) -> Result<(i32, i32), String> {
     let mut w = 0;
     let mut h = 0;
-    let out = unsafe { SDL_GetRendererOutputSize(self.ptr, &mut w, &mut h) };
+    let out = unsafe { fermium::SDL_GetRendererOutputSize(self.ptr, &mut w, &mut h) };
     if out == 0 {
       Ok((w, h))
     } else {
@@ -114,7 +121,7 @@ impl<'sdl> RendererWindow<'sdl> {
 
   /// Draws a line that includes both end points.
   pub fn draw_line(&self, x1: i32, y1: i32, x2: i32, y2: i32) -> Result<(), String> {
-    let out = unsafe { SDL_RenderDrawLine(self.ptr, x1, y1, x2, y2) };
+    let out = unsafe { fermium::SDL_RenderDrawLine(self.ptr, x1, y1, x2, y2) };
     if out == 0 {
       Ok(())
     } else {
@@ -127,9 +134,9 @@ impl<'sdl> RendererWindow<'sdl> {
     if points.len() > core::i32::MAX as usize {
       return Err("beryllium error: len cannot exceed `i32::MAX`.".to_string());
     }
-    let ptr = points.as_ptr() as *const SDL_Point;
+    let ptr = points.as_ptr() as *const fermium::SDL_Point;
     let count = points.len() as i32;
-    let out = unsafe { SDL_RenderDrawLines(self.ptr, ptr, count) };
+    let out = unsafe { fermium::SDL_RenderDrawLines(self.ptr, ptr, count) };
     if out == 0 {
       Ok(())
     } else {
@@ -149,9 +156,9 @@ impl<'sdl> RendererWindow<'sdl> {
   /// downscale you do.
   pub fn copy(&self, t: &Texture, src: Option<Rect>, dst: Option<Rect>) -> Result<(), String> {
     unsafe {
-      let src_ptr = core::mem::transmute::<Option<&Rect>, *const SDL_Rect>(src.as_ref());
-      let dst_ptr = core::mem::transmute::<Option<&Rect>, *const SDL_Rect>(dst.as_ref());
-      if SDL_RenderCopy(self.ptr, t.ptr, src_ptr, dst_ptr) == 0 {
+      let src_ptr = core::mem::transmute::<Option<&Rect>, *const fermium::SDL_Rect>(src.as_ref());
+      let dst_ptr = core::mem::transmute::<Option<&Rect>, *const fermium::SDL_Rect>(dst.as_ref());
+      if fermium::SDL_RenderCopy(self.ptr, t.ptr, src_ptr, dst_ptr) == 0 {
         Ok(())
       } else {
         Err(get_error())
@@ -165,6 +172,6 @@ impl<'sdl> RendererWindow<'sdl> {
   /// you should also clear the backbuffer before doing the next render pass
   /// even if you intend to write to every pixel.
   pub fn present(&self) {
-    unsafe { SDL_RenderPresent(self.ptr) };
+    unsafe { fermium::SDL_RenderPresent(self.ptr) };
   }
 }

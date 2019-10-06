@@ -1,3 +1,4 @@
+#![cfg_attr(not(target_os = "macos"), no_std)]
 #![warn(missing_docs)]
 #![deny(missing_debug_implementations)]
 #![deny(unreachable_patterns)]
@@ -89,6 +90,30 @@
 //! So it's not a lot, and it probably won't ever be a lot, but some _small_
 //! parts have been rewritten in Rust.
 
+pub use fermium;
+
+extern crate alloc;
+use alloc::string::String;
+use alloc::string::ToString;
+use alloc::vec::Vec;
+
+#[cfg(feature = "impl_global_alloc")]
+struct BerylliumGlobalAlloc;
+
+#[cfg(feature = "impl_global_alloc")]
+unsafe impl core::alloc::GlobalAlloc for BerylliumGlobalAlloc {
+  unsafe fn alloc(&self, layout: core::alloc::Layout) -> *mut u8 {
+    fermium::SDL_malloc(layout.size()) as *mut u8
+  }
+  unsafe fn dealloc(&self, ptr: *mut u8, _layout: core::alloc::Layout) {
+    fermium::SDL_free(ptr as *mut c_void)
+  }
+}
+
+#[cfg(feature = "impl_global_alloc")]
+#[cfg_attr(feature = "impl_global_alloc", global_allocator)]
+static A: BerylliumGlobalAlloc = BerylliumGlobalAlloc;
+
 use core::{
   convert::TryFrom,
   ffi::c_void,
@@ -99,15 +124,7 @@ use core::{
   sync::atomic::{AtomicBool, Ordering},
 };
 
-use fermium::{
-  SDL_EventType::*, SDL_GLattr::*, SDL_GLcontextFlag::*, SDL_GLprofile::*,
-  SDL_GameControllerAxis::*, SDL_GameControllerButton::*, SDL_Keymod::*, SDL_RendererFlags::*,
-  SDL_Scancode::*, SDL_WindowEventID::*, SDL_WindowFlags::*, SDL_bool::*, _bindgen_ty_1::*,
-  _bindgen_ty_2::*, _bindgen_ty_3::*, _bindgen_ty_4::*, _bindgen_ty_5::*, _bindgen_ty_6::*,
-  _bindgen_ty_7::*, *,
-};
-
-use libc::c_char;
+use fermium::c_char;
 use phantom_fields::phantom_fields;
 
 mod surface;
@@ -151,17 +168,17 @@ pub use fermium as unsafe_raw_ffi;
 
 /// Grabs up the data from a null terminated string pointer.
 unsafe fn gather_string(ptr: *const c_char) -> String {
-  let len = SDL_strlen(ptr);
+  let len = fermium::SDL_strlen(ptr);
   let useful_bytes = from_raw_parts(ptr as *const u8, len);
   String::from_utf8_lossy(useful_bytes).into_owned()
 }
 
 /// Converts a bool into a SDL_bool.
-fn into_sdl_bool(flag: bool) -> SDL_bool::Type {
+fn into_sdl_bool(flag: bool) -> fermium::SDL_bool {
   if flag {
-    SDL_TRUE
+    fermium::SDL_TRUE
   } else {
-    SDL_FALSE
+    fermium::SDL_FALSE
   }
 }
 
@@ -173,8 +190,8 @@ pub struct Version {
   pub minor: u8,
   pub patch: u8,
 }
-impl From<SDL_version> for Version {
-  fn from(input: SDL_version) -> Self {
+impl From<fermium::SDL_version> for Version {
+  fn from(input: fermium::SDL_version) -> Self {
     Self {
       major: input.major,
       minor: input.minor,
@@ -187,16 +204,9 @@ impl From<SDL_version> for Version {
 ///
 /// This might be later than the one you compiled with, but it will be fully
 /// SemVer compatible.
-///
-/// ```rust
-/// let v = beryllium::version();
-/// assert_eq!(v.major, 2);
-/// assert!(v.minor >= 0);
-/// assert!(v.patch >= 9);
-/// ```
 pub fn version() -> Version {
-  let mut sdl_version = SDL_version::default();
-  unsafe { SDL_GetVersion(&mut sdl_version) };
+  let mut sdl_version = fermium::SDL_version::default();
+  unsafe { fermium::SDL_GetVersion(&mut sdl_version) };
   Version::from(sdl_version)
 }
 
@@ -205,7 +215,7 @@ pub fn version() -> Version {
 /// You should never need to call this yourself, but I guess you can if you
 /// really want.
 pub fn get_error() -> String {
-  unsafe { gather_string(SDL_GetError()) }
+  unsafe { gather_string(fermium::SDL_GetError()) }
 }
 
 /// The kind of message box you wish to show.
@@ -214,9 +224,9 @@ pub fn get_error() -> String {
 #[cfg_attr(not(windows), repr(u32))]
 #[allow(missing_docs)]
 pub enum MessageBox {
-  Error = fermium::SDL_MessageBoxFlags::SDL_MESSAGEBOX_ERROR,
-  Warning = fermium::SDL_MessageBoxFlags::SDL_MESSAGEBOX_WARNING,
-  Information = fermium::SDL_MessageBoxFlags::SDL_MESSAGEBOX_INFORMATION,
+  Error = fermium::SDL_MESSAGEBOX_ERROR,
+  Warning = fermium::SDL_MESSAGEBOX_WARNING,
+  Information = fermium::SDL_MESSAGEBOX_INFORMATION,
 }
 
 /// Shows a basic, stand alone message box.
@@ -235,7 +245,7 @@ pub unsafe fn lone_message_box(
 ) -> Result<(), String> {
   let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
   let message_null: Vec<u8> = message.bytes().chain(Some(0)).collect();
-  let output = SDL_ShowSimpleMessageBox(
+  let output = fermium::SDL_ShowSimpleMessageBox(
     box_type as u32,
     title_null.as_ptr() as *const c_char,
     message_null.as_ptr() as *const c_char,
@@ -270,7 +280,7 @@ pub fn init() -> Result<SDLToken, String> {
     // Note(Lokathor): `swap` gives the old value back, so if we get back `true`
     // that means it was already active, so that's an error.
     Err("The library is currently initialized!".to_string())
-  } else if unsafe { SDL_Init(SDL_INIT_EVERYTHING) } == 0 {
+  } else if unsafe { fermium::SDL_Init(fermium::SDL_INIT_EVERYTHING) } == 0 {
     Ok(SDLToken {
       _marker: PhantomData,
     })
@@ -293,7 +303,7 @@ pub struct SDLToken {
 }
 impl Drop for SDLToken {
   fn drop(&mut self) {
-    unsafe { SDL_Quit() }
+    unsafe { fermium::SDL_Quit() }
     I_THINK_THAT_SDL2_IS_ACTIVE.store(false, Ordering::SeqCst);
   }
 }
@@ -317,7 +327,7 @@ impl SDLToken {
   ) -> Result<Window<'sdl>, String> {
     let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
     let ptr = unsafe {
-      SDL_CreateWindow(
+      fermium::SDL_CreateWindow(
         title_null.as_ptr() as *const c_char,
         x,
         y,
@@ -367,8 +377,9 @@ impl SDLToken {
         a_mask,
       } => (32, r_mask, g_mask, b_mask, a_mask),
     };
-    let ptr: *mut SDL_Surface =
-      unsafe { SDL_CreateRGBSurface(0, width, height, depth, r_mask, g_mask, b_mask, a_mask) };
+    let ptr: *mut fermium::SDL_Surface = unsafe {
+      fermium::SDL_CreateRGBSurface(0, width, height, depth, r_mask, g_mask, b_mask, a_mask)
+    };
     if ptr.is_null() {
       Err(get_error())
     } else {
@@ -382,8 +393,8 @@ impl SDLToken {
   /// Polls for an event, getting it out of the queue if one is there.
   pub fn poll_event(&self) -> Option<Event> {
     unsafe {
-      let mut sdl_event = SDL_Event::default();
-      if SDL_PollEvent(&mut sdl_event) == 1 {
+      let mut sdl_event = fermium::SDL_Event::default();
+      if fermium::SDL_PollEvent(&mut sdl_event) == 1 {
         Some(Event::from(sdl_event))
       } else {
         None
@@ -393,7 +404,7 @@ impl SDLToken {
 
   /// Obtains the number of joysticks connected to the system.
   pub fn number_of_joysticks(&self) -> Result<i32, String> {
-    let out = unsafe { SDL_NumJoysticks() };
+    let out = unsafe { fermium::SDL_NumJoysticks() };
     if out < 0 {
       Err(get_error())
     } else {
@@ -403,12 +414,12 @@ impl SDLToken {
 
   /// Says if the joystick index supports the Controller API.
   pub fn joystick_is_game_controller(&self, id: JoystickID) -> bool {
-    SDL_TRUE == unsafe { SDL_IsGameController(id.0) }
+    fermium::SDL_TRUE == unsafe { fermium::SDL_IsGameController(id.0) }
   }
 
   /// Given a joystick index, attempts to get the Controller name, if any.
   pub fn controller_name(&self, id: JoystickID) -> Option<String> {
-    let ptr = unsafe { SDL_GameControllerNameForIndex(id.0) };
+    let ptr = unsafe { fermium::SDL_GameControllerNameForIndex(id.0) };
     if ptr.is_null() {
       None
     } else {
@@ -420,7 +431,7 @@ impl SDLToken {
   ///
   /// Not all joysticks support the Controller API, so this can fail.
   pub fn open_controller(&self, id: JoystickID) -> Result<Controller<'_>, String> {
-    let ptr = unsafe { SDL_GameControllerOpen(id.0) };
+    let ptr = unsafe { fermium::SDL_GameControllerOpen(id.0) };
     if ptr.is_null() {
       Err(get_error())
     } else {
@@ -434,7 +445,7 @@ impl SDLToken {
   /// Attempts to load the named dynamic library into the program.
   pub fn load_cdylib<'sdl>(&'sdl self, name: &str) -> Result<CDyLib<'sdl>, String> {
     let name_null: Vec<u8> = name.bytes().chain(Some(0)).collect();
-    match NonNull::new(unsafe { SDL_LoadObject(name_null.as_ptr() as *const c_char) }) {
+    match NonNull::new(unsafe { fermium::SDL_LoadObject(name_null.as_ptr() as *const c_char) }) {
       Some(nn) => Ok(CDyLib {
         nn,
         _marker: PhantomData,
@@ -451,7 +462,7 @@ impl SDLToken {
     request: DefaultAudioQueueRequest,
   ) -> Result<AudioQueue<'_>, String> {
     //
-    let mut desired_spec = SDL_AudioSpec::default();
+    let mut desired_spec = fermium::SDL_AudioSpec::default();
     desired_spec.freq = request.frequency;
     desired_spec.format = request.format.0;
     desired_spec.channels = request.channels;
@@ -459,19 +470,20 @@ impl SDLToken {
     //
     let mut changes = 0;
     if request.allow_frequency_change {
-      changes |= SDL_AUDIO_ALLOW_FREQUENCY_CHANGE as i32;
+      changes |= fermium::SDL_AUDIO_ALLOW_FREQUENCY_CHANGE as i32;
     }
     if request.allow_format_change {
-      changes |= SDL_AUDIO_ALLOW_FORMAT_CHANGE as i32;
+      changes |= fermium::SDL_AUDIO_ALLOW_FORMAT_CHANGE as i32;
     }
     if request.allow_channels_change {
-      changes |= SDL_AUDIO_ALLOW_CHANNELS_CHANGE as i32;
+      changes |= fermium::SDL_AUDIO_ALLOW_CHANNELS_CHANGE as i32;
     }
     //
-    let mut obtained_spec = SDL_AudioSpec::default();
+    let mut obtained_spec = fermium::SDL_AudioSpec::default();
     //
-    let audio_device_id =
-      unsafe { SDL_OpenAudioDevice(null(), 0, &desired_spec, &mut obtained_spec, changes) };
+    let audio_device_id = unsafe {
+      fermium::SDL_OpenAudioDevice(null(), 0, &desired_spec, &mut obtained_spec, changes)
+    };
     if audio_device_id == 0 {
       Err(get_error())
     } else {
@@ -494,18 +506,18 @@ impl SDLToken {
   /// request". Once you create the context you should examine it to see what
   /// you actually got.
   pub fn gl_set_attribute(&self, attr: GLattr, value: i32) -> bool {
-    0 == unsafe { SDL_GL_SetAttribute(attr as fermium::SDL_GLattr::Type, value) }
+    0 == unsafe { fermium::SDL_GL_SetAttribute(attr as fermium::SDL_GLattr, value) }
   }
 
   /// Resets all previously set attributes to their default values.
   pub fn gl_reset_attributes(&self) {
-    unsafe { SDL_GL_ResetAttributes() }
+    unsafe { fermium::SDL_GL_ResetAttributes() }
   }
 
   /// Gets a function pointer to the named OpenGL function
   pub unsafe fn gl_get_proc_address(&self, name: &str) -> *const c_void {
     let name_null: Vec<u8> = name.bytes().chain(Some(0)).collect();
-    SDL_GL_GetProcAddress(name_null.as_ptr() as *const c_char) as *const c_void
+    fermium::SDL_GL_GetProcAddress(name_null.as_ptr() as *const c_char) as *const c_void
   }
 }
 
@@ -518,15 +530,15 @@ pub struct Point {
   x: i32,
   y: i32,
 }
-impl From<SDL_Point> for Point {
-  fn from(other: SDL_Point) -> Self {
+impl From<fermium::SDL_Point> for Point {
+  fn from(other: fermium::SDL_Point) -> Self {
     Self {
       x: other.x,
       y: other.y,
     }
   }
 }
-impl From<Point> for SDL_Point {
+impl From<Point> for fermium::SDL_Point {
   fn from(other: Point) -> Self {
     Self {
       x: other.x,
