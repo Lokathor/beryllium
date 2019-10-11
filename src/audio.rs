@@ -123,7 +123,7 @@ impl<'sdl> AudioQueue<'sdl> {
   /// than `u32::MAX` bytes at once.
   pub fn queue_audio(&self, data: &[u8]) -> Result<(), String> {
     assert!(data.len() < core::u32::MAX as usize);
-    let ptr = data.as_ptr() as *const c_void;
+    let ptr = data.as_ptr() as *const fermium::c_void;
     let len = data.len() as u32;
     let err = unsafe { fermium::SDL_QueueAudio(self.dev, ptr, len) };
     if err == 0 {

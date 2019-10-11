@@ -12,12 +12,12 @@ use super::*;
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct CDyLib<'sdl> {
-  pub(crate) nn: NonNull<c_void>,
+  pub(crate) nn: NonNull<core::ffi::c_void>,
   pub(crate) _marker: PhantomData<&'sdl SDLToken>,
 }
 impl<'sdl> Drop for CDyLib<'sdl> {
   fn drop(&mut self) {
-    unsafe { fermium::SDL_UnloadObject(self.nn.as_ptr()) }
+    unsafe { fermium::SDL_UnloadObject(self.nn.as_ptr() as *mut fermium::c_void) }
   }
 }
 impl<'sdl> CDyLib<'sdl> {
@@ -37,9 +37,12 @@ impl<'sdl> CDyLib<'sdl> {
   /// * The returned value _does not_ have a lifetime linking it back to this
   ///   shared library. Making sure that the function pointer is not used after
   ///   this library unloads is up to you.
-  pub unsafe fn find_function(&self, name: &str) -> Option<NonNull<c_void>> {
+  pub unsafe fn find_function(&self, name: &str) -> Option<NonNull<core::ffi::c_void>> {
     let name_null: Vec<u8> = name.bytes().chain(Some(0)).collect();
     let name_ptr: *const c_char = name_null.as_ptr() as *const c_char;
-    NonNull::new(fermium::SDL_LoadFunction(self.nn.as_ptr(), name_ptr))
+    NonNull::new(
+      fermium::SDL_LoadFunction(self.nn.as_ptr() as *mut fermium::c_void, name_ptr)
+        as *mut core::ffi::c_void,
+    )
   }
 }

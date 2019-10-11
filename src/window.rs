@@ -81,6 +81,7 @@ impl<'sdl> Drop for Window<'sdl> {
 
 unsafe impl<'sdl> raw_window_handle::HasRawWindowHandle for Window<'sdl> {
   fn raw_window_handle(&self) -> raw_window_handle::RawWindowHandle {
+    use core::ffi::c_void;
     #[cfg(target_os = "macos")]
     use raw_window_handle::macos::MacOSHandle;
     #[cfg(any(
@@ -385,7 +386,7 @@ pub struct DisplayMode {
   pub height: i32,
   /// Refresh rate in Hz, or 0 if unspecified.
   pub refresh_rate: i32,
-  driver_data: *mut c_void,
+  driver_data: *mut core::ffi::c_void,
 }
 impl From<fermium::SDL_DisplayMode> for DisplayMode {
   fn from(sdl_mode: fermium::SDL_DisplayMode) -> Self {
@@ -394,7 +395,7 @@ impl From<fermium::SDL_DisplayMode> for DisplayMode {
       width: sdl_mode.w,
       height: sdl_mode.h,
       refresh_rate: sdl_mode.refresh_rate,
-      driver_data: sdl_mode.driverdata,
+      driver_data: sdl_mode.driverdata as *mut core::ffi::c_void,
     }
   }
 }
@@ -405,7 +406,7 @@ impl From<DisplayMode> for fermium::SDL_DisplayMode {
       w: mode.width,
       h: mode.height,
       refresh_rate: mode.refresh_rate,
-      driverdata: mode.driver_data,
+      driverdata: mode.driver_data as *mut fermium::c_void,
     }
   }
 }
