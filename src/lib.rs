@@ -93,9 +93,10 @@
 pub use fermium;
 
 extern crate alloc;
-use alloc::string::String;
-use alloc::string::ToString;
-use alloc::vec::Vec;
+use alloc::{
+  string::{String, ToString},
+  vec::Vec,
+};
 
 #[cfg(feature = "impl_global_alloc")]
 struct BerylliumGlobalAlloc;
@@ -444,7 +445,10 @@ impl SDLToken {
   /// Attempts to load the named dynamic library into the program.
   pub fn load_cdylib<'sdl>(&'sdl self, name: &str) -> Result<CDyLib<'sdl>, String> {
     let name_null: Vec<u8> = name.bytes().chain(Some(0)).collect();
-    match NonNull::new(unsafe { fermium::SDL_LoadObject(name_null.as_ptr() as *const c_char) }) {
+    match NonNull::new(
+      unsafe { fermium::SDL_LoadObject(name_null.as_ptr() as *const c_char) }
+        as *mut core::ffi::c_void,
+    ) {
       Some(nn) => Ok(CDyLib {
         nn,
         _marker: PhantomData,
