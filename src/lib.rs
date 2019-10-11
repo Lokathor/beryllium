@@ -116,7 +116,6 @@ static A: BerylliumGlobalAlloc = BerylliumGlobalAlloc;
 
 use core::{
   convert::TryFrom,
-  ffi::c_void,
   marker::PhantomData,
   ops::Deref,
   ptr::{null, null_mut, NonNull},
@@ -515,9 +514,9 @@ impl SDLToken {
   }
 
   /// Gets a function pointer to the named OpenGL function
-  pub unsafe fn gl_get_proc_address(&self, name: &str) -> *const c_void {
+  pub unsafe fn gl_get_proc_address(&self, name: &str) -> *const core::ffi::c_void {
     let name_null: Vec<u8> = name.bytes().chain(Some(0)).collect();
-    fermium::SDL_GL_GetProcAddress(name_null.as_ptr() as *const c_char) as *const c_void
+    fermium::SDL_GL_GetProcAddress(name_null.as_ptr() as *const c_char) as *const core::ffi::c_void
   }
 }
 
