@@ -81,6 +81,7 @@ impl<'sdl> Drop for Window<'sdl> {
 
 unsafe impl<'sdl> raw_window_handle::HasRawWindowHandle for Window<'sdl> {
   fn raw_window_handle(&self) -> raw_window_handle::RawWindowHandle {
+    use core::ffi::c_void;
     #[cfg(target_os = "macos")]
     use raw_window_handle::macos::MacOSHandle;
     #[cfg(any(
@@ -94,7 +95,6 @@ unsafe impl<'sdl> raw_window_handle::HasRawWindowHandle for Window<'sdl> {
     #[cfg(windows)]
     use raw_window_handle::windows::WindowsHandle;
     use raw_window_handle::RawWindowHandle;
-    use core::ffi::c_void;
     let mut wm_info = fermium::SDL_SysWMinfo::default();
     let b = unsafe { fermium::SDL_GetWindowWMInfo(self.ptr, &mut wm_info) };
     if b == fermium::SDL_TRUE {
