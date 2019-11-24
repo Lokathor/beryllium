@@ -4,7 +4,7 @@ use super::*;
 ///
 /// There's no special safety involved here. Invalid ID values will cause the
 /// API to return errors, but nothing will explode.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct JoystickID(pub i32);
 
