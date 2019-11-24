@@ -24,6 +24,7 @@ install:
       sudo apt-get -qq install libsdl2-dev
     else
       # https://formulae.brew.sh/formula/sdl2#default
+      brew update
       brew install sdl2
     fi
   # Run these to confirm that the SDL2 installation is working
