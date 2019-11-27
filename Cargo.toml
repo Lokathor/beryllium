@@ -9,24 +9,25 @@ license = "Zlib"
 keywords = ["SDL2"]
 categories = ["api-bindings", "multimedia", "game-engines", "no-std"]
 
-# This forces docs.rs to build us on windows, which has the simplest build for
-# docs.rs to perform.
-[package.metadata.docs.rs]
-default-target = "x86_64-pc-windows-msvc"
-
-[dependencies]
-fermium = { version = "0.1", default-features = false }
-raw-window-handle = "0.3"
-
-[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
-objc = "0.2"
-
 [features]
 default = ["link_dynamic"]
 link_dynamic = ["fermium/link_dynamic"]
 link_static = ["fermium/link_static"]
 #impl_global_alloc = []
+#extern_crate_raw_window_handle = ["raw-window-handle"]
+
+[dependencies]
+fermium = { version = "0.1", default-features = false }
+raw-window-handle = { version = "0.3", optional = true }
+
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
+objc = "0.2"
 
 [badges]
 appveyor = { repository = "Lokathor/beryllium" }
 travis-ci = { repository = "Lokathor/beryllium" }
+
+# This forces docs.rs to build us on windows, which has the simplest build for
+# docs.rs to perform.
+[package.metadata.docs.rs]
+default-target = "x86_64-pc-windows-msvc"
