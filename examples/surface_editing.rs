@@ -19,7 +19,8 @@ fn main() -> Result<(), String> {
     WindowFlags::default(),   // flags
   )?;
 
-  let mut surface = sdl.create_rgb_surface(800, 600, SurfaceFormat::DIRECT32_DEFAULT)?;
+  let mut surface =
+    sdl.create_rgb_surface(800, 600, SurfaceFormat::DIRECT32_DEFAULT)?;
   let pitch = surface.pitch();
 
   // Safety Rules: Each renderer goes with exactly one Window, and you can't use

@@ -25,22 +25,12 @@ pub struct Color {
 }
 impl From<fermium::SDL_Color> for Color {
   fn from(other: fermium::SDL_Color) -> Self {
-    Self {
-      r: other.r,
-      g: other.g,
-      b: other.b,
-      a: other.a,
-    }
+    Self { r: other.r, g: other.g, b: other.b, a: other.a }
   }
 }
 impl From<Color> for fermium::SDL_Color {
   fn from(other: Color) -> Self {
-    Self {
-      r: other.r,
-      g: other.g,
-      b: other.b,
-      a: other.a,
-    }
+    Self { r: other.r, g: other.g, b: other.b, a: other.a }
   }
 }
 
@@ -94,13 +84,14 @@ impl SDLToken {
       return Err("beryllium error: color_count > i32::MAX".to_string());
     }
     if color_count < 2 {
-      return Err("beryllium error: color_count of a palette must be at least 2".to_string());
+      return Err(
+        "beryllium error: color_count of a palette must be at least 2"
+          .to_string(),
+      );
     }
-    match NonNull::new(unsafe { fermium::SDL_AllocPalette(color_count as i32) }) {
-      Some(nn) => Ok(Palette {
-        nn,
-        _marker: PhantomData,
-      }),
+    match NonNull::new(unsafe { fermium::SDL_AllocPalette(color_count as i32) })
+    {
+      Some(nn) => Ok(Palette { nn, _marker: PhantomData }),
       None => Err(get_error()),
     }
   }
@@ -127,7 +118,11 @@ impl Palette<'_> {
   /// ## Failure
   ///
   /// * `start` values >= the length will give an error.
-  pub fn set_colors(&self, start: usize, new_colors: &[Color]) -> Result<(), String> {
+  pub fn set_colors(
+    &self,
+    start: usize,
+    new_colors: &[Color],
+  ) -> Result<(), String> {
     if start >= self.len() {
       return Err("beryllium error: start index out of bounds".to_string());
     }
@@ -191,12 +186,10 @@ impl Clone for Palette<'_> {
   /// * If the colors cannot be copied over this will panic. It should be
   ///   impossible for that to fail, but hey.
   fn clone(&self) -> Self {
-    match NonNull::new(unsafe { fermium::SDL_AllocPalette(self.len() as i32) }) {
+    match NonNull::new(unsafe { fermium::SDL_AllocPalette(self.len() as i32) })
+    {
       Some(nn) => {
-        let out = Self {
-          nn,
-          _marker: PhantomData,
-        };
+        let out = Self { nn, _marker: PhantomData };
         // Note(Lokathor): This is safe only as long as this slice never leaves
         // this function call.
         let self_slice = unsafe {
@@ -205,9 +198,7 @@ impl Clone for Palette<'_> {
             (*self.nn.as_ptr()).ncolors as usize,
           )
         };
-        out
-          .set_colors(0, self_slice)
-          .expect("Failed to copy the color data!");
+        out.set_colors(0, self_slice).expect("Failed to copy the color data!");
         out
       }
       None => panic!("OOM: couldn't allocate an SDL_Palette!"),

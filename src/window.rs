@@ -10,12 +10,13 @@ pub struct WindowFlags(pub(crate) fermium::SDL_WindowFlags);
 #[allow(bad_style)]
 type SDL_WindowFlags_Type = fermium::SDL_WindowFlags;
 use fermium::{
-  SDL_WINDOW_ALLOW_HIGHDPI, SDL_WINDOW_ALWAYS_ON_TOP, SDL_WINDOW_BORDERLESS, SDL_WINDOW_FOREIGN,
-  SDL_WINDOW_FULLSCREEN, SDL_WINDOW_FULLSCREEN_DESKTOP, SDL_WINDOW_HIDDEN, SDL_WINDOW_INPUT_FOCUS,
-  SDL_WINDOW_INPUT_GRABBED, SDL_WINDOW_MAXIMIZED, SDL_WINDOW_MINIMIZED, SDL_WINDOW_MOUSE_CAPTURE,
-  SDL_WINDOW_MOUSE_FOCUS, SDL_WINDOW_OPENGL, SDL_WINDOW_POPUP_MENU, SDL_WINDOW_RESIZABLE,
-  SDL_WINDOW_SHOWN, SDL_WINDOW_SKIP_TASKBAR, SDL_WINDOW_TOOLTIP, SDL_WINDOW_UTILITY,
-  SDL_WINDOW_VULKAN,
+  SDL_WINDOW_ALLOW_HIGHDPI, SDL_WINDOW_ALWAYS_ON_TOP, SDL_WINDOW_BORDERLESS,
+  SDL_WINDOW_FOREIGN, SDL_WINDOW_FULLSCREEN, SDL_WINDOW_FULLSCREEN_DESKTOP,
+  SDL_WINDOW_HIDDEN, SDL_WINDOW_INPUT_FOCUS, SDL_WINDOW_INPUT_GRABBED,
+  SDL_WINDOW_MAXIMIZED, SDL_WINDOW_MINIMIZED, SDL_WINDOW_MOUSE_CAPTURE,
+  SDL_WINDOW_MOUSE_FOCUS, SDL_WINDOW_OPENGL, SDL_WINDOW_POPUP_MENU,
+  SDL_WINDOW_RESIZABLE, SDL_WINDOW_SHOWN, SDL_WINDOW_SKIP_TASKBAR,
+  SDL_WINDOW_TOOLTIP, SDL_WINDOW_UTILITY, SDL_WINDOW_VULKAN,
 };
 #[allow(missing_docs)]
 impl WindowFlags {
@@ -59,12 +60,14 @@ impl WindowFlags {
 /// Centers the window along the axis used.
 ///
 /// See [create_window](SDLToken::create_window).
-pub const WINDOW_POSITION_CENTERED: i32 = fermium::SDL_WINDOWPOS_CENTERED_MASK as i32;
+pub const WINDOW_POSITION_CENTERED: i32 =
+  fermium::SDL_WINDOWPOS_CENTERED_MASK as i32;
 
 /// Gives the window an undefined position on this axis.
 ///
 /// See [create_window](SDLToken::create_window).
-pub const WINDOW_POSITION_UNDEFINED: i32 = fermium::SDL_WINDOWPOS_UNDEFINED_MASK as i32;
+pub const WINDOW_POSITION_UNDEFINED: i32 =
+  fermium::SDL_WINDOWPOS_UNDEFINED_MASK as i32;
 
 /// Handle to a window on the screen.
 #[derive(Debug)]
@@ -186,7 +189,8 @@ impl<'sdl> Window<'sdl> {
   /// Use this function to get the window flags.
   pub fn flags(&self) -> WindowFlags {
     let mut flags = WindowFlags::default();
-    flags.0 = unsafe { fermium::SDL_GetWindowFlags(self.ptr) } as fermium::SDL_WindowFlags;
+    flags.0 = unsafe { fermium::SDL_GetWindowFlags(self.ptr) }
+      as fermium::SDL_WindowFlags;
     flags
   }
 
@@ -197,7 +201,9 @@ impl<'sdl> Window<'sdl> {
 
   /// Use this function to set the user-resizable state of a window.
   pub fn set_resizable(&self, resizable: bool) {
-    unsafe { fermium::SDL_SetWindowResizable(self.ptr, into_sdl_bool(resizable)) }
+    unsafe {
+      fermium::SDL_SetWindowResizable(self.ptr, into_sdl_bool(resizable))
+    }
   }
 
   /// Returns the title of the window in UTF-8 format or "" if there is no title.
@@ -208,7 +214,12 @@ impl<'sdl> Window<'sdl> {
   /// Sets the title of the window.
   pub fn set_title(&self, title: &str) {
     let title_null: Vec<u8> = title.bytes().chain(Some(0)).collect();
-    unsafe { fermium::SDL_SetWindowTitle(self.ptr, title_null.as_ptr() as *const c_char) }
+    unsafe {
+      fermium::SDL_SetWindowTitle(
+        self.ptr,
+        title_null.as_ptr() as *const c_char,
+      )
+    }
   }
 
   /// Use this function to show a window.
@@ -285,13 +296,18 @@ impl<'sdl> Window<'sdl> {
   /// * If `Some(mode)`, attempts to set the mode given.
   /// * If `None`, it will use the window's dimensions, and the desktop's
   ///   current format and refresh rate.
-  pub fn set_display_mode(&self, opt_mode: Option<DisplayMode>) -> Result<(), String> {
+  pub fn set_display_mode(
+    &self,
+    opt_mode: Option<DisplayMode>,
+  ) -> Result<(), String> {
     let out = match opt_mode {
       Some(mode) => {
         let sdl_mode: fermium::SDL_DisplayMode = mode.into();
         unsafe { fermium::SDL_SetWindowDisplayMode(self.ptr, &sdl_mode) }
       }
-      None => unsafe { fermium::SDL_SetWindowDisplayMode(self.ptr, null_mut()) },
+      None => unsafe {
+        fermium::SDL_SetWindowDisplayMode(self.ptr, null_mut())
+      },
     };
     if out == 0 {
       Ok(())
@@ -306,8 +322,12 @@ impl<'sdl> Window<'sdl> {
   /// * Fullscreen Desktop: "fake" fullscreen with full resolution but no video
   ///   mode change.
   /// * Windowed: Don't use fullscreen.
-  pub fn set_fullscreen_style(&self, style: FullscreenStyle) -> Result<(), String> {
-    let out = unsafe { fermium::SDL_SetWindowFullscreen(self.ptr, style as u32) };
+  pub fn set_fullscreen_style(
+    &self,
+    style: FullscreenStyle,
+  ) -> Result<(), String> {
+    let out =
+      unsafe { fermium::SDL_SetWindowFullscreen(self.ptr, style as u32) };
     if out == 0 {
       Ok(())
     } else {
@@ -391,7 +411,9 @@ pub struct DisplayMode {
 impl From<fermium::SDL_DisplayMode> for DisplayMode {
   fn from(sdl_mode: fermium::SDL_DisplayMode) -> Self {
     Self {
-      format: PixelFormatEnum::from(sdl_mode.format as fermium::SDL_PixelFormatEnum),
+      format: PixelFormatEnum::from(
+        sdl_mode.format as fermium::SDL_PixelFormatEnum,
+      ),
       width: sdl_mode.w,
       height: sdl_mode.h,
       refresh_rate: sdl_mode.refresh_rate,
@@ -415,13 +437,12 @@ impl DisplayMode {
   ///
   /// This is necessary because the display mode has a hidden driver data
   /// pointer which must be initialized to null and not altered by outside users.
-  pub const fn new(format: PixelFormatEnum, width: i32, height: i32, refresh_rate: i32) -> Self {
-    Self {
-      format,
-      width,
-      height,
-      refresh_rate,
-      driver_data: null_mut(),
-    }
+  pub const fn new(
+    format: PixelFormatEnum,
+    width: i32,
+    height: i32,
+    refresh_rate: i32,
+  ) -> Self {
+    Self { format, width, height, refresh_rate, driver_data: null_mut() }
   }
 }

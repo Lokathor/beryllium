@@ -77,10 +77,12 @@ pub enum GLattr {
 }
 
 /// Requests an OpenGL Compatibility context.
-pub const CONTEXT_PROFILE_COMPATIBILITY: i32 = fermium::SDL_GL_CONTEXT_PROFILE_COMPATIBILITY as i32;
+pub const CONTEXT_PROFILE_COMPATIBILITY: i32 =
+  fermium::SDL_GL_CONTEXT_PROFILE_COMPATIBILITY as i32;
 
 /// Requests an OpenGL Core context.
-pub const CONTEXT_PROFILE_CORE: i32 = fermium::SDL_GL_CONTEXT_PROFILE_CORE as i32;
+pub const CONTEXT_PROFILE_CORE: i32 =
+  fermium::SDL_GL_CONTEXT_PROFILE_CORE as i32;
 
 /// Requests an OpenGL ES context.
 pub const CONTEXT_PROFILE_ES: i32 = fermium::SDL_GL_CONTEXT_PROFILE_ES as i32;
@@ -120,7 +122,8 @@ pub const CONTEXT_FORWARD_COMPATIBLE_FLAG: i32 =
 /// GL context that supports the GL_ARB_robustness extension--a mode that offers
 /// a few APIs that are safer than the usual defaults (think `snprintf()` vs
 /// `sprintf()`).
-pub const CONTEXT_ROBUST_ACCESS_FLAG: i32 = fermium::SDL_GL_CONTEXT_ROBUST_ACCESS_FLAG as i32;
+pub const CONTEXT_ROBUST_ACCESS_FLAG: i32 =
+  fermium::SDL_GL_CONTEXT_ROBUST_ACCESS_FLAG as i32;
 
 /// A flag for use with [`GLattr::ContextFlags`].
 ///
@@ -131,7 +134,8 @@ pub const CONTEXT_ROBUST_ACCESS_FLAG: i32 = fermium::SDL_GL_CONTEXT_ROBUST_ACCES
 /// don't support equivalent functionality. This flag is intended to require the
 /// GL to make promises about what to do in the face of driver or hardware
 /// failure.
-pub const CONTEXT_RESET_ISOLATION_FLAG: i32 = fermium::SDL_GL_CONTEXT_RESET_ISOLATION_FLAG as i32;
+pub const CONTEXT_RESET_ISOLATION_FLAG: i32 =
+  fermium::SDL_GL_CONTEXT_RESET_ISOLATION_FLAG as i32;
 
 /// A GLWindow is a [Window] with an OpenGL context bundled in.
 ///
@@ -166,7 +170,8 @@ impl<'sdl> GLWindow<'sdl> {
   /// Checks if the given extension is available in this context.
   pub unsafe fn extension_supported(&self, name: &str) -> bool {
     let name_null: Vec<u8> = name.bytes().chain(Some(0)).collect();
-    fermium::SDL_TRUE == fermium::SDL_GL_ExtensionSupported(name_null.as_ptr() as *const c_char)
+    fermium::SDL_TRUE
+      == fermium::SDL_GL_ExtensionSupported(name_null.as_ptr() as *const c_char)
   }
 
   /// Obtains the actual value of the attribute for this context.
@@ -175,7 +180,9 @@ impl<'sdl> GLWindow<'sdl> {
   /// match, because yay.
   pub unsafe fn get_attribute(&self, attr: GLattr) -> Result<i32, String> {
     let mut output = 0;
-    if 0 == fermium::SDL_GL_GetAttribute(attr as fermium::SDL_GLattr, &mut output) {
+    if 0
+      == fermium::SDL_GL_GetAttribute(attr as fermium::SDL_GLattr, &mut output)
+    {
       Ok(output)
     } else {
       Err(get_error())

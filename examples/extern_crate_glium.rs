@@ -71,10 +71,10 @@ impl<'sdl> BerylliumBackend<'sdl> {
   ///
   /// You have to have set the correct variables ahead of time so that the
   /// correct context is created.
-  pub fn from_window(window: Window<'sdl>) -> Result<Self, (Window<'sdl>, String)> {
-    Ok(Self {
-      window: window.try_into_gl()?,
-    })
+  pub fn from_window(
+    window: Window<'sdl>,
+  ) -> Result<Self, (Window<'sdl>, String)> {
+    Ok(Self { window: window.try_into_gl()? })
   }
 }
 
@@ -92,7 +92,8 @@ unsafe impl Backend for BerylliumBackend<'_> {
     // Note: We can make up a &SDLToken "out of nowhere" because if this window
     // exists then naturally SDL2 is currently initialized. We choose a
     // reference instead of an owned value so that we don't drop the token.
-    (&*(&() as *const () as *const beryllium::SDLToken)).gl_get_proc_address(symbol)
+    (&*(&() as *const () as *const beryllium::SDLToken))
+      .gl_get_proc_address(symbol)
   }
 
   fn get_framebuffer_dimensions(&self) -> (u32, u32) {
@@ -105,10 +106,7 @@ unsafe impl Backend for BerylliumBackend<'_> {
   }
 
   unsafe fn make_current(&self) {
-    self
-      .window
-      .make_current()
-      .expect("Could not make the context current!")
+    self.window.make_current().expect("Could not make the context current!")
   }
 }
 
@@ -137,28 +135,27 @@ impl<'sdl> BerylliumFacade<'sdl> {
 
   /// Starts a new draw frame.
   pub fn draw(&self) -> Frame {
-    Frame::new(
-      self.context.clone(),
-      self.backend.get_framebuffer_dimensions(),
-    )
+    Frame::new(self.context.clone(), self.backend.get_framebuffer_dimensions())
   }
 
   /// Given a window, makes a facade.
   ///
   /// Because of shenanigans, you also need to pass a reference to the SDL
   /// token.
-  pub fn from_window(window: Window<'_>, _t: &'sdl SDLToken) -> Result<Self, String> {
+  pub fn from_window(
+    window: Window<'_>,
+    _t: &'sdl SDLToken,
+  ) -> Result<Self, String> {
     unsafe {
       let window_static: Window<'static> = core::mem::transmute(window);
-      let backend =
-        Rc::new(BerylliumBackend::from_window(window_static).map_err(|(_win, msg)| msg)?);
-      let context = Context::new(backend.clone(), true, DebugCallbackBehavior::default())
-        .map_err(|e| e.to_string())?;
-      Ok(Self {
-        backend,
-        context,
-        _marker: PhantomData,
-      })
+      let backend = Rc::new(
+        BerylliumBackend::from_window(window_static)
+          .map_err(|(_win, msg)| msg)?,
+      );
+      let context =
+        Context::new(backend.clone(), true, DebugCallbackBehavior::default())
+          .map_err(|e| e.to_string())?;
+      Ok(Self { backend, context, _marker: PhantomData })
     }
   }
 }

@@ -275,9 +275,7 @@ impl From<fermium::SDL_Event> for Event {
   fn from(event: fermium::SDL_Event) -> Self {
     unsafe {
       match event.type_ as fermium::SDL_EventType {
-        fermium::SDL_QUIT => Event::Quit {
-          timestamp: event.quit.timestamp,
-        },
+        fermium::SDL_QUIT => Event::Quit { timestamp: event.quit.timestamp },
         fermium::SDL_MOUSEMOTION => Event::MouseMotion {
           timestamp: event.motion.timestamp,
           window_id: event.motion.windowID,
@@ -292,20 +290,22 @@ impl From<fermium::SDL_Event> for Event {
           delta_x: event.motion.xrel,
           delta_y: event.motion.yrel,
         },
-        fermium::SDL_MOUSEBUTTONDOWN | fermium::SDL_MOUSEBUTTONUP => Event::MouseButtonEvent {
-          timestamp: event.button.timestamp,
-          window_id: event.button.windowID,
-          mouse_id: if event.button.which == fermium::SDL_TOUCH_MOUSEID {
-            None
-          } else {
-            Some(event.button.which)
-          },
-          button: MouseButton::from(event.button.button),
-          is_pressed: u32::from(event.button.state) == fermium::SDL_PRESSED,
-          clicks: event.button.clicks,
-          x: event.button.x,
-          y: event.button.y,
-        },
+        fermium::SDL_MOUSEBUTTONDOWN | fermium::SDL_MOUSEBUTTONUP => {
+          Event::MouseButtonEvent {
+            timestamp: event.button.timestamp,
+            window_id: event.button.windowID,
+            mouse_id: if event.button.which == fermium::SDL_TOUCH_MOUSEID {
+              None
+            } else {
+              Some(event.button.which)
+            },
+            button: MouseButton::from(event.button.button),
+            is_pressed: u32::from(event.button.state) == fermium::SDL_PRESSED,
+            clicks: event.button.clicks,
+            x: event.button.x,
+            y: event.button.y,
+          }
+        }
         fermium::SDL_MOUSEWHEEL => Event::MouseWheel {
           timestamp: event.wheel.timestamp,
           window_id: event.wheel.windowID,
@@ -326,77 +326,79 @@ impl From<fermium::SDL_Event> for Event {
           repeat_count: event.key.repeat,
           key_info: KeyInfo::from(event.key.keysym),
         },
-        fermium::SDL_WINDOWEVENT => match event.window.event as fermium::SDL_WindowEventID {
-          fermium::SDL_WINDOWEVENT_MOVED => Event::WindowMoved {
-            timestamp: event.window.timestamp,
-            window_id: event.window.windowID,
-            x: event.window.data1,
-            y: event.window.data2,
-          },
-          fermium::SDL_WINDOWEVENT_RESIZED => Event::WindowResized {
-            timestamp: event.window.timestamp,
-            window_id: event.window.windowID,
-            width: event.window.data1,
-            height: event.window.data2,
-          },
-          fermium::SDL_WINDOWEVENT_SIZE_CHANGED => Event::WindowSizeChanged {
-            timestamp: event.window.timestamp,
-            window_id: event.window.windowID,
-            width: event.window.data1,
-            height: event.window.data2,
-          },
-          fermium::SDL_WINDOWEVENT_CLOSE => Event::WindowClosed {
-            timestamp: event.window.timestamp,
-            window_id: event.window.windowID,
-          },
-          fermium::SDL_WINDOWEVENT_SHOWN => Event::WindowShown {
-            timestamp: event.window.timestamp,
-            window_id: event.window.windowID,
-          },
-          fermium::SDL_WINDOWEVENT_HIDDEN => Event::WindowHidden {
-            timestamp: event.window.timestamp,
-            window_id: event.window.windowID,
-          },
-          fermium::SDL_WINDOWEVENT_EXPOSED => Event::WindowNeedsRepaint {
-            timestamp: event.window.timestamp,
-            window_id: event.window.windowID,
-          },
-          fermium::SDL_WINDOWEVENT_MINIMIZED => Event::WindowMinimized {
-            timestamp: event.window.timestamp,
-            window_id: event.window.windowID,
-          },
-          fermium::SDL_WINDOWEVENT_MAXIMIZED => Event::WindowMaximized {
-            timestamp: event.window.timestamp,
-            window_id: event.window.windowID,
-          },
-          fermium::SDL_WINDOWEVENT_RESTORED => Event::WindowRestored {
-            timestamp: event.window.timestamp,
-            window_id: event.window.windowID,
-          },
-          fermium::SDL_WINDOWEVENT_ENTER => Event::MouseEnteredWindow {
-            timestamp: event.window.timestamp,
-            window_id: event.window.windowID,
-          },
-          fermium::SDL_WINDOWEVENT_LEAVE => Event::MouseLeftWindow {
-            timestamp: event.window.timestamp,
-            window_id: event.window.windowID,
-          },
-          fermium::SDL_WINDOWEVENT_FOCUS_GAINED => Event::WindowGainedFocus {
-            timestamp: event.window.timestamp,
-            window_id: event.window.windowID,
-          },
-          fermium::SDL_WINDOWEVENT_FOCUS_LOST => Event::WindowLostFocus {
-            timestamp: event.window.timestamp,
-            window_id: event.window.windowID,
-          },
-          fermium::SDL_CONTROLLERAXISMOTION => Event::ControllerAxis {
-            timestamp: event.caxis.timestamp,
-            joystick_id: JoystickID(event.caxis.which),
-            axis: ControllerAxis::from(event.caxis.axis),
-            value: event.caxis.value,
-          },
-          _ => Event::UnknownEventType,
-        },
+        fermium::SDL_WINDOWEVENT => {
+          match event.window.event as fermium::SDL_WindowEventID {
+            fermium::SDL_WINDOWEVENT_MOVED => Event::WindowMoved {
+              timestamp: event.window.timestamp,
+              window_id: event.window.windowID,
+              x: event.window.data1,
+              y: event.window.data2,
+            },
+            fermium::SDL_WINDOWEVENT_RESIZED => Event::WindowResized {
+              timestamp: event.window.timestamp,
+              window_id: event.window.windowID,
+              width: event.window.data1,
+              height: event.window.data2,
+            },
+            fermium::SDL_WINDOWEVENT_SIZE_CHANGED => Event::WindowSizeChanged {
+              timestamp: event.window.timestamp,
+              window_id: event.window.windowID,
+              width: event.window.data1,
+              height: event.window.data2,
+            },
+            fermium::SDL_WINDOWEVENT_CLOSE => Event::WindowClosed {
+              timestamp: event.window.timestamp,
+              window_id: event.window.windowID,
+            },
+            fermium::SDL_WINDOWEVENT_SHOWN => Event::WindowShown {
+              timestamp: event.window.timestamp,
+              window_id: event.window.windowID,
+            },
+            fermium::SDL_WINDOWEVENT_HIDDEN => Event::WindowHidden {
+              timestamp: event.window.timestamp,
+              window_id: event.window.windowID,
+            },
+            fermium::SDL_WINDOWEVENT_EXPOSED => Event::WindowNeedsRepaint {
+              timestamp: event.window.timestamp,
+              window_id: event.window.windowID,
+            },
+            fermium::SDL_WINDOWEVENT_MINIMIZED => Event::WindowMinimized {
+              timestamp: event.window.timestamp,
+              window_id: event.window.windowID,
+            },
+            fermium::SDL_WINDOWEVENT_MAXIMIZED => Event::WindowMaximized {
+              timestamp: event.window.timestamp,
+              window_id: event.window.windowID,
+            },
+            fermium::SDL_WINDOWEVENT_RESTORED => Event::WindowRestored {
+              timestamp: event.window.timestamp,
+              window_id: event.window.windowID,
+            },
+            fermium::SDL_WINDOWEVENT_ENTER => Event::MouseEnteredWindow {
+              timestamp: event.window.timestamp,
+              window_id: event.window.windowID,
+            },
+            fermium::SDL_WINDOWEVENT_LEAVE => Event::MouseLeftWindow {
+              timestamp: event.window.timestamp,
+              window_id: event.window.windowID,
+            },
+            fermium::SDL_WINDOWEVENT_FOCUS_GAINED => Event::WindowGainedFocus {
+              timestamp: event.window.timestamp,
+              window_id: event.window.windowID,
+            },
+            fermium::SDL_WINDOWEVENT_FOCUS_LOST => Event::WindowLostFocus {
+              timestamp: event.window.timestamp,
+              window_id: event.window.windowID,
+            },
+            fermium::SDL_CONTROLLERAXISMOTION => Event::ControllerAxis {
+              timestamp: event.caxis.timestamp,
+              joystick_id: JoystickID(event.caxis.which),
+              axis: ControllerAxis::from(event.caxis.axis),
+              value: event.caxis.value,
+            },
+            _ => Event::UnknownEventType,
+          }
+        }
         fermium::SDL_CONTROLLERBUTTONDOWN | fermium::SDL_CONTROLLERBUTTONUP => {
           Event::ControllerButton {
             timestamp: event.cbutton.timestamp,
@@ -409,14 +411,18 @@ impl From<fermium::SDL_Event> for Event {
           timestamp: event.cdevice.timestamp,
           joystick_id: JoystickID(event.cdevice.which),
         },
-        fermium::SDL_CONTROLLERDEVICEREMOVED => Event::ControllerDeviceRemoved {
-          timestamp: event.cdevice.timestamp,
-          joystick_id: JoystickID(event.cdevice.which),
-        },
-        fermium::SDL_CONTROLLERDEVICEREMAPPED => Event::ControllerDeviceRemapped {
-          timestamp: event.cdevice.timestamp,
-          joystick_id: JoystickID(event.cdevice.which),
-        },
+        fermium::SDL_CONTROLLERDEVICEREMOVED => {
+          Event::ControllerDeviceRemoved {
+            timestamp: event.cdevice.timestamp,
+            joystick_id: JoystickID(event.cdevice.which),
+          }
+        }
+        fermium::SDL_CONTROLLERDEVICEREMAPPED => {
+          Event::ControllerDeviceRemapped {
+            timestamp: event.cdevice.timestamp,
+            joystick_id: JoystickID(event.cdevice.which),
+          }
+        }
         _ => Event::UnknownEventType,
       }
     }
@@ -1383,7 +1389,9 @@ impl TryFrom<fermium::SDL_Scancode> for Scancode {
       fermium::SDL_SCANCODE_J => Ok(Scancode::J),
       fermium::SDL_SCANCODE_K => Ok(Scancode::K),
       fermium::SDL_SCANCODE_KBDILLUMDOWN => Ok(Scancode::KbdIlluminationDown),
-      fermium::SDL_SCANCODE_KBDILLUMTOGGLE => Ok(Scancode::KbdIlluminationToggle),
+      fermium::SDL_SCANCODE_KBDILLUMTOGGLE => {
+        Ok(Scancode::KbdIlluminationToggle)
+      }
       fermium::SDL_SCANCODE_KBDILLUMUP => Ok(Scancode::KbdIlluminationUp),
       fermium::SDL_SCANCODE_KP_0 => Ok(Scancode::KP_0),
       fermium::SDL_SCANCODE_KP_00 => Ok(Scancode::KP_00),
@@ -1410,7 +1418,9 @@ impl TryFrom<fermium::SDL_Scancode> for Scancode {
       fermium::SDL_SCANCODE_KP_COMMA => Ok(Scancode::KP_Comma),
       fermium::SDL_SCANCODE_KP_D => Ok(Scancode::KP_D),
       fermium::SDL_SCANCODE_KP_DBLAMPERSAND => Ok(Scancode::KP_DblAmpersand),
-      fermium::SDL_SCANCODE_KP_DBLVERTICALBAR => Ok(Scancode::KP_DblVerticalBar),
+      fermium::SDL_SCANCODE_KP_DBLVERTICALBAR => {
+        Ok(Scancode::KP_DblVerticalBar)
+      }
       fermium::SDL_SCANCODE_KP_DECIMAL => Ok(Scancode::KP_Decimal),
       fermium::SDL_SCANCODE_KP_DIVIDE => Ok(Scancode::KP_Divide),
       fermium::SDL_SCANCODE_KP_E => Ok(Scancode::KP_E),
@@ -1507,7 +1517,9 @@ impl TryFrom<fermium::SDL_Scancode> for Scancode {
       fermium::SDL_SCANCODE_SYSREQ => Ok(Scancode::SysReq),
       fermium::SDL_SCANCODE_T => Ok(Scancode::T),
       fermium::SDL_SCANCODE_TAB => Ok(Scancode::Tab),
-      fermium::SDL_SCANCODE_THOUSANDSSEPARATOR => Ok(Scancode::ThousandsSeparator),
+      fermium::SDL_SCANCODE_THOUSANDSSEPARATOR => {
+        Ok(Scancode::ThousandsSeparator)
+      }
       fermium::SDL_SCANCODE_U => Ok(Scancode::U),
       fermium::SDL_SCANCODE_UNDO => Ok(Scancode::Undo),
       fermium::SDL_SCANCODE_UNKNOWN => Ok(Scancode::Unknown),

@@ -61,10 +61,7 @@ impl<'sdl> RendererWindow<'sdl> {
     if ptr.is_null() {
       Err(get_error())
     } else {
-      Ok(Texture {
-        ptr,
-        _marker: PhantomData,
-      })
+      Ok(Texture { ptr, _marker: PhantomData })
     }
   }
 
@@ -89,8 +86,11 @@ impl<'sdl> RendererWindow<'sdl> {
 
   /// Assigns the color used for drawing.
   pub fn set_draw_color(&self, color: Color) -> Result<(), String> {
-    let out =
-      unsafe { fermium::SDL_SetRenderDrawColor(self.ptr, color.r, color.g, color.b, color.a) };
+    let out = unsafe {
+      fermium::SDL_SetRenderDrawColor(
+        self.ptr, color.r, color.g, color.b, color.a,
+      )
+    };
     if out == 0 {
       Ok(())
     } else {
@@ -111,7 +111,8 @@ impl<'sdl> RendererWindow<'sdl> {
   pub fn output_size(&self) -> Result<(i32, i32), String> {
     let mut w = 0;
     let mut h = 0;
-    let out = unsafe { fermium::SDL_GetRendererOutputSize(self.ptr, &mut w, &mut h) };
+    let out =
+      unsafe { fermium::SDL_GetRendererOutputSize(self.ptr, &mut w, &mut h) };
     if out == 0 {
       Ok((w, h))
     } else {
@@ -120,7 +121,13 @@ impl<'sdl> RendererWindow<'sdl> {
   }
 
   /// Draws a line that includes both end points.
-  pub fn draw_line(&self, x1: i32, y1: i32, x2: i32, y2: i32) -> Result<(), String> {
+  pub fn draw_line(
+    &self,
+    x1: i32,
+    y1: i32,
+    x2: i32,
+    y2: i32,
+  ) -> Result<(), String> {
     let out = unsafe { fermium::SDL_RenderDrawLine(self.ptr, x1, y1, x2, y2) };
     if out == 0 {
       Ok(())
@@ -154,10 +161,21 @@ impl<'sdl> RendererWindow<'sdl> {
   /// The image is stretched as necessary if the `src` and `dst` are different
   /// sizes. This is a GPU operation, so it's fast no matter how much upscale or
   /// downscale you do.
-  pub fn copy(&self, t: &Texture, src: Option<Rect>, dst: Option<Rect>) -> Result<(), String> {
+  pub fn copy(
+    &self,
+    t: &Texture,
+    src: Option<Rect>,
+    dst: Option<Rect>,
+  ) -> Result<(), String> {
     unsafe {
-      let src_ptr = core::mem::transmute::<Option<&Rect>, *const fermium::SDL_Rect>(src.as_ref());
-      let dst_ptr = core::mem::transmute::<Option<&Rect>, *const fermium::SDL_Rect>(dst.as_ref());
+      let src_ptr = core::mem::transmute::<
+        Option<&Rect>,
+        *const fermium::SDL_Rect,
+      >(src.as_ref());
+      let dst_ptr = core::mem::transmute::<
+        Option<&Rect>,
+        *const fermium::SDL_Rect,
+      >(dst.as_ref());
       if fermium::SDL_RenderCopy(self.ptr, t.ptr, src_ptr, dst_ptr) == 0 {
         Ok(())
       } else {

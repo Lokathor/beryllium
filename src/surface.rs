@@ -16,55 +16,28 @@ pub enum SurfaceFormat {
   /// 8 bits per pixel paletted.
   Indexed8,
   /// 16 bits per pixel direct color.
-  Direct16 {
-    r_mask: u32,
-    g_mask: u32,
-    b_mask: u32,
-    a_mask: u32,
-  },
+  Direct16 { r_mask: u32, g_mask: u32, b_mask: u32, a_mask: u32 },
   /// 24 bits per pixel direct color.
-  Direct24 {
-    r_mask: u32,
-    g_mask: u32,
-    b_mask: u32,
-    a_mask: u32,
-  },
+  Direct24 { r_mask: u32, g_mask: u32, b_mask: u32, a_mask: u32 },
   /// 32 bits per pixel direct color.
-  Direct32 {
-    r_mask: u32,
-    g_mask: u32,
-    b_mask: u32,
-    a_mask: u32,
-  },
+  Direct32 { r_mask: u32, g_mask: u32, b_mask: u32, a_mask: u32 },
 }
 impl SurfaceFormat {
   /// Alias for the default Direct16 surface format.
   ///
   /// Note that this format is non-Alpha
-  pub const DIRECT16_DEFAULT: Self = SurfaceFormat::Direct16 {
-    r_mask: 0,
-    g_mask: 0,
-    b_mask: 0,
-    a_mask: 0,
-  };
+  pub const DIRECT16_DEFAULT: Self =
+    SurfaceFormat::Direct16 { r_mask: 0, g_mask: 0, b_mask: 0, a_mask: 0 };
   /// Alias for the default Direct24 surface format.
   ///
   /// Note that this format is non-Alpha
-  pub const DIRECT24_DEFAULT: Self = SurfaceFormat::Direct24 {
-    r_mask: 0,
-    g_mask: 0,
-    b_mask: 0,
-    a_mask: 0,
-  };
+  pub const DIRECT24_DEFAULT: Self =
+    SurfaceFormat::Direct24 { r_mask: 0, g_mask: 0, b_mask: 0, a_mask: 0 };
   /// Alias for the default Direct32 surface format.
   ///
   /// Note that this format is non-Alpha
-  pub const DIRECT32_DEFAULT: Self = SurfaceFormat::Direct32 {
-    r_mask: 0,
-    g_mask: 0,
-    b_mask: 0,
-    a_mask: 0,
-  };
+  pub const DIRECT32_DEFAULT: Self =
+    SurfaceFormat::Direct32 { r_mask: 0, g_mask: 0, b_mask: 0, a_mask: 0 };
 }
 
 /// Handle to a "surface", a CPU-side image.
@@ -94,7 +67,10 @@ impl<'sdl> Surface<'sdl> {
   /// * You have to follow standard 2D raw pixel editing rules.
   ///   * `y * pitch + x * size_of::<PixelType>()`
   ///   * Stay in bounds and all that jazz
-  pub unsafe fn lock_edit<F: FnMut(*mut u8)>(&mut self, mut op: F) -> Result<(), String> {
+  pub unsafe fn lock_edit<F: FnMut(*mut u8)>(
+    &mut self,
+    mut op: F,
+  ) -> Result<(), String> {
     let lock_output = fermium::SDL_LockSurface(self.ptr);
     if lock_output == 0 {
       op((*self.ptr).pixels as *mut u8);
@@ -144,7 +120,10 @@ impl<'sdl> Surface<'sdl> {
         let r: fermium::SDL_Rect = rect.into();
         fermium::SDL_TRUE == unsafe { fermium::SDL_SetClipRect(self.ptr, &r) }
       }
-      None => fermium::SDL_TRUE == unsafe { fermium::SDL_SetClipRect(self.ptr, null()) },
+      None => {
+        fermium::SDL_TRUE
+          == unsafe { fermium::SDL_SetClipRect(self.ptr, null()) }
+      }
     }
   }
 
@@ -161,7 +140,8 @@ impl<'sdl> Surface<'sdl> {
   pub fn set_palette(&mut self, palette: &Palette) -> Result<(), String> {
     // Note(Lokathor): This must take `&mut self` to ensure you don't have an
     // active reference to the palette.
-    let out = unsafe { fermium::SDL_SetSurfacePalette(self.ptr, palette.nn.as_ptr()) };
+    let out =
+      unsafe { fermium::SDL_SetSurfacePalette(self.ptr, palette.nn.as_ptr()) };
     if out == 0 {
       Ok(())
     } else {

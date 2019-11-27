@@ -157,30 +157,58 @@ impl PixelFormatEnum {
     let bits = (self as u32 >> 20) & 0x0F;
     if self.is_packed() {
       match bits as fermium::PackedOrder {
-        fermium::SDL_PACKEDORDER_ABGR => PixelOrder::Packed(PackedPixelOrder::ABGR),
-        fermium::SDL_PACKEDORDER_ARGB => PixelOrder::Packed(PackedPixelOrder::ARGB),
-        fermium::SDL_PACKEDORDER_BGRA => PixelOrder::Packed(PackedPixelOrder::BGRA),
-        fermium::SDL_PACKEDORDER_BGRX => PixelOrder::Packed(PackedPixelOrder::BGRX),
-        fermium::SDL_PACKEDORDER_RGBA => PixelOrder::Packed(PackedPixelOrder::RGBA),
-        fermium::SDL_PACKEDORDER_RGBX => PixelOrder::Packed(PackedPixelOrder::RGBX),
-        fermium::SDL_PACKEDORDER_XBGR => PixelOrder::Packed(PackedPixelOrder::XBGR),
-        fermium::SDL_PACKEDORDER_XRGB => PixelOrder::Packed(PackedPixelOrder::XRGB),
+        fermium::SDL_PACKEDORDER_ABGR => {
+          PixelOrder::Packed(PackedPixelOrder::ABGR)
+        }
+        fermium::SDL_PACKEDORDER_ARGB => {
+          PixelOrder::Packed(PackedPixelOrder::ARGB)
+        }
+        fermium::SDL_PACKEDORDER_BGRA => {
+          PixelOrder::Packed(PackedPixelOrder::BGRA)
+        }
+        fermium::SDL_PACKEDORDER_BGRX => {
+          PixelOrder::Packed(PackedPixelOrder::BGRX)
+        }
+        fermium::SDL_PACKEDORDER_RGBA => {
+          PixelOrder::Packed(PackedPixelOrder::RGBA)
+        }
+        fermium::SDL_PACKEDORDER_RGBX => {
+          PixelOrder::Packed(PackedPixelOrder::RGBX)
+        }
+        fermium::SDL_PACKEDORDER_XBGR => {
+          PixelOrder::Packed(PackedPixelOrder::XBGR)
+        }
+        fermium::SDL_PACKEDORDER_XRGB => {
+          PixelOrder::Packed(PackedPixelOrder::XRGB)
+        }
         _ => PixelOrder::Packed(PackedPixelOrder::None),
       }
     } else if self.is_array() {
       match bits as fermium::ArrayOrder {
-        fermium::SDL_ARRAYORDER_ABGR => PixelOrder::Array(ArrayPixelOrder::ABGR),
-        fermium::SDL_ARRAYORDER_ARGB => PixelOrder::Array(ArrayPixelOrder::ARGB),
+        fermium::SDL_ARRAYORDER_ABGR => {
+          PixelOrder::Array(ArrayPixelOrder::ABGR)
+        }
+        fermium::SDL_ARRAYORDER_ARGB => {
+          PixelOrder::Array(ArrayPixelOrder::ARGB)
+        }
         fermium::SDL_ARRAYORDER_BGR => PixelOrder::Array(ArrayPixelOrder::BGR),
-        fermium::SDL_ARRAYORDER_BGRA => PixelOrder::Array(ArrayPixelOrder::BGRA),
+        fermium::SDL_ARRAYORDER_BGRA => {
+          PixelOrder::Array(ArrayPixelOrder::BGRA)
+        }
         fermium::SDL_ARRAYORDER_RGB => PixelOrder::Array(ArrayPixelOrder::RGB),
-        fermium::SDL_ARRAYORDER_RGBA => PixelOrder::Array(ArrayPixelOrder::RGBA),
+        fermium::SDL_ARRAYORDER_RGBA => {
+          PixelOrder::Array(ArrayPixelOrder::RGBA)
+        }
         _ => PixelOrder::Array(ArrayPixelOrder::None),
       }
     } else {
       match bits as fermium::BitmapOrder {
-        fermium::SDL_BITMAPORDER_1234 => PixelOrder::Bitmap(BitmapPixelOrder::_1234),
-        fermium::SDL_BITMAPORDER_4321 => PixelOrder::Bitmap(BitmapPixelOrder::_4321),
+        fermium::SDL_BITMAPORDER_1234 => {
+          PixelOrder::Bitmap(BitmapPixelOrder::_1234)
+        }
+        fermium::SDL_BITMAPORDER_4321 => {
+          PixelOrder::Bitmap(BitmapPixelOrder::_4321)
+        }
         _ => PixelOrder::Bitmap(BitmapPixelOrder::None),
       }
     }
@@ -215,7 +243,9 @@ impl PixelFormatEnum {
   pub fn bytes_per_pixel(self) -> u32 {
     if self.is_fourcc() {
       match self {
-        PixelFormatEnum::YUY2 | PixelFormatEnum::UYVY | PixelFormatEnum::YVYU => 2,
+        PixelFormatEnum::YUY2
+        | PixelFormatEnum::UYVY
+        | PixelFormatEnum::YVYU => 2,
         _ => 1,
       }
     } else {
@@ -227,9 +257,9 @@ impl PixelFormatEnum {
   pub fn is_indexed(self) -> bool {
     !self.is_fourcc()
       && match self.pixel_type() {
-        BerylliumPixelType::Index1 | BerylliumPixelType::Index4 | BerylliumPixelType::Index8 => {
-          true
-        }
+        BerylliumPixelType::Index1
+        | BerylliumPixelType::Index4
+        | BerylliumPixelType::Index8 => true,
         _ => false,
       }
   }
@@ -388,12 +418,12 @@ pub struct PixelFormat<'sdl> {
 
 impl SDLToken {
   /// Allocates a new `PixelFormat` according to the enum given.
-  pub fn new_pixel_format(&self, format: PixelFormatEnum) -> Result<PixelFormat<'_>, String> {
+  pub fn new_pixel_format(
+    &self,
+    format: PixelFormatEnum,
+  ) -> Result<PixelFormat<'_>, String> {
     match NonNull::new(unsafe { fermium::SDL_AllocFormat(format as u32) }) {
-      Some(nn) => Ok(PixelFormat {
-        nn,
-        _marker: PhantomData,
-      }),
+      Some(nn) => Ok(PixelFormat { nn, _marker: PhantomData }),
       None => Err(get_error()),
     }
   }
@@ -434,7 +464,10 @@ impl SDLToken {
   }
 
   /// Converts this `format` into the appropriate `bpp` and mask values.
-  pub fn pixel_format_enum_to_masks(&self, format: PixelFormatEnum) -> (i32, u32, u32, u32, u32) {
+  pub fn pixel_format_enum_to_masks(
+    &self,
+    format: PixelFormatEnum,
+  ) -> (i32, u32, u32, u32, u32) {
     let mut bpp = 0;
     let mut r_mask = 0;
     let mut g_mask = 0;
@@ -459,13 +492,16 @@ impl PixelFormat<'_> {
   ///
   /// * The alpha channel is always given as `0xFF`
   pub fn get_rgb(&self, pixel: u32) -> Color {
-    let mut out = Color {
-      r: 0,
-      g: 0,
-      b: 0,
-      a: 0xFF,
+    let mut out = Color { r: 0, g: 0, b: 0, a: 0xFF };
+    unsafe {
+      fermium::SDL_GetRGB(
+        pixel,
+        self.nn.as_ptr(),
+        &mut out.r,
+        &mut out.g,
+        &mut out.b,
+      )
     };
-    unsafe { fermium::SDL_GetRGB(pixel, self.nn.as_ptr(), &mut out.r, &mut out.g, &mut out.b) };
     out
   }
 
@@ -506,14 +542,18 @@ impl PixelFormat<'_> {
   /// * The pixel format data is always in the lowest bits, so you can safely
   ///   downcast pixel values to `u16` and `u8` as appropriate.
   pub fn map_rgba(&self, color: Color) -> u32 {
-    unsafe { fermium::SDL_MapRGBA(self.nn.as_ptr(), color.r, color.g, color.b, color.a) }
+    unsafe {
+      fermium::SDL_MapRGBA(self.nn.as_ptr(), color.r, color.g, color.b, color.a)
+    }
   }
 
   /// Reassigns the [Palette] for this `PixelFormat`
   pub fn set_palette(&mut self, palette: &Palette) -> Result<(), String> {
     // Note(Lokathor): This must take `&mut self` to ensure you don't have an
     // active reference to the palette.
-    let out = unsafe { fermium::SDL_SetPixelFormatPalette(self.nn.as_ptr(), palette.nn.as_ptr()) };
+    let out = unsafe {
+      fermium::SDL_SetPixelFormatPalette(self.nn.as_ptr(), palette.nn.as_ptr())
+    };
     if out == 0 {
       Ok(())
     } else {
@@ -523,7 +563,9 @@ impl PixelFormat<'_> {
 
   /// The enum value of this pixel format.
   pub fn format(&self) -> PixelFormatEnum {
-    PixelFormatEnum::from(unsafe { (*self.nn.as_ptr()).format } as fermium::SDL_PixelFormatEnum)
+    PixelFormatEnum::from(
+      unsafe { (*self.nn.as_ptr()).format } as fermium::SDL_PixelFormatEnum
+    )
   }
 
   /// Obtains the palette of this format, if any.
@@ -532,7 +574,8 @@ impl PixelFormat<'_> {
       match NonNull::new((*self.nn.as_ptr()).palette) {
         // Note(Lokathor): Hey can't you use map here? Naw, the lifetimes get weird.
         Some(nn) => Some(
-          &*(&nn as *const core::ptr::NonNull<fermium::SDL_Palette> as *const palette::Palette<'_>),
+          &*(&nn as *const core::ptr::NonNull<fermium::SDL_Palette>
+            as *const palette::Palette<'_>),
         ),
         None => None,
       }

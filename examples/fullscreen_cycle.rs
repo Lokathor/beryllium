@@ -28,10 +28,7 @@ fn main() -> Result<(), String> {
         }
         // pressing F11
         Event::Keyboard {
-          key_info: KeyInfo {
-            keycode: Some(Keycode::F11),
-            ..
-          },
+          key_info: KeyInfo { keycode: Some(Keycode::F11), .. },
           is_key_down: true,
           ..
         } => {

@@ -47,7 +47,8 @@ impl<'sdl> Controller<'sdl> {
 
   /// Checks that the controller is currently connected.
   pub fn is_attached(&self) -> bool {
-    fermium::SDL_TRUE == unsafe { fermium::SDL_GameControllerGetAttached(self.ptr) }
+    fermium::SDL_TRUE
+      == unsafe { fermium::SDL_GameControllerGetAttached(self.ptr) }
   }
 
   /// Gives the axis value of the specified axis.
@@ -58,7 +59,12 @@ impl<'sdl> Controller<'sdl> {
   /// Also gives 0 on failure. You could call [get_error](get_error) if you
   /// want.
   pub fn axis(&self, axis: ControllerAxis) -> i16 {
-    unsafe { fermium::SDL_GameControllerGetAxis(self.ptr, axis as fermium::SDL_GameControllerAxis) }
+    unsafe {
+      fermium::SDL_GameControllerGetAxis(
+        self.ptr,
+        axis as fermium::SDL_GameControllerAxis,
+      )
+    }
   }
 
   /// Gives if the given button is pressed.
@@ -67,7 +73,10 @@ impl<'sdl> Controller<'sdl> {
   /// sort of error. You can call [get_error](get_error) if you really want.
   pub fn button(&self, button: ControllerButton) -> bool {
     1 == unsafe {
-      fermium::SDL_GameControllerGetButton(self.ptr, button as fermium::SDL_GameControllerButton)
+      fermium::SDL_GameControllerGetButton(
+        self.ptr,
+        button as fermium::SDL_GameControllerButton,
+      )
     }
   }
 

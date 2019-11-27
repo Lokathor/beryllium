@@ -192,11 +192,7 @@ pub struct Version {
 }
 impl From<fermium::SDL_version> for Version {
   fn from(input: fermium::SDL_version) -> Self {
-    Self {
-      major: input.major,
-      minor: input.minor,
-      patch: input.patch,
-    }
+    Self { major: input.major, minor: input.minor, patch: input.patch }
   }
 }
 
@@ -273,7 +269,9 @@ pub fn init() -> Result<SDLToken, String> {
     use objc::{class, msg_send, sel, sel_impl};
     let is_main: bool = unsafe { msg_send![class!(NSThread), isMainThread] };
     if !is_main {
-      return Err("beryllium::init() must be called on the main thread!".to_string());
+      return Err(
+        "beryllium::init() must be called on the main thread!".to_string(),
+      );
     }
   }
   if I_THINK_THAT_SDL2_IS_ACTIVE.swap(true, Ordering::SeqCst) {
@@ -281,9 +279,7 @@ pub fn init() -> Result<SDLToken, String> {
     // that means it was already active, so that's an error.
     Err("The library is currently initialized!".to_string())
   } else if unsafe { fermium::SDL_Init(fermium::SDL_INIT_EVERYTHING) } == 0 {
-    Ok(SDLToken {
-      _marker: PhantomData,
-    })
+    Ok(SDLToken { _marker: PhantomData })
   } else {
     let out = get_error();
     I_THINK_THAT_SDL2_IS_ACTIVE.store(false, Ordering::SeqCst);
@@ -339,10 +335,7 @@ impl SDLToken {
     if ptr.is_null() {
       Err(get_error())
     } else {
-      Ok(crate::window::Window {
-        ptr,
-        _marker: PhantomData,
-      })
+      Ok(crate::window::Window { ptr, _marker: PhantomData })
     }
   }
 
@@ -358,35 +351,25 @@ impl SDLToken {
     let (depth, r_mask, g_mask, b_mask, a_mask) = match format {
       SurfaceFormat::Indexed4 => (4, 0, 0, 0, 0),
       SurfaceFormat::Indexed8 => (8, 0, 0, 0, 0),
-      SurfaceFormat::Direct16 {
-        r_mask,
-        g_mask,
-        b_mask,
-        a_mask,
-      } => (16, r_mask, g_mask, b_mask, a_mask),
-      SurfaceFormat::Direct24 {
-        r_mask,
-        g_mask,
-        b_mask,
-        a_mask,
-      } => (24, r_mask, g_mask, b_mask, a_mask),
-      SurfaceFormat::Direct32 {
-        r_mask,
-        g_mask,
-        b_mask,
-        a_mask,
-      } => (32, r_mask, g_mask, b_mask, a_mask),
+      SurfaceFormat::Direct16 { r_mask, g_mask, b_mask, a_mask } => {
+        (16, r_mask, g_mask, b_mask, a_mask)
+      }
+      SurfaceFormat::Direct24 { r_mask, g_mask, b_mask, a_mask } => {
+        (24, r_mask, g_mask, b_mask, a_mask)
+      }
+      SurfaceFormat::Direct32 { r_mask, g_mask, b_mask, a_mask } => {
+        (32, r_mask, g_mask, b_mask, a_mask)
+      }
     };
     let ptr: *mut fermium::SDL_Surface = unsafe {
-      fermium::SDL_CreateRGBSurface(0, width, height, depth, r_mask, g_mask, b_mask, a_mask)
+      fermium::SDL_CreateRGBSurface(
+        0, width, height, depth, r_mask, g_mask, b_mask, a_mask,
+      )
     };
     if ptr.is_null() {
       Err(get_error())
     } else {
-      Ok(Surface {
-        ptr,
-        _marker: PhantomData,
-      })
+      Ok(Surface { ptr, _marker: PhantomData })
     }
   }
 
@@ -430,29 +413,29 @@ impl SDLToken {
   /// Attempts to open the given id as a [Controller].
   ///
   /// Not all joysticks support the Controller API, so this can fail.
-  pub fn open_controller(&self, id: JoystickID) -> Result<Controller<'_>, String> {
+  pub fn open_controller(
+    &self,
+    id: JoystickID,
+  ) -> Result<Controller<'_>, String> {
     let ptr = unsafe { fermium::SDL_GameControllerOpen(id.0) };
     if ptr.is_null() {
       Err(get_error())
     } else {
-      Ok(Controller {
-        ptr,
-        _marker: PhantomData,
-      })
+      Ok(Controller { ptr, _marker: PhantomData })
     }
   }
 
   /// Attempts to load the named dynamic library into the program.
-  pub fn load_cdylib<'sdl>(&'sdl self, name: &str) -> Result<CDyLib<'sdl>, String> {
+  pub fn load_cdylib<'sdl>(
+    &'sdl self,
+    name: &str,
+  ) -> Result<CDyLib<'sdl>, String> {
     let name_null: Vec<u8> = name.bytes().chain(Some(0)).collect();
-    match NonNull::new(
-      unsafe { fermium::SDL_LoadObject(name_null.as_ptr() as *const c_char) }
-        as *mut core::ffi::c_void,
-    ) {
-      Some(nn) => Ok(CDyLib {
-        nn,
-        _marker: PhantomData,
-      }),
+    match NonNull::new(unsafe {
+      fermium::SDL_LoadObject(name_null.as_ptr() as *const c_char)
+    } as *mut core::ffi::c_void)
+    {
+      Some(nn) => Ok(CDyLib { nn, _marker: PhantomData }),
       None => Err(get_error()),
     }
   }
@@ -485,7 +468,13 @@ impl SDLToken {
     let mut obtained_spec = fermium::SDL_AudioSpec::default();
     //
     let audio_device_id = unsafe {
-      fermium::SDL_OpenAudioDevice(null(), 0, &desired_spec, &mut obtained_spec, changes)
+      fermium::SDL_OpenAudioDevice(
+        null(),
+        0,
+        &desired_spec,
+        &mut obtained_spec,
+        changes,
+      )
     };
     if audio_device_id == 0 {
       Err(get_error())
@@ -509,7 +498,9 @@ impl SDLToken {
   /// request". Once you create the context you should examine it to see what
   /// you actually got.
   pub fn gl_set_attribute(&self, attr: GLattr, value: i32) -> bool {
-    0 == unsafe { fermium::SDL_GL_SetAttribute(attr as fermium::SDL_GLattr, value) }
+    0 == unsafe {
+      fermium::SDL_GL_SetAttribute(attr as fermium::SDL_GLattr, value)
+    }
   }
 
   /// Resets all previously set attributes to their default values.
@@ -518,9 +509,13 @@ impl SDLToken {
   }
 
   /// Gets a function pointer to the named OpenGL function
-  pub unsafe fn gl_get_proc_address(&self, name: &str) -> *const core::ffi::c_void {
+  pub unsafe fn gl_get_proc_address(
+    &self,
+    name: &str,
+  ) -> *const core::ffi::c_void {
     let name_null: Vec<u8> = name.bytes().chain(Some(0)).collect();
-    fermium::SDL_GL_GetProcAddress(name_null.as_ptr() as *const c_char) as *const core::ffi::c_void
+    fermium::SDL_GL_GetProcAddress(name_null.as_ptr() as *const c_char)
+      as *const core::ffi::c_void
   }
 }
 
@@ -535,17 +530,11 @@ pub struct Point {
 }
 impl From<fermium::SDL_Point> for Point {
   fn from(other: fermium::SDL_Point) -> Self {
-    Self {
-      x: other.x,
-      y: other.y,
-    }
+    Self { x: other.x, y: other.y }
   }
 }
 impl From<Point> for fermium::SDL_Point {
   fn from(other: Point) -> Self {
-    Self {
-      x: other.x,
-      y: other.y,
-    }
+    Self { x: other.x, y: other.y }
   }
 }

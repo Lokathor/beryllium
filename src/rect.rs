@@ -20,22 +20,12 @@ pub struct Rect {
 }
 impl From<fermium::SDL_Rect> for Rect {
   fn from(other: fermium::SDL_Rect) -> Self {
-    Self {
-      x: other.x,
-      y: other.y,
-      w: other.w,
-      h: other.h,
-    }
+    Self { x: other.x, y: other.y, w: other.w, h: other.h }
   }
 }
 impl From<Rect> for fermium::SDL_Rect {
   fn from(other: Rect) -> Self {
-    Self {
-      x: other.x,
-      y: other.y,
-      w: other.w,
-      h: other.h,
-    }
+    Self { x: other.x, y: other.y, w: other.w, h: other.h }
   }
 }
 impl Rect {
@@ -44,7 +34,10 @@ impl Rect {
   /// A rect is _inclusive_ with the upper and right sides, and _exclusive_ with
   /// the lower and left sides.
   pub fn contains_point(&self, px: i32, py: i32) -> bool {
-    px >= self.x && px < (self.x + self.w) && py >= self.y && py < (self.y + self.h)
+    px >= self.x
+      && px < (self.x + self.w)
+      && py >= self.y
+      && py < (self.y + self.h)
   }
 
   /// Returns true if the rectangle has no area.
