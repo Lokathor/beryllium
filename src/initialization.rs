@@ -43,7 +43,7 @@ impl Drop for Initialization {
 }
 
 /// Flags of what subsystems to initialize.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct InitFlags(u32);
 #[allow(non_upper_case_globals)]
