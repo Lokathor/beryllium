@@ -37,6 +37,7 @@ extern crate alloc;
 use alloc::{borrow::Cow, format, rc::Rc, string::String, vec, vec::Vec};
 
 use core::{
+  convert::TryFrom,
   marker::PhantomData,
   mem::ManuallyDrop,
   sync::atomic::{AtomicBool, Ordering},
@@ -56,14 +57,16 @@ macro_rules! cow_str {
 }
 
 mod initialization;
-pub(crate) use initialization::*;
 pub use initialization::InitFlags;
+pub(crate) use initialization::*;
 mod sdl;
 pub use sdl::*;
 mod window;
 pub use window::*;
 mod gl_window;
 pub use gl_window::*;
+mod event;
+pub use event::*;
 
 /// Clone On Write, specific to `&str` and `String`.
 ///

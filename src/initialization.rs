@@ -50,10 +50,10 @@ pub struct InitFlags(u32);
 impl InitFlags {
   /// Timer subsystem.
   pub const Timer: InitFlags = InitFlags(fermium::SDL_INIT_TIMER);
-  
+
   /// Audio subsystem.
   pub const Audio: InitFlags = InitFlags(fermium::SDL_INIT_AUDIO);
-  
+
   /// Video subsystem. Implies Events.
   pub const Video: InitFlags = InitFlags(fermium::SDL_INIT_VIDEO);
 
@@ -64,11 +64,12 @@ impl InitFlags {
   pub const Haptic: InitFlags = InitFlags(fermium::SDL_INIT_HAPTIC);
 
   /// Controller API on top of the Joysticks. Implies Joystick.
-  pub const GameController: InitFlags = InitFlags(fermium::SDL_INIT_GAMECONTROLLER);
+  pub const GameController: InitFlags =
+    InitFlags(fermium::SDL_INIT_GAMECONTROLLER);
 
   /// Events subsystem.
   pub const Events: InitFlags = InitFlags(fermium::SDL_INIT_EVENTS);
-  
+
   /// All of the subsystems.
   pub const Everything: InitFlags = InitFlags(fermium::SDL_INIT_EVERYTHING);
 }

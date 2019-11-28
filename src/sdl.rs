@@ -125,9 +125,9 @@ impl SDL {
 
   /// Blocks for the given [`Duration`](core::time::Duration) with millisecond
   /// granularity.
-  /// 
+  ///
   /// If the duration is more than `u32::max_value()` milliseconds.
-  /// 
+  ///
   /// 1) Seriously, what the hell? Are you okay friend? Sleeping that much?
   /// 2) It uses more than one sleep in a loop because you do you.
   pub fn delay_duration(&self, duration: core::time::Duration) {
@@ -138,5 +138,26 @@ impl SDL {
       ms_remaining -= TIME_CHUNK;
     }
     self.delay_ms(ms_remaining as u32)
+  }
+
+  /// Polls for an event.
+  ///
+  /// This returns `Some(result)` if there was an event in the queue, otherwise
+  /// it returns immediately with `None.
+  ///
+  /// The Result is from `Event::try_from(sdl_event)`, so if `beryllium`
+  /// understands the event it'll parse it for you, otherwise you get the raw
+  /// [`SDL_Event`](fermium::SDL_Event) data.
+  ///
+  /// Pro Tip: Use `sdl.poll_events().and_then(Result::ok)` if you only want
+  /// to see parsed events.
+  pub fn poll_events(&self) -> Option<Result<Event, fermium::SDL_Event>> {
+    let mut sdl_event = fermium::SDL_Event::default();
+    let had_event = unsafe { fermium::SDL_PollEvent(&mut sdl_event) };
+    if had_event > 0 {
+      Some(Event::try_from(sdl_event))
+    } else {
+      None
+    }
   }
 }
