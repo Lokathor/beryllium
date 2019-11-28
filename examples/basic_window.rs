@@ -1,5 +1,4 @@
 use beryllium::*;
-use core::time::Duration;
 
 fn main() {
   let sdl = SDL::init(InitFlags::Everything).expect("couldn't init SDL");

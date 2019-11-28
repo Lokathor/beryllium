@@ -11,7 +11,7 @@ pub(crate) static WINDOW_EXISTS: AtomicBool = AtomicBool::new(false);
 ///   main thread on Mac, so basically
 pub struct SDL {
   #[allow(unused)]
-  init_token: Rc<Initialization>,
+  init_token: Arc<Initialization>,
 }
 impl SDL {
   /// Initializes SDL with the flags given.
@@ -22,7 +22,7 @@ impl SDL {
   /// * Fails if SDL is currently initialized.
   /// * Fails if `SDL_Init` fails for whatever reason.
   pub fn init(flags: InitFlags) -> Result<Self, CowStr> {
-    Ok(Self { init_token: Rc::new(Initialization::new(flags)?) })
+    Ok(Self { init_token: Arc::new(Initialization::new(flags)?) })
   }
 
   /// Obtains the current SDL error string.
@@ -39,8 +39,8 @@ impl SDL {
   /// Make all of these calls **before** making your OpenGL-enabled Window.
   ///
   /// The final context that you get might differ from your request. Use
-  /// [`gl_get_attribute`](SDL::gl_get_attribute) after you've made your
-  /// [`GLWindow`] to examine your actual context.
+  /// [`gl_get_attribute`](GlWindow::gl_get_attribute) on your contest after
+  /// you've made your [`GlWindow`] to check what you actually got.
   ///
   /// ## Failure
   ///
@@ -158,6 +158,139 @@ impl SDL {
       Some(Event::try_from(sdl_event))
     } else {
       None
+    }
+  }
+
+  /// Checks the number of audio playback devices.
+  ///
+  /// ## Failure
+  ///
+  /// It's possible that the list can't be checked. In this case, you still
+  /// might be able to open the "default" device. Pass `None` instead of a
+  /// device name and hope for the best.
+  pub fn get_audio_playback_device_count(&self) -> Option<usize> {
+    if unsafe { fermium::SDL_WasInit(InitFlags::Audio.0) == 0 } {
+      return None;
+    }
+    let ret = unsafe { fermium::SDL_GetNumAudioDevices(i32::from(false)) };
+    if ret >= 0_i32 {
+      Some(ret as usize)
+    } else {
+      None
+    }
+  }
+
+  /// Get the name of a playback device.
+  ///
+  /// Indexes remain consistent until the next call to
+  /// [`get_audio_playback_device_count`](SDL::get_audio_playback_device_count)
+  pub fn get_audio_playback_device_name(&self, index: usize) -> Option<String> {
+    if unsafe { fermium::SDL_WasInit(InitFlags::Audio.0) == 0 } {
+      return None;
+    }
+    let mut ptr = unsafe {
+      fermium::SDL_GetAudioDeviceName(index as i32, i32::from(false))
+    };
+    if ptr.is_null() {
+      None
+    } else {
+      let mut v = Vec::with_capacity(128);
+      unsafe {
+        while *ptr != 0 {
+          v.push(*ptr as u8);
+          ptr = ptr.offset(1);
+        }
+      }
+      Some(String::from_utf8_lossy(&v).into_owned())
+    }
+  }
+
+  /// Checks the number of audio recording devices.
+  ///
+  /// ## Failure
+  ///
+  /// It's possible that the list can't be checked. In this case, you still
+  /// might be able to open the "default" device. Pass `None` instead of a
+  /// device name and hope for the best.
+  pub fn get_audio_recording_device_count(&self) -> Option<u32> {
+    if unsafe { fermium::SDL_WasInit(InitFlags::Audio.0) == 0 } {
+      return None;
+    }
+    let ret = unsafe { fermium::SDL_GetNumAudioDevices(i32::from(true)) };
+    if ret >= 0_i32 {
+      Some(ret as u32)
+    } else {
+      None
+    }
+  }
+
+  /// Get the name of a recording device.
+  ///
+  /// Indexes remain consistent until the next call to
+  /// [`get_audio_playback_device_count`](SDL::get_audio_playback_device_count)
+  pub fn get_audio_recording_device_name(
+    &self,
+    index: usize,
+  ) -> Option<String> {
+    if unsafe { fermium::SDL_WasInit(InitFlags::Audio.0) == 0 } {
+      return None;
+    }
+    let mut ptr =
+      unsafe { fermium::SDL_GetAudioDeviceName(index as i32, i32::from(true)) };
+    if ptr.is_null() {
+      None
+    } else {
+      let mut v = Vec::with_capacity(128);
+      unsafe {
+        while *ptr != 0 {
+          v.push(*ptr as u8);
+          ptr = ptr.offset(1);
+        }
+      }
+      Some(String::from_utf8_lossy(&v).into_owned())
+    }
+  }
+
+  /// Attempts to open an audio queue.
+  pub fn open_audio_queue(
+    &self,
+    name: Option<&str>,
+    request: AudioQueueRequest,
+  ) -> Result<AudioQueue, String> {
+    let name_null = name.unwrap_or("").alloc_c_str();
+    let mut in_spec = fermium::SDL_AudioSpec::default();
+    in_spec.freq = request.frequency as i32;
+    in_spec.format = request.sample_format.0;
+    in_spec.channels = request.channels as u8;
+    in_spec.samples = request.sample_count.next_power_of_two();
+    let mut out_spec = fermium::SDL_AudioSpec::default();
+    let mut changes = 0_i32;
+    if request.allow_frequency_change {
+      changes |= fermium::SDL_AUDIO_ALLOW_FREQUENCY_CHANGE as i32
+    }
+    if request.allow_format_change {
+      changes |= fermium::SDL_AUDIO_ALLOW_FORMAT_CHANGE as i32
+    }
+    if request.allow_channels_change {
+      changes |= fermium::SDL_AUDIO_ALLOW_CHANNELS_CHANGE as i32
+    }
+    let device = unsafe {
+      fermium::SDL_OpenAudioDevice(
+        name_null.as_ptr(),
+        i32::from(false),
+        &in_spec,
+        &mut out_spec,
+        changes,
+      )
+    };
+    if device > 0 {
+      Ok(AudioQueue {
+        init_token: self.init_token.clone(),
+        device,
+        spec: out_spec,
+      })
+    } else {
+      Err(self.get_error())
     }
   }
 }

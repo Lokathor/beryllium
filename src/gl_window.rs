@@ -14,7 +14,7 @@ impl Drop for GlContext {
 
 /// A [`Window`] and its [`GlContext`], fused into one.
 pub struct GlWindow {
-  pub(crate) init_token: Rc<Initialization>,
+  pub(crate) init_token: Arc<Initialization>,
   pub(crate) win: ManuallyDrop<Window>,
   pub(crate) ctx: ManuallyDrop<GlContext>,
 }
@@ -64,8 +64,9 @@ impl GlWindow {
   /// If the named extension is supported or not.
   ///
   /// This version turns your `&str` into a null-terminated string and then
-  /// calls to [`supports_extension_c`]. If you already have the null-terminated
-  /// string you should call the other method directly.
+  /// calls to [`supports_extension_c`](GlWindow::supports_extension_c). If you
+  /// already have the null-terminated string you should call the other method
+  /// directly.
   pub fn supports_extension(&self, extension: &str) -> bool {
     let extension_null = extension.alloc_c_str();
     unsafe { self.supports_extension_c(extension_null.as_ptr()) }

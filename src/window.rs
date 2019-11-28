@@ -6,7 +6,7 @@ use super::*;
 /// drawing APIs. You can't actually make one of these. Instead, you make a
 /// window that's fused to the drawing API involved.
 ///
-/// * [`SDL::crate_gl_window`](SDL::crate_gl_window) gives a [`GlWindow`]
+/// * [`SDL::crate_gl_window`](SDL::create_gl_window) gives a [`GlWindow`]
 /// * ...more to come some day! (Vk and SDL Renderer)
 #[repr(transparent)]
 pub struct Window {

@@ -8,25 +8,35 @@
 //! [`fermium`](https://docs.rs/fermium), this crate attempts to make it safe
 //! and easy to use from Rust.
 //!
+//! ## Restrictions
+//!
+//! * The library is very incomplete
+//! * The library only lets you have a single window because that's all that I
+//!   personally need and it's a lot easier to make all the safety stuff work
+//!   out that way. If you want more than one window you can fork this and try
+//!   to figure all that out.
+//!
 //! ## `no_std` Support
 //!
-//! Yes on Win/Linux, no on Mac.
+//! Yes on Win/Linux, no on Mac. On Windows and Linux you can start SDL from any
+//! thread as long as you stick to controlling it from just that thread. On Mac
+//! you _must_ start SDL from the main thread, which this library checks, which
+//! requires the standard library because of how the `objc` crate is written.
 
 /*
 
-TODO items for even a basic experience:
+Current TODO:
 
-Open a Window with OpenGL support (should be a fused op).
-Poll Events
-Swap The Window Buffer
+audio queue
 
 STRETCH GOALS:
 
-keyboard input
-mouse input
 joystick / controller
-sound
 Message Box
+
+NEXT FERMIUM:
+
+Expose `SDL_GetErrorMsg`, which is apparently thread safe.
 
 */
 
@@ -34,7 +44,7 @@ pub use fermium;
 pub(crate) use fermium::{c_char, c_void};
 
 extern crate alloc;
-use alloc::{borrow::Cow, format, rc::Rc, string::String, vec, vec::Vec};
+use alloc::{borrow::Cow, format, string::String, sync::Arc, vec, vec::Vec};
 
 use core::{
   convert::TryFrom,
@@ -67,6 +77,8 @@ mod gl_window;
 pub use gl_window::*;
 mod event;
 pub use event::*;
+mod audio;
+pub use audio::*;
 
 /// Clone On Write, specific to `&str` and `String`.
 ///
@@ -91,9 +103,7 @@ impl StrExt for str {
 ///
 /// ## Safety
 ///
-/// * If you call this from a thread that **doesn't** have the SDL token while
-///   SDL is active it's possible to be reading the error buffer while the other
-///   thread is causing an error and writing to the buffer (data race).
+/// * This is an unsynchronized global. Data races and such.
 /// * For the safe version see [`SDL::get_error`].
 pub unsafe fn get_error_unchecked() -> String {
   // SDL_ERRBUFIZE is 1024
