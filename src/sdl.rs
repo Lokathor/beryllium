@@ -67,9 +67,11 @@ impl SDL {
     unsafe { fermium::SDL_GL_ResetAttributes() }
   }
 
-  /// Makes a window with a GL context in one step.
+  /// Makes a [`GlWindow`], a [`Window`] that's got a fused GL context.
+  /// 
+  /// Be sure to set your desired GL context information _before_ you call this.
   ///
-  /// beryllium currently only allows one window
+  /// Note: `beryllium` currently only allows one window!
   pub fn create_gl_window(
     &self,
     title: &str,
@@ -78,6 +80,9 @@ impl SDL {
     height: u32,
     flags: u32,
   ) -> Result<GlWindow, String> {
+    if unsafe { fermium::SDL_WasInit(InitFlags::Video.0) == 0 } {
+      return Err(String::from("beryllium: You didn't init the video subsystem!"));
+    }
     if WINDOW_EXISTS.swap(true, Ordering::SeqCst) {
       Err(String::from("beryllium: There's already a window!"))
     } else {
@@ -112,6 +117,58 @@ impl SDL {
         init_token: self.init_token.clone(),
         win: ManuallyDrop::new(win),
         ctx: ManuallyDrop::new(ctx),
+      })
+    }
+  }
+
+  /// Makes a [`RawWindow`], a [`Window`] with no fused drawing.
+  ///
+  /// To make use of this you'd first make the `RawWindow`, and then pass a
+  /// reference to it to one of the APIs that supports the
+  /// [`raw-window-handle`](https://docs.rs/raw-window-handle) crate, allowing
+  /// that API to initialize itself.
+  ///
+  /// Note: This **cannot** track by itself that the other drawing API is closed
+  /// down before you close this window.
+  ///
+  /// Note: `beryllium` currently only allows one window!
+  #[cfg(feature = "extern_crate_raw_window_handle")]
+  pub fn create_raw_window(
+    &self,
+    title: &str,
+    pos: WindowPosition,
+    width: u32,
+    height: u32,
+    flags: u32,
+  ) -> Result<RawWindow, String> {
+    if unsafe { fermium::SDL_WasInit(InitFlags::Video.0) == 0 } {
+      return Err(String::from("beryllium: You didn't init the video subsystem!"));
+    }
+    if WINDOW_EXISTS.swap(true, Ordering::SeqCst) {
+      Err(String::from("beryllium: There's already a window!"))
+    } else {
+      // make a window
+      let title_null = title.alloc_c_str();
+      let (x, y) = pos.what_sdl_wants();
+      let win = unsafe {
+        fermium::SDL_CreateWindow(
+          title_null.as_ptr(),
+          x,
+          y,
+          width as i32,
+          height as i32,
+          flags | (fermium::SDL_WINDOW_OPENGL as u32),
+        )
+      };
+      if win.is_null() {
+        return Err(self.get_error());
+      }
+      // now it'll drop
+      let win = Window { win };
+
+      Ok(RawWindow {
+        init_token: self.init_token.clone(),
+        win: ManuallyDrop::new(win),
       })
     }
   }

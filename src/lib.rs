@@ -74,8 +74,6 @@ mod sdl;
 pub use sdl::*;
 mod window;
 pub use window::*;
-mod gl_window;
-pub use gl_window::*;
 mod event;
 pub use event::*;
 mod audio;

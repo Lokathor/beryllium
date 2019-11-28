@@ -10,11 +10,11 @@ keywords = ["SDL2"]
 categories = ["api-bindings", "multimedia", "game-engines", "no-std"]
 
 [features]
-default = ["link_dynamic"]
+default = ["link_dynamic", "extern_crate_raw_window_handle"]
 link_dynamic = ["fermium/link_dynamic"]
 link_static = ["fermium/link_static"]
+extern_crate_raw_window_handle = ["raw-window-handle"]
 #impl_global_alloc = []
-#extern_crate_raw_window_handle = ["raw-window-handle"]
 
 [dependencies]
 fermium = { version = "0.1", default-features = false }

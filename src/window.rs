@@ -1,5 +1,13 @@
 use super::*;
 
+mod gl_window;
+pub use gl_window::*;
+
+#[cfg(feature = "extern_crate_raw_window_handle")]
+mod raw_window;
+#[cfg(feature = "extern_crate_raw_window_handle")]
+pub use raw_window::*;
+
 /// A handle to an [`SDL_Window`](https://wiki.libsdl.org/SDL_CreateWindow).
 ///
 /// This is the "Drawing Style Agnostic" core window stuff that's common to all

@@ -1,17 +1,5 @@
 use super::*;
 
-/// Handle to a [`SDL_GLContext`](https://wiki.libsdl.org/SDL_GL_CreateContext).
-#[repr(transparent)]
-pub struct GlContext {
-  // Note: The Init token is stored in the GlWindow
-  pub(crate) ctx: fermium::SDL_GLContext,
-}
-impl Drop for GlContext {
-  fn drop(&mut self) {
-    unsafe { fermium::SDL_GL_DeleteContext(self.ctx) }
-  }
-}
-
 /// A [`Window`] and its [`GlContext`], fused into one.
 pub struct GlWindow {
   pub(crate) init_token: Arc<Initialization>,
@@ -33,6 +21,19 @@ impl core::ops::Deref for GlWindow {
     &self.win
   }
 }
+
+/// Handle to a [`SDL_GLContext`](https://wiki.libsdl.org/SDL_GL_CreateContext).
+#[repr(transparent)]
+pub(crate) struct GlContext {
+  // Note: The Init token is stored in the GlWindow
+  pub(crate) ctx: fermium::SDL_GLContext,
+}
+impl Drop for GlContext {
+  fn drop(&mut self) {
+    unsafe { fermium::SDL_GL_DeleteContext(self.ctx) }
+  }
+}
+
 impl GlWindow {
   /// Swaps the window buffers.
   ///
