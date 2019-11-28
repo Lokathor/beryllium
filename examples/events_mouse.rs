@@ -1,11 +1,10 @@
 use beryllium::*;
-use core::time::Duration;
 
 fn main() {
   let sdl = SDL::init(InitFlags::Everything).expect("couldn't init SDL");
   let _win = sdl
     .create_gl_window(
-      "Window Delay",
+      "Mouse Event Test",
       WindowPosition::default(),
       800,
       600,
@@ -15,7 +14,10 @@ fn main() {
 
   loop {
     match sdl.poll_events().and_then(Result::ok) {
-      Some(Event::Quit(QuitEvent { timestamp })) => break,
+      Some(Event::Quit(QuitEvent { .. })) => break,
+      Some(Event::MouseMotion(motion)) => println!("motion: {:?}", motion),
+      Some(Event::MouseButton(button)) => println!("button: {:?}", button),
+      Some(Event::MouseWheel(wheel)) => println!("wheel: {:?}", wheel),
       _ => continue,
     }
   }
