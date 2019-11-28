@@ -131,6 +131,9 @@ impl SDL {
   /// Note: This **cannot** track by itself that the other drawing API is closed
   /// down before you close this window.
   ///
+  /// Note: If you intend to use GL or VK with this raw window be sure to
+  /// include that in your flags argument!
+  ///
   /// Note: `beryllium` currently only allows one window!
   #[cfg(feature = "extern_crate_raw_window_handle")]
   pub fn create_raw_window(
