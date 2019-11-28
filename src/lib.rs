@@ -27,16 +27,17 @@
 
 Current TODO:
 
-audio queue
+?
 
 STRETCH GOALS:
 
 joystick / controller
-Message Box
+message boxes
+window flags
 
 NEXT FERMIUM:
 
-Expose `SDL_GetErrorMsg`, which is apparently thread safe.
+Expose `SDL_GetErrorMsg`, which is apparently thread safe?
 
 */
 

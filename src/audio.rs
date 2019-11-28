@@ -1,4 +1,3 @@
-
 use super::*;
 
 mod queue;
@@ -13,28 +12,28 @@ impl AudioFormat {
   pub const I8: AudioFormat = AudioFormat(fermium::AUDIO_S8 as u16);
   /// `u8`
   pub const U8: AudioFormat = AudioFormat(fermium::AUDIO_U8 as u16);
-  
+
   /// `i16` little-endian
   pub const I16_LE: AudioFormat = AudioFormat(fermium::AUDIO_S16LSB as u16);
   /// `i16` big-endian
   pub const I16_BE: AudioFormat = AudioFormat(fermium::AUDIO_S16MSB as u16);
   /// `i16` system-endian
   pub const I16_SYS: AudioFormat = AudioFormat(fermium::AUDIO_S16SYS as u16);
-  
+
   /// `u16` little-endian
   pub const U16_LE: AudioFormat = AudioFormat(fermium::AUDIO_U16LSB as u16);
   /// `u16` big-endian
   pub const U16_BE: AudioFormat = AudioFormat(fermium::AUDIO_U16MSB as u16);
   /// `u16` system-endian
   pub const U16_SYS: AudioFormat = AudioFormat(fermium::AUDIO_U16SYS as u16);
-  
+
   /// `i32` little-endian
   pub const I32_LE: AudioFormat = AudioFormat(fermium::AUDIO_S32LSB as u16);
   /// `i32` big-endian
   pub const I32_BE: AudioFormat = AudioFormat(fermium::AUDIO_S32MSB as u16);
   /// `i32` system-endian
   pub const I32_SYS: AudioFormat = AudioFormat(fermium::AUDIO_S32SYS as u16);
-  
+
   /// `f32` little-endian
   pub const F32_LE: AudioFormat = AudioFormat(fermium::AUDIO_F32LSB as u16);
   /// `f32` big-endian
@@ -95,7 +94,7 @@ pub enum AudioChannels {
 #[cfg_attr(not(windows), repr(u32))]
 pub enum AudioStatus {
   /// Device is stopped.
-  /// 
+  ///
   /// Usually indicates a closed or error'd device.
   Stopped = fermium::SDL_AUDIO_STOPPED,
   /// Device is playing.

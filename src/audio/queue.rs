@@ -1,7 +1,7 @@
 use super::*;
 
 /// An `AudioQueue` lets you output audio by pushing samples to the device.
-/// 
+///
 /// If your queue runs dry SDL will automatically output silence for you.
 pub struct AudioQueue {
   #[allow(unused)]
@@ -54,10 +54,11 @@ impl AudioQueue {
     if bytes.len() > (u32::max_value() as usize) {
       return Err(());
     }
+    // TODO: make this `.cast()` once we're on 1.38 or more.
     let ret = unsafe {
       fermium::SDL_QueueAudio(
         self.device,
-        bytes.as_ptr().cast(),
+        bytes.as_ptr() as *const _,
         bytes.len() as u32,
       )
     };
@@ -142,7 +143,7 @@ pub struct AudioQueueRequest {
   pub channels: AudioChannels,
 
   /// The intended number of samples in the audio buffer.
-  /// 
+  ///
   /// This is automatically rounded up to the next power of 2.
   pub sample_count: u16,
 
