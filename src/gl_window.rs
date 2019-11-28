@@ -43,7 +43,7 @@ impl GlWindow {
   }
 
   /// Gets the physical size of the draw area.
-  /// 
+  ///
   /// Basically you just pass this to `glViewport`.
   pub fn get_drawable_size(&self) -> (i32, i32) {
     let mut w = 0_i32;
@@ -53,9 +53,9 @@ impl GlWindow {
   }
 
   /// Loads a function pointer for the named function.
-  /// 
+  ///
   /// ## Safety
-  /// 
+  ///
   /// The pointer given must be a null-terminated string.
   pub unsafe fn get_proc_address(&self, func: *const c_char) -> *mut c_void {
     fermium::SDL_GL_GetProcAddress(func)
@@ -72,9 +72,9 @@ impl GlWindow {
   }
 
   /// If the named extension is supported or not.
-  /// 
+  ///
   /// ## Safety
-  /// 
+  ///
   /// The pointer given must be a null-terminated string.
   pub unsafe fn supports_extension_c(&self, extension: *const c_char) -> bool {
     fermium::SDL_GL_ExtensionSupported(extension) == fermium::SDL_TRUE

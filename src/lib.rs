@@ -57,6 +57,7 @@ macro_rules! cow_str {
 
 mod initialization;
 pub(crate) use initialization::*;
+pub use initialization::InitFlags;
 mod sdl;
 pub use sdl::*;
 mod window;

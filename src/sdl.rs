@@ -21,7 +21,7 @@ impl SDL {
   /// * Fails on Mac if you're not on the main thread (according to `NSThread`).
   /// * Fails if SDL is currently initialized.
   /// * Fails if `SDL_Init` fails for whatever reason.
-  pub fn init(flags: u32) -> Result<Self, CowStr> {
+  pub fn init(flags: InitFlags) -> Result<Self, CowStr> {
     Ok(Self { init_token: Rc::new(Initialization::new(flags)?) })
   }
 
@@ -114,5 +114,29 @@ impl SDL {
         ctx: ManuallyDrop::new(ctx),
       })
     }
+  }
+
+  /// Blocks for at least `ms` milliseconds before returning.
+  ///
+  /// It might be longer than that because of OS scheduling.
+  pub fn delay_ms(&self, ms: u32) {
+    unsafe { fermium::SDL_Delay(ms) }
+  }
+
+  /// Blocks for the given [`Duration`](core::time::Duration) with millisecond
+  /// granularity.
+  /// 
+  /// If the duration is more than `u32::max_value()` milliseconds.
+  /// 
+  /// 1) Seriously, what the hell? Are you okay friend? Sleeping that much?
+  /// 2) It uses more than one sleep in a loop because you do you.
+  pub fn delay_duration(&self, duration: core::time::Duration) {
+    let mut ms_remaining = duration.as_millis();
+    const TIME_CHUNK: u128 = u32::max_value() as u128;
+    while ms_remaining > TIME_CHUNK {
+      unsafe { fermium::SDL_Delay(TIME_CHUNK as u32) }
+      ms_remaining -= TIME_CHUNK;
+    }
+    self.delay_ms(ms_remaining as u32)
   }
 }
