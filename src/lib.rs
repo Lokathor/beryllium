@@ -7,6 +7,10 @@
 //! The bindings themselves are provided by
 //! [`fermium`](https://docs.rs/fermium), this crate attempts to make it safe
 //! and easy to use from Rust.
+//!
+//! ## `no_std` Support
+//!
+//! Yes on Win/Linux, no on Mac.
 
 /*
 
@@ -27,12 +31,14 @@ Message Box
 */
 
 pub use fermium;
+pub(crate) use fermium::{c_char, c_void};
 
 extern crate alloc;
 use alloc::{borrow::Cow, format, rc::Rc, string::String, vec, vec::Vec};
 
 use core::{
   marker::PhantomData,
+  mem::ManuallyDrop,
   sync::atomic::{AtomicBool, Ordering},
 };
 
@@ -49,18 +55,33 @@ macro_rules! cow_str {
   };
 }
 
+mod initialization;
+pub(crate) use initialization::*;
+mod sdl;
+pub use sdl::*;
+mod window;
+pub use window::*;
+mod gl_window;
+pub use gl_window::*;
+
 /// Clone On Write, specific to `&str` and `String`.
 ///
 /// Used where possible to save on allocations.
 pub type CowStr = Cow<'static, str>;
 
-mod initialization;
-pub(crate) use initialization::*;
-
-mod sdl;
-pub use sdl::*;
-mod gl;
-pub use gl::*;
+trait StrExt {
+  fn alloc_c_str(&self) -> Vec<c_char>;
+}
+impl StrExt for str {
+  fn alloc_c_str(&self) -> Vec<c_char> {
+    self
+      .bytes()
+      .map(|c| c as c_char)
+      .take_while(|&c| c != 0)
+      .chain(Some(0))
+      .collect()
+  }
+}
 
 /// Obtains the current SDL error message.
 ///

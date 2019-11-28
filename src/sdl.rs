@@ -1,5 +1,7 @@
 use super::*;
 
+pub(crate) static WINDOW_EXISTS: AtomicBool = AtomicBool::new(false);
+
 /// A handle to the SDL API.
 ///
 /// Having one of these is the proof that you've called `SDL_Init`.
@@ -36,8 +38,9 @@ impl SDL {
   ///
   /// Make all of these calls **before** making your OpenGL-enabled Window.
   ///
-  /// The final context that you get might differ from your request. Use the
-  /// context's get_attribute method to check the values that you care about.
+  /// The final context that you get might differ from your request. Use
+  /// [`gl_get_attribute`](SDL::gl_get_attribute) after you've made your
+  /// [`GLWindow`] to examine your actual context.
   ///
   /// ## Failure
   ///
@@ -56,6 +59,60 @@ impl SDL {
       Ok(())
     } else {
       Err(self.get_error())
+    }
+  }
+
+  /// Resets all GL Attributes to their default values.
+  pub fn gl_reset_attributes(&self) {
+    unsafe { fermium::SDL_GL_ResetAttributes() }
+  }
+
+  /// Makes a window with a GL context in one step.
+  ///
+  /// beryllium currently only allows one window
+  pub fn create_gl_window(
+    &self,
+    title: &str,
+    pos: WindowPosition,
+    width: u32,
+    height: u32,
+    flags: u32,
+  ) -> Result<GlWindow, String> {
+    if WINDOW_EXISTS.swap(true, Ordering::SeqCst) {
+      Err(String::from("beryllium: There's already a window!"))
+    } else {
+      // make a window
+      let title_null = title.alloc_c_str();
+      let (x, y) = pos.what_sdl_wants();
+      let win = unsafe {
+        fermium::SDL_CreateWindow(
+          title_null.as_ptr(),
+          x,
+          y,
+          width as i32,
+          height as i32,
+          flags | (fermium::SDL_WINDOW_OPENGL as u32),
+        )
+      };
+      if win.is_null() {
+        return Err(self.get_error());
+      }
+      // now it'll drop
+      let win = Window { win };
+
+      // make a context
+      let ctx = unsafe { fermium::SDL_GL_CreateContext(win.win) };
+      if ctx.is_null() {
+        return Err(self.get_error());
+      }
+      // now it'll drop
+      let ctx = GlContext { ctx };
+
+      Ok(GlWindow {
+        init_token: self.init_token.clone(),
+        win: ManuallyDrop::new(win),
+        ctx: ManuallyDrop::new(ctx),
+      })
     }
   }
 }
