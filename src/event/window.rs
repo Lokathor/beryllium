@@ -61,7 +61,7 @@ impl From<WindowEvent> for fermium::SDL_WindowEvent {
   }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WindowEventEnum {
   Shown,
   Hidden,

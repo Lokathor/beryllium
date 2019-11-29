@@ -18,6 +18,12 @@ mod wheel;
 pub use wheel::*;
 mod key;
 pub use key::*;
+mod cdevice;
+pub use cdevice::*;
+mod cbutton;
+pub use cbutton::*;
+mod caxis;
+pub use caxis::*;
 
 pub enum Event {
   Quit(QuitEvent),
@@ -26,7 +32,10 @@ pub enum Event {
   MouseButton(MouseButtonEvent),
   MouseWheel(MouseWheelEvent),
   Keyboard(KeyboardEvent),
-  // TODO
+  ControllerDevice(ControllerDeviceEvent),
+  ControllerButton(ControllerButtonEvent),
+  ControllerAxis(ControllerAxisEvent),
+  // TODO: more event variants
 }
 impl TryFrom<SDL_Event> for Event {
   type Error = SDL_Event;
@@ -53,6 +62,21 @@ impl TryFrom<SDL_Event> for Event {
         }
         fermium::SDL_KEYDOWN | fermium::SDL_KEYUP => {
           Event::Keyboard(KeyboardEvent::from(ev.key))
+        }
+        fermium::SDL_CONTROLLERDEVICEADDED
+        | fermium::SDL_CONTROLLERDEVICEREMOVED
+        | fermium::SDL_CONTROLLERDEVICEREMAPPED => Event::ControllerDevice(
+          if let Ok(cde) = ControllerDeviceEvent::try_from(ev.cdevice) {
+            cde
+          } else {
+            return Err(ev);
+          },
+        ),
+        fermium::SDL_CONTROLLERBUTTONDOWN | fermium::SDL_CONTROLLERBUTTONUP => {
+          Event::ControllerButton(ControllerButtonEvent::from(ev.cbutton))
+        }
+        fermium::SDL_CONTROLLERAXISMOTION => {
+          Event::ControllerAxis(ControllerAxisEvent::from(ev.caxis))
         }
         _ => return Err(ev),
       }

@@ -45,13 +45,18 @@ impl SDL {
   /// ## Failure
   ///
   /// The `SdlGlAttr` will only let you set valid attribute names, but there's
-  /// no checking on Rust's part that the value you pass is allowed for that
-  /// attribute. If you pass an invalid value SDL will generate an error.
+  /// no checking on Rust's part that the value you pass is an allowed value for
+  /// that attribute. If you pass an invalid value SDL will generate an error.
   pub fn gl_set_attribute(
     &self,
     attr: SdlGlAttr,
     value: i32,
   ) -> Result<(), String> {
+    if unsafe { fermium::SDL_WasInit(InitFlags::Video.0) == 0 } {
+      return Err(String::from(
+        "beryllium: You didn't init the video subsystem!",
+      ));
+    }
     let ret = unsafe {
       fermium::SDL_GL_SetAttribute(attr as fermium::SDL_GLattr, value)
     };
@@ -64,11 +69,14 @@ impl SDL {
 
   /// Resets all GL Attributes to their default values.
   pub fn gl_reset_attributes(&self) {
+    if unsafe { fermium::SDL_WasInit(InitFlags::Video.0) == 0 } {
+      return;
+    }
     unsafe { fermium::SDL_GL_ResetAttributes() }
   }
 
   /// Makes a [`GlWindow`], a [`Window`] that's got a fused GL context.
-  /// 
+  ///
   /// Be sure to set your desired GL context information _before_ you call this.
   ///
   /// Note: `beryllium` currently only allows one window!
@@ -81,7 +89,9 @@ impl SDL {
     flags: u32,
   ) -> Result<GlWindow, String> {
     if unsafe { fermium::SDL_WasInit(InitFlags::Video.0) == 0 } {
-      return Err(String::from("beryllium: You didn't init the video subsystem!"));
+      return Err(String::from(
+        "beryllium: You didn't init the video subsystem!",
+      ));
     }
     if WINDOW_EXISTS.swap(true, Ordering::SeqCst) {
       Err(String::from("beryllium: There's already a window!"))
@@ -145,7 +155,9 @@ impl SDL {
     flags: u32,
   ) -> Result<RawWindow, String> {
     if unsafe { fermium::SDL_WasInit(InitFlags::Video.0) == 0 } {
-      return Err(String::from("beryllium: You didn't init the video subsystem!"));
+      return Err(String::from(
+        "beryllium: You didn't init the video subsystem!",
+      ));
     }
     if WINDOW_EXISTS.swap(true, Ordering::SeqCst) {
       Err(String::from("beryllium: There's already a window!"))
@@ -180,6 +192,9 @@ impl SDL {
   ///
   /// It might be longer than that because of OS scheduling.
   pub fn delay_ms(&self, ms: u32) {
+    if unsafe { fermium::SDL_WasInit(InitFlags::Timer.0) == 0 } {
+      return;
+    }
     unsafe { fermium::SDL_Delay(ms) }
   }
 
@@ -317,6 +332,9 @@ impl SDL {
     name: Option<&str>,
     request: AudioQueueRequest,
   ) -> Result<AudioQueue, String> {
+    if unsafe { fermium::SDL_WasInit(InitFlags::Audio.0) == 0 } {
+      return Err(String::from("beryllium: Audio subsystem isn't initialized."));
+    }
     let name_null = name.unwrap_or("").alloc_c_str();
     let mut in_spec = fermium::SDL_AudioSpec::default();
     in_spec.freq = request.frequency as i32;
@@ -351,6 +369,69 @@ impl SDL {
       })
     } else {
       Err(self.get_error())
+    }
+  }
+
+  /// Check the number of joysticks available.
+  pub fn num_joysticks(&self) -> Result<i32, String> {
+    if unsafe { fermium::SDL_WasInit(InitFlags::Joystick.0) == 0 } {
+      return Err(String::from("beryllium: Joystick subsystem isn't initialized."));
+    }
+    let ret = unsafe { fermium::SDL_NumJoysticks() };
+    if ret >= 0 {
+      Ok(ret)
+    } else {
+      Err(self.get_error())
+    }
+  }
+
+  /// Check if a given joystick index value supports the Controller API.
+  pub fn is_game_controller(&self, joystick_index: i32) -> bool {
+    if unsafe { fermium::SDL_WasInit(InitFlags::GameController.0) == 0 } {
+      return false;
+    }
+    fermium::SDL_TRUE == unsafe { fermium::SDL_IsGameController(joystick_index) }
+  }
+
+  /// Attempts to open the Controller API for the given joystick index.
+  ///
+  /// You do not have to open the joystick itself before you call this, you can
+  /// call this directly on any index that passes the
+  /// [`is_game_controller`](SDL::is_game_controller) check.
+  pub fn open_game_controller(&self, joystick_index: i32) -> Result<Controller, String> {
+    if unsafe { fermium::SDL_WasInit(InitFlags::GameController.0) == 0 } {
+      return Err(String::from("beryllium: Controller subsystem isn't initialized."));
+    }
+    let device = unsafe {
+      fermium::SDL_GameControllerOpen(joystick_index)
+    };
+    if device.is_null() {
+      Err(self.get_error())
+    } else {
+      // from here it will close itself if we err out. We just use a dummy
+      // instance_id because the drop code only uses the device pointer.
+      let mut controller = Controller {
+        init_token: self.init_token.clone(),
+        device,
+        joystick_id: -1,
+      };
+      // Now we look up the instance ID of the underlying joystick.
+      let joystick = unsafe {
+        fermium::SDL_GameControllerGetJoystick(device)
+      };
+      if joystick.is_null() {
+        Err(String::from("Couldn't get joystick pointer for controller"))
+      } else {
+        let joystick_id = unsafe {
+          fermium::SDL_JoystickInstanceID(joystick)
+        };
+        if joystick_id >= 0 {
+          controller.joystick_id = joystick_id;
+          Ok(controller)
+        } else {
+          Err(String::from("Couldn't get joystick ID for controller"))
+        }
+      }
     }
   }
 }

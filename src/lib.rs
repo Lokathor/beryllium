@@ -27,13 +27,19 @@
 
 Current TODO:
 
-?
+joystick / controller
 
 STRETCH GOALS:
 
-joystick / controller
+SDL_WasInit
 message boxes
 window flags
+
+Ideas:
+
+struct CStrFormatter(*const c_char);
+impl CStrFormatter { pub unsafe fn new(ptr: *const c_char) -> Self { .. }
+impl core::fmt::Debug for CStrFormatter { ... }
 
 NEXT FERMIUM:
 
@@ -78,6 +84,8 @@ mod event;
 pub use event::*;
 mod audio;
 pub use audio::*;
+mod controller;
+pub use controller::*;
 
 /// Clone On Write, specific to `&str` and `String`.
 ///

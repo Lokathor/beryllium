@@ -43,7 +43,7 @@ impl From<KeyboardEvent> for fermium::SDL_KeyboardEvent {
   }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct KeyInfo {
   scancode: fermium::SDL_Scancode,
   keycode: fermium::SDL_Keycode,
