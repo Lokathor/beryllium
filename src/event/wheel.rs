@@ -1,13 +1,20 @@
 use super::*;
 
+/// The user moved the mouse wheel.
 #[derive(Debug, Clone, Copy)]
 pub struct MouseWheelEvent {
-  timestamp: u32,
-  window_id: u32,
-  mouse_id: u32,
-  x_delta: i32,
-  y_delta: i32,
-  is_normal: bool,
+  /// When?
+  pub timestamp: u32,
+  /// What window?
+  pub window_id: u32,
+  /// What mouse? or `SDL_TOUCH_MOUSEID` for the touch screen.
+  pub mouse_id: u32,
+  /// The X delta (right is +, left is -).
+  pub x_delta: i32,
+  /// The Y delta (away from user is +, towards user is -).
+  pub y_delta: i32,
+  /// If this is set then the delta values are reverse of the above.
+  pub is_normal: bool,
 }
 
 impl From<fermium::SDL_MouseWheelEvent> for MouseWheelEvent {

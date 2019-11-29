@@ -1,18 +1,25 @@
 use super::*;
 
+/// A change in the axis value of a controller.
 #[derive(Debug, Clone, Copy)]
 pub struct ControllerAxisEvent {
-  timestamp: u32,
-  joystick_id: fermium::SDL_JoystickID,
-  axis: ControllerAxis,
-  value: i16,
+  /// When
+  pub timestamp: u32,
+  /// Which controller.
+  pub joystick_id: fermium::SDL_JoystickID,
+  /// Which axis
+  pub axis: ControllerAxis,
+  /// The new axis value.
+  pub value: i16,
 }
 impl From<fermium::SDL_ControllerAxisEvent> for ControllerAxisEvent {
   fn from(ev: fermium::SDL_ControllerAxisEvent) -> Self {
     Self {
       timestamp: ev.timestamp,
       joystick_id: ev.which,
-      axis: ControllerAxis::from(fermium::SDL_GameControllerAxis::from(ev.axis)),
+      axis: ControllerAxis::from(fermium::SDL_GameControllerAxis::from(
+        ev.axis,
+      )),
       value: ev.value,
     }
   }

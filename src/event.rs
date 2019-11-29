@@ -1,5 +1,3 @@
-#![allow(missing_docs)]
-
 use super::*;
 use fermium::{SDL_Event, SDL_EventType};
 
@@ -25,6 +23,10 @@ pub use cbutton::*;
 mod caxis;
 pub use caxis::*;
 
+/// The event possibilities.
+///
+/// See the docs of each struct for details.
+#[allow(missing_docs)]
 pub enum Event {
   Quit(QuitEvent),
   Window(WindowEvent),

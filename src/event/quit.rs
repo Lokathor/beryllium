@@ -1,7 +1,9 @@
 use super::*;
 
+/// The user requested to quit.
 #[derive(Debug, Clone, Copy)]
 pub struct QuitEvent {
+  /// When?
   pub timestamp: u32,
 }
 

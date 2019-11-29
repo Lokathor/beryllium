@@ -9,6 +9,7 @@ pub struct GlWindow {
 impl Drop for GlWindow {
   fn drop(&mut self) {
     unsafe {
+      fermium::SDL_GL_MakeCurrent(self.win.win, null_mut());
       ManuallyDrop::drop(&mut self.ctx);
       ManuallyDrop::drop(&mut self.win);
     }

@@ -27,13 +27,19 @@
 
 Current TODO:
 
-joystick / controller
+?
 
 STRETCH GOALS:
 
 SDL_WasInit
-message boxes
-window flags
+message boxes?
+window flags newtype
+mouse button enum
+KeySym modifiers newtype
+MouseMotionEvent.state newtype
+SDL_ShowCursor
+SDL_WarpMouseInWindow
+SDL_WarpMouseGlobal
 
 Ideas:
 
@@ -57,6 +63,7 @@ use core::{
   convert::TryFrom,
   marker::PhantomData,
   mem::ManuallyDrop,
+  ptr::null_mut,
   sync::atomic::{AtomicBool, Ordering},
 };
 

@@ -1,10 +1,29 @@
 use super::*;
 
+/// A controller was added, removed, or had the buttons remapped.
 #[derive(Debug, Clone, Copy)]
 pub enum ControllerDeviceEvent {
-  Added { timestamp: u32, joystick_index: i32 },
-  Removed { timestamp: u32, instance_id: i32 },
-  Remapped { timestamp: u32, instance_id: i32 },
+  /// Controller added
+  Added {
+    /// When?
+    timestamp: u32,
+    /// What's the new index?
+    joystick_index: i32,
+  },
+  /// A controller was removed from the system.
+  Removed {
+    /// When?
+    timestamp: u32,
+    /// Which instance ID went away?
+    instance_id: i32,
+  },
+  /// A controller had the buttons remapped.
+  Remapped {
+    /// When?
+    timestamp: u32,
+    /// Which instance ID changed button mapping?
+    instance_id: i32,
+  },
 }
 
 impl TryFrom<fermium::SDL_ControllerDeviceEvent> for ControllerDeviceEvent {

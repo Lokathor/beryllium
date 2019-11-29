@@ -1,11 +1,20 @@
 use super::*;
 
+/// A controller button was pressed or released.
+///
+/// Note: On some controllers I've seen (iBuffalo SNES) you can get events for
+/// buttons being released even when the button was _already_ released. Seems
+/// harmless, but it might happen to you too.
 #[derive(Debug, Clone, Copy)]
 pub struct ControllerButtonEvent {
-  timestamp: u32,
-  joystick_id: fermium::SDL_JoystickID,
-  button: ControllerButton,
-  is_pressed: bool,
+  /// When?
+  pub timestamp: u32,
+  /// Which controller?
+  pub joystick_id: fermium::SDL_JoystickID,
+  /// Which button?
+  pub button: ControllerButton,
+  /// Is it pressed now?
+  pub is_pressed: bool,
 }
 impl From<fermium::SDL_ControllerButtonEvent> for ControllerButtonEvent {
   fn from(ev: fermium::SDL_ControllerButtonEvent) -> Self {

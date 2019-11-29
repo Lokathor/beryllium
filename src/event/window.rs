@@ -1,10 +1,14 @@
 use super::*;
 
+/// An event happened to the window.
 #[derive(Debug, Clone, Copy)]
 pub struct WindowEvent {
-  timestamp: u32,
-  window_id: u32,
-  event: WindowEventEnum,
+  /// When?
+  pub timestamp: u32,
+  /// Which window?
+  pub window_id: u32,
+  /// Event details, see [`WindowEventEnum`](WindowEventEnum).
+  pub event: WindowEventEnum,
 }
 impl TryFrom<fermium::SDL_WindowEvent> for WindowEvent {
   type Error = ();
@@ -61,23 +65,57 @@ impl From<WindowEvent> for fermium::SDL_WindowEvent {
   }
 }
 
+/// The types of window event that can happen.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WindowEventEnum {
+  /// The window is now shown.
   Shown,
+  /// The window is now hidden.
   Hidden,
+  /// The window surface was exposed and should redraw.
   Exposed,
-  Moved { x: i32, y: i32 },
-  Resized { w: u32, h: u32 },
+  /// The window was moved
+  Moved {
+    /// New X, relative to the monitor.
+    x: i32,
+    /// New Y, relative to the monitor.
+    y: i32,
+  },
+  /// The window has a new size. Always preceded by `SizeChanged`.
+  Resized {
+    /// New width (in logical screen units maybe?).
+    w: u32,
+    /// New height
+    h: u32,
+  },
+  /// The window size changed.
+  ///
+  /// The new size will be reported in a `Resized` event if the size change was
+  /// caused by something _other_ than you telling SDL to change the window
+  /// size.
   SizeChanged,
+  /// The window is now minimized.
   Minimized,
+  /// The window is now maximized.
   Maximized,
+  /// The window is restored from a minimized state.
   Restored,
+  /// The mouse entered the window area.
   MouseEnter,
+  /// The mouse left the window area.
   MouseLeave,
+  /// The keyboard focus is on this window now.
   KeyboardFocusGained,
+  /// The keyboard focus left this window.
   KeyboardFocusLost,
+  /// The window manager wants to close the window.
   Close,
+  /// The window is being offered focus.
+  ///
+  /// Call `SDL_SetWindowInputFocus` on yourself, or a sub-window, or ignore
+  /// it.
   TakeFocus,
+  /// The window had a hit test that wasn't `SDL_HITTEST_NORMAL`.
   HitTest,
 }
 impl WindowEventEnum {

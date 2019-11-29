@@ -1,12 +1,18 @@
 use super::*;
 
+/// A keyboard event.
 #[derive(Debug, Clone, Copy)]
 pub struct KeyboardEvent {
-  timestamp: u32,
-  window_id: u32,
-  is_pressed: bool,
-  repeat: u8,
-  key: KeyInfo,
+  /// When?
+  pub timestamp: u32,
+  /// Which window had focus?
+  pub window_id: u32,
+  /// Is the key pressed?
+  pub is_pressed: bool,
+  /// The repeat count.
+  pub repeat: u8,
+  /// Info about the key and any modifiers.
+  pub key: KeyInfo,
 }
 
 impl From<fermium::SDL_KeyboardEvent> for KeyboardEvent {
@@ -43,11 +49,15 @@ impl From<KeyboardEvent> for fermium::SDL_KeyboardEvent {
   }
 }
 
+/// Info about a key pressed, and any modifiers.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct KeyInfo {
-  scancode: fermium::SDL_Scancode,
-  keycode: fermium::SDL_Keycode,
-  modifiers: u16,
+  /// Physical scancode.
+  pub scancode: fermium::SDL_Scancode,
+  /// Virtual keycode.
+  pub keycode: fermium::SDL_Keycode,
+  /// The modifiers
+  pub modifiers: u16,
 }
 
 impl From<fermium::SDL_Keysym> for KeyInfo {

@@ -1,4 +1,3 @@
-
 use super::*;
 
 /// A game controller.
@@ -15,9 +14,7 @@ pub struct Controller {
 }
 impl Drop for Controller {
   fn drop(&mut self) {
-    unsafe {
-      fermium::SDL_GameControllerClose(self.device)
-    }
+    unsafe { fermium::SDL_GameControllerClose(self.device) }
   }
 }
 impl Controller {

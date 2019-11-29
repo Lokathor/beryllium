@@ -1,7 +1,5 @@
 use super::*;
 
-use core::ptr::null_mut;
-
 use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
 
 #[cfg(target_os = "macos")]

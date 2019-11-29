@@ -1,16 +1,23 @@
 use super::*;
 
+/// Event for the mouse moving around.
 #[derive(Debug, Clone, Copy)]
 pub struct MouseMotionEvent {
+  /// When?
   pub timestamp: u32,
+  /// What window?
   pub window_id: u32,
   /// The mouse ID of an actual mouse, or `SDL_TOUCH_MOUSEID`
   pub mouse_id: u32,
-  // TODO: newtype this
+  /// The button state while the event is going on.
   pub state: u32,
+  /// The X position (relative to the window).
   pub x_pos: i32,
+  /// The Y position (relative to the window).
   pub y_pos: i32,
+  /// The X delta.
   pub x_delta: i32,
+  /// The Y delta.
   pub y_delta: i32,
 }
 impl From<fermium::SDL_MouseMotionEvent> for MouseMotionEvent {

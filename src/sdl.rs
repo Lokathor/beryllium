@@ -333,7 +333,9 @@ impl SDL {
     request: AudioQueueRequest,
   ) -> Result<AudioQueue, String> {
     if unsafe { fermium::SDL_WasInit(InitFlags::Audio.0) == 0 } {
-      return Err(String::from("beryllium: Audio subsystem isn't initialized."));
+      return Err(String::from(
+        "beryllium: Audio subsystem isn't initialized.",
+      ));
     }
     let name_null = name.unwrap_or("").alloc_c_str();
     let mut in_spec = fermium::SDL_AudioSpec::default();
@@ -375,7 +377,9 @@ impl SDL {
   /// Check the number of joysticks available.
   pub fn num_joysticks(&self) -> Result<i32, String> {
     if unsafe { fermium::SDL_WasInit(InitFlags::Joystick.0) == 0 } {
-      return Err(String::from("beryllium: Joystick subsystem isn't initialized."));
+      return Err(String::from(
+        "beryllium: Joystick subsystem isn't initialized.",
+      ));
     }
     let ret = unsafe { fermium::SDL_NumJoysticks() };
     if ret >= 0 {
@@ -390,7 +394,8 @@ impl SDL {
     if unsafe { fermium::SDL_WasInit(InitFlags::GameController.0) == 0 } {
       return false;
     }
-    fermium::SDL_TRUE == unsafe { fermium::SDL_IsGameController(joystick_index) }
+    fermium::SDL_TRUE
+      == unsafe { fermium::SDL_IsGameController(joystick_index) }
   }
 
   /// Attempts to open the Controller API for the given joystick index.
@@ -398,13 +403,16 @@ impl SDL {
   /// You do not have to open the joystick itself before you call this, you can
   /// call this directly on any index that passes the
   /// [`is_game_controller`](SDL::is_game_controller) check.
-  pub fn open_game_controller(&self, joystick_index: i32) -> Result<Controller, String> {
+  pub fn open_game_controller(
+    &self,
+    joystick_index: i32,
+  ) -> Result<Controller, String> {
     if unsafe { fermium::SDL_WasInit(InitFlags::GameController.0) == 0 } {
-      return Err(String::from("beryllium: Controller subsystem isn't initialized."));
+      return Err(String::from(
+        "beryllium: Controller subsystem isn't initialized.",
+      ));
     }
-    let device = unsafe {
-      fermium::SDL_GameControllerOpen(joystick_index)
-    };
+    let device = unsafe { fermium::SDL_GameControllerOpen(joystick_index) };
     if device.is_null() {
       Err(self.get_error())
     } else {
@@ -416,15 +424,11 @@ impl SDL {
         joystick_id: -1,
       };
       // Now we look up the instance ID of the underlying joystick.
-      let joystick = unsafe {
-        fermium::SDL_GameControllerGetJoystick(device)
-      };
+      let joystick = unsafe { fermium::SDL_GameControllerGetJoystick(device) };
       if joystick.is_null() {
         Err(String::from("Couldn't get joystick pointer for controller"))
       } else {
-        let joystick_id = unsafe {
-          fermium::SDL_JoystickInstanceID(joystick)
-        };
+        let joystick_id = unsafe { fermium::SDL_JoystickInstanceID(joystick) };
         if joystick_id >= 0 {
           controller.joystick_id = joystick_id;
           Ok(controller)
@@ -432,6 +436,46 @@ impl SDL {
           Err(String::from("Couldn't get joystick ID for controller"))
         }
       }
+    }
+  }
+
+  /// Hides the cursor and prevents the mouse position from being changed.
+  ///
+  /// The driver will continue to report "relative" mouse motions to you. This
+  /// flushes any pending mouse events.
+  ///
+  /// Basically, use this for an FPS-style experience.
+  pub fn set_relative_mouse_mode(&self, enabled: bool) -> Result<(), String> {
+    if WINDOW_EXISTS.load(Ordering::Relaxed) {
+      let ret = unsafe {
+        fermium::SDL_SetRelativeMouseMode(fermium::SDL_bool::from(enabled))
+      };
+      if ret == 0 {
+        Ok(())
+      } else {
+        Err(self.get_error())
+      }
+    } else {
+      Err(String::from("beryllium: There's no open window!"))
+    }
+  }
+
+  /// Allows you to get mouse events globally without locking the mouse into
+  /// your window.
+  ///
+  /// The user has full, normal use of their mouse, but you will get mouse
+  /// position events even when the mouse is outside your window.
+  pub fn capture_mouse(&self, enabled: bool) -> Result<(), String> {
+    if WINDOW_EXISTS.load(Ordering::Relaxed) {
+      let ret =
+        unsafe { fermium::SDL_CaptureMouse(fermium::SDL_bool::from(enabled)) };
+      if ret == 0 {
+        Ok(())
+      } else {
+        Err(self.get_error())
+      }
+    } else {
+      Err(String::from("beryllium: There's no open window!"))
     }
   }
 }

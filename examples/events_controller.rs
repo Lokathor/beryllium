@@ -13,7 +13,7 @@ fn main() {
     .expect("couldn't open a window");
 
   let mut controllers = Vec::new();
-  for id in 0 .. sdl.num_joysticks().expect("couldn't check joystick count") {
+  for id in 0..sdl.num_joysticks().expect("couldn't check joystick count") {
     if sdl.is_game_controller(id) {
       println!("trying to open {}...", id);
       match sdl.open_game_controller(id) {
@@ -26,8 +26,12 @@ fn main() {
   loop {
     match sdl.poll_events().and_then(Result::ok) {
       Some(Event::Quit(QuitEvent { .. })) => break,
-      Some(Event::ControllerDevice(cdevice)) => println!("cdevice: {:?}", cdevice),
-      Some(Event::ControllerButton(cbutton)) => println!("cbutton: {:?}", cbutton),
+      Some(Event::ControllerDevice(cdevice)) => {
+        println!("cdevice: {:?}", cdevice)
+      }
+      Some(Event::ControllerButton(cbutton)) => {
+        println!("cbutton: {:?}", cbutton)
+      }
       Some(Event::ControllerAxis(caxis)) => println!("caxis: {:?}", caxis),
       _ => continue,
     }
