@@ -2,12 +2,17 @@
 name = "beryllium"
 description = "An opinionated set of high level wrappers for the `fermium` SDL2 bindings."
 repository = "https://github.com/Lokathor/beryllium"
-version = "0.2.0-alpha"
+version = "0.2.0-alpha.1"
 authors = ["Lokathor <zefria@gmail.com>"]
 edition = "2018"
 license = "Zlib"
 keywords = ["SDL2"]
 categories = ["api-bindings", "multimedia", "game-engines", "no-std"]
+
+# This forces docs.rs to build us on windows, which has the simplest build for
+# docs.rs to perform.
+[package.metadata.docs.rs]
+default-target = "x86_64-pc-windows-msvc"
 
 [features]
 default = ["link_dynamic", "extern_crate_raw_window_handle"]
@@ -26,8 +31,3 @@ objc = "0.2"
 [badges]
 appveyor = { repository = "Lokathor/beryllium" }
 travis-ci = { repository = "Lokathor/beryllium" }
-
-# This forces docs.rs to build us on windows, which has the simplest build for
-# docs.rs to perform.
-[package.metadata.docs.rs]
-default-target = "x86_64-pc-windows-msvc"
