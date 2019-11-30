@@ -22,7 +22,10 @@ Obviously this uses SDL2. The [fermium](https://docs.rs/fermium) crate is used
 as the bindings crate. You will need version 2.0.8 or later:
 
 * On Windows all necessary files are provided automatically by `fermium`, you
-  don't need to do _any_ special setup at all.
+  don't need to do _any_ special setup at all. Note that the default link style
+  is dynamic, and so you will need to have SDL2.dll available to run the
+  program. You can turn off default features and turn on static linking if you
+  like, but this takes longer to build.
 * On non-Windows you need to have installed SDL2 yourself ahead of time.
 
 ### Window Subsystem

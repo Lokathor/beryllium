@@ -31,15 +31,9 @@ Current TODO:
 
 STRETCH GOALS:
 
-SDL_WasInit
+Make SDL_WasInit better
 message boxes?
 window flags newtype
-mouse button enum
-KeySym modifiers newtype
-MouseMotionEvent.state newtype
-SDL_ShowCursor
-SDL_WarpMouseInWindow
-SDL_WarpMouseGlobal
 
 Ideas:
 
@@ -50,6 +44,7 @@ impl core::fmt::Debug for CStrFormatter { ... }
 NEXT FERMIUM:
 
 Expose `SDL_GetErrorMsg`, which is apparently thread safe?
+Fix mouse button definitions.
 
 */
 

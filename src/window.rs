@@ -29,6 +29,15 @@ impl Drop for Window {
   }
 }
 
+impl Window {
+  /// Use this to move the mouse to a given position within the window.
+  /// 
+  /// This generates a mouse motion event.
+  pub fn warp_mouse_in_window(&self, x: i32, y: i32) {
+    unsafe { fermium::SDL_WarpMouseInWindow(self.win, x,y) }
+  }
+}
+
 /// The starting position for a window.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WindowPosition {

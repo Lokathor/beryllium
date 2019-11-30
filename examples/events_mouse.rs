@@ -16,7 +16,12 @@ fn main() {
     match sdl.poll_events().and_then(Result::ok) {
       Some(Event::Quit(QuitEvent { .. })) => break,
       Some(Event::MouseMotion(motion)) => println!("motion: {:?}", motion),
-      Some(Event::MouseButton(button)) => println!("button: {:?}", button),
+      Some(Event::MouseButton(button)) => {
+        println!("button: {:?}", button);
+        if button.button == MouseButton::Left {
+          println!("Left!");
+        }
+      },
       Some(Event::MouseWheel(wheel)) => println!("wheel: {:?}", wheel),
       _ => continue,
     }

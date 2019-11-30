@@ -10,7 +10,7 @@ pub struct MouseMotionEvent {
   /// The mouse ID of an actual mouse, or `SDL_TOUCH_MOUSEID`
   pub mouse_id: u32,
   /// The button state while the event is going on.
-  pub state: u32,
+  pub state: MouseButton,
   /// The X position (relative to the window).
   pub x_pos: i32,
   /// The Y position (relative to the window).
@@ -26,7 +26,7 @@ impl From<fermium::SDL_MouseMotionEvent> for MouseMotionEvent {
       timestamp: ev.timestamp,
       window_id: ev.windowID,
       mouse_id: ev.which,
-      state: ev.state,
+      state: MouseButton(ev.state),
       x_pos: ev.x,
       y_pos: ev.y,
       x_delta: ev.xrel,
@@ -42,7 +42,7 @@ impl From<MouseMotionEvent> for fermium::SDL_MouseMotionEvent {
       timestamp: ev.timestamp,
       windowID: ev.window_id,
       which: ev.mouse_id,
-      state: ev.state,
+      state: ev.state.0,
       x: ev.x_pos,
       y: ev.y_pos,
       xrel: ev.x_delta,

@@ -79,6 +79,9 @@ impl SDL {
   ///
   /// Be sure to set your desired GL context information _before_ you call this.
   ///
+  /// This automatically adds `SDL_WINDOW_OPENGL` to the flags value that you
+  /// pass.
+  ///
   /// Note: `beryllium` currently only allows one window!
   pub fn create_gl_window(
     &self,
@@ -470,6 +473,56 @@ impl SDL {
       let ret =
         unsafe { fermium::SDL_CaptureMouse(fermium::SDL_bool::from(enabled)) };
       if ret == 0 {
+        Ok(())
+      } else {
+        Err(self.get_error())
+      }
+    } else {
+      Err(String::from("beryllium: There's no open window!"))
+    }
+  }
+
+  /// Sets if the cursor should be shown or not.
+  pub fn set_cursor_shown(&self, shown: bool) -> Result<(), String> {
+    if WINDOW_EXISTS.load(Ordering::Relaxed) {
+      let ret = unsafe {
+        fermium::SDL_ShowCursor(if shown {
+          fermium::SDL_ENABLE
+        } else {
+          fermium::SDL_DISABLE
+        } as i32)
+      };
+      if ret >= 0 {
+        Ok(())
+      } else {
+        Err(self.get_error())
+      }
+    } else {
+      Err(String::from("beryllium: There's no open window!"))
+    }
+  }
+
+  /// Checks if the cursor is currently being shown or not.
+  pub fn cursor_shown(&self) -> Result<bool, String> {
+    if WINDOW_EXISTS.load(Ordering::Relaxed) {
+      let ret = unsafe { fermium::SDL_ShowCursor(fermium::SDL_QUERY as i32) };
+      if ret >= 0 {
+        Ok(ret == fermium::SDL_ENABLE as i32)
+      } else {
+        Err(self.get_error())
+      }
+    } else {
+      Err(String::from("beryllium: There's no open window!"))
+    }
+  }
+
+  /// Use this to move the mouse to a given position in global screen space.
+  /// 
+  /// This generates a mouse motion event.
+  pub fn warp_mouse_global(&self, x: i32, y: i32) -> Result<(), String> {
+    if WINDOW_EXISTS.load(Ordering::Relaxed) {
+      let ret = unsafe { fermium::SDL_WarpMouseGlobal(x,y) };
+      if ret >= 0 {
         Ok(())
       } else {
         Err(self.get_error())
