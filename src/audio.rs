@@ -1,135 +1,104 @@
 use super::*;
 
-/// Specifies a particular sample data format.
-#[derive(Debug, Clone, Copy)]
+mod queue;
+pub use queue::*;
+
+/// A per-sample data format.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(transparent)]
 pub struct AudioFormat(pub(crate) u16);
-#[allow(missing_docs)]
 impl AudioFormat {
-  phantom_fields! {
-    self.0: u16,
-    bit_size: 0-7,
-    floating: 8,
-    big_endian: 12,
-    signed: 15,
-  }
-  pub const S8: AudioFormat = AudioFormat(fermium::AUDIO_S8 as u16);
+  /// `i8`
+  pub const I8: AudioFormat = AudioFormat(fermium::AUDIO_S8 as u16);
+  /// `u8`
   pub const U8: AudioFormat = AudioFormat(fermium::AUDIO_U8 as u16);
-  pub const S16LSB: AudioFormat = AudioFormat(fermium::AUDIO_S16LSB as u16);
-  pub const S16MSB: AudioFormat = AudioFormat(fermium::AUDIO_S16MSB as u16);
-  pub const S16SYS: AudioFormat = AudioFormat(fermium::AUDIO_S16SYS as u16);
-  pub const S16: AudioFormat = AudioFormat(fermium::AUDIO_S16 as u16);
-  pub const U16LSB: AudioFormat = AudioFormat(fermium::AUDIO_U16LSB as u16);
-  pub const U16MSB: AudioFormat = AudioFormat(fermium::AUDIO_U16MSB as u16);
-  pub const U16SYS: AudioFormat = AudioFormat(fermium::AUDIO_U16SYS as u16);
-  pub const U16: AudioFormat = AudioFormat(fermium::AUDIO_U16 as u16);
-  pub const S32LSB: AudioFormat = AudioFormat(fermium::AUDIO_S32LSB as u16);
-  pub const S32MSB: AudioFormat = AudioFormat(fermium::AUDIO_S32MSB as u16);
-  pub const S32SYS: AudioFormat = AudioFormat(fermium::AUDIO_S32SYS as u16);
-  pub const S32: AudioFormat = AudioFormat(fermium::AUDIO_S32 as u16);
-  pub const F32LSB: AudioFormat = AudioFormat(fermium::AUDIO_F32LSB as u16);
-  pub const F32MSB: AudioFormat = AudioFormat(fermium::AUDIO_F32MSB as u16);
-  pub const F32SYS: AudioFormat = AudioFormat(fermium::AUDIO_F32SYS as u16);
-  pub const F32: AudioFormat = AudioFormat(fermium::AUDIO_F32 as u16);
+
+  /// `i16` little-endian
+  pub const I16_LE: AudioFormat = AudioFormat(fermium::AUDIO_S16LSB as u16);
+  /// `i16` big-endian
+  pub const I16_BE: AudioFormat = AudioFormat(fermium::AUDIO_S16MSB as u16);
+  /// `i16` system-endian
+  pub const I16_SYS: AudioFormat = AudioFormat(fermium::AUDIO_S16SYS as u16);
+
+  /// `u16` little-endian
+  pub const U16_LE: AudioFormat = AudioFormat(fermium::AUDIO_U16LSB as u16);
+  /// `u16` big-endian
+  pub const U16_BE: AudioFormat = AudioFormat(fermium::AUDIO_U16MSB as u16);
+  /// `u16` system-endian
+  pub const U16_SYS: AudioFormat = AudioFormat(fermium::AUDIO_U16SYS as u16);
+
+  /// `i32` little-endian
+  pub const I32_LE: AudioFormat = AudioFormat(fermium::AUDIO_S32LSB as u16);
+  /// `i32` big-endian
+  pub const I32_BE: AudioFormat = AudioFormat(fermium::AUDIO_S32MSB as u16);
+  /// `i32` system-endian
+  pub const I32_SYS: AudioFormat = AudioFormat(fermium::AUDIO_S32SYS as u16);
+
+  /// `f32` little-endian
+  pub const F32_LE: AudioFormat = AudioFormat(fermium::AUDIO_F32LSB as u16);
+  /// `f32` big-endian
+  pub const F32_BE: AudioFormat = AudioFormat(fermium::AUDIO_F32MSB as u16);
+  /// `f32` system-endian
+  pub const F32_SYS: AudioFormat = AudioFormat(fermium::AUDIO_F32SYS as u16);
 }
-impl From<fermium::SDL_AudioFormat> for AudioFormat {
-  fn from(format: fermium::SDL_AudioFormat) -> Self {
-    Self(format)
+impl AudioFormat {
+  /// If the format is a signed type.
+  pub fn is_signed(self) -> bool {
+    (self.0 as i16) < 0
+  }
+
+  /// If the format is big-endian
+  pub fn is_big_endian(self) -> bool {
+    (self.0 & 0b00010000_00000000) > 0
+  }
+
+  /// If the format is floating point
+  pub fn is_floating(self) -> bool {
+    (self.0 & 0b00000001_00000000) > 0
+  }
+
+  /// The number of bits per sample in this format.
+  pub fn bit_size(self) -> u8 {
+    self.0 as u8
   }
 }
 
-/// Specifies a request to open an audio queue.
-#[derive(Debug, Clone, Copy)]
-pub struct DefaultAudioQueueRequest {
-  /// Samples per second
-  pub frequency: i32,
-  /// Sample data format.
-  pub format: AudioFormat,
-  /// Number of channels. Supported values are 1, 2, 4, or 6.
-  pub channels: u8,
-  /// Must be a power of 2.
-  pub samples: u16,
-  /// Allow the audio device you get to have a different frequency
-  pub allow_frequency_change: bool,
-  /// Allow the audio device you get to have a different format
-  pub allow_format_change: bool,
-  /// Allow the audio device you get to have a different channel count
-  pub allow_channels_change: bool,
+/// The number of audio output channels.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+pub enum AudioChannels {
+  /// Single sound
+  Mono = 1,
+  /// Two channels:
+  /// * Left
+  /// * Right
+  Stereo = 2,
+  /// Four channels:
+  /// * Front-left
+  /// * Front-right
+  /// * Rear-left
+  /// * Rear-right
+  Quad = 4,
+  /// Also called "5.1":
+  /// * Front-left
+  /// * Front-right
+  /// * Center
+  /// * Low-freq (the ".1")
+  /// * Rear-left
+  /// * Rear-right
+  Surround = 6,
 }
 
-/// Handle to an audio device in "queue" mode, and info about its settings.
-#[derive(Debug)]
-pub struct AudioQueue<'sdl> {
-  pub(crate) dev: fermium::SDL_AudioDeviceID,
-  pub(crate) frequency: i32,
-  pub(crate) format: AudioFormat,
-  pub(crate) channels: u8,
-  pub(crate) silence: u8,
-  pub(crate) sample_count: usize,
-  pub(crate) buffer_size: usize,
-  pub(crate) _marker: PhantomData<&'sdl SDLToken>,
-}
-impl<'sdl> Drop for AudioQueue<'sdl> {
-  fn drop(&mut self) {
-    unsafe { fermium::SDL_CloseAudioDevice(self.dev) }
-  }
-}
-impl<'sdl> AudioQueue<'sdl> {
-  /// Samples per second
-  pub fn frequency(&self) -> i32 {
-    self.frequency
-  }
-  /// Sample data format
-  pub fn format(&self) -> AudioFormat {
-    self.format
-  }
-  /// Channel count
-  pub fn channels(&self) -> u8 {
-    self.channels
-  }
-  /// Silence value
-  pub fn silence(&self) -> u8 {
-    self.silence
-  }
-  /// Samples in the buffer
-  pub fn sample_count(&self) -> usize {
-    self.sample_count
-  }
-  /// Size (in bytes) of the buffer
-  pub fn buffer_size(&self) -> usize {
-    self.buffer_size
-  }
-  /// Sets the device into paused state or not.
-  pub fn set_paused(&self, pause_on: bool) {
-    unsafe { fermium::SDL_PauseAudioDevice(self.dev, pause_on as i32) }
-  }
-  /// Gets the current number of bytes of queued audio.
+/// The status of an audio device.
+#[cfg_attr(windows, repr(i32))]
+#[cfg_attr(not(windows), repr(u32))]
+pub enum AudioStatus {
+  /// Device is stopped.
   ///
-  /// NOTE: this seems to be a somewhat unreliable metric. When the queue runs
-  /// low SDL2 seems to automatically re-queue some silence for you, but that
-  /// silence time counts into the queue size. In other words, if you just leave
-  /// the queue playing without pushing any new audio the queued byte size never
-  /// hits 0. The queue size will go to 0 as expected if you clear it while
-  /// playback it paused.
-  pub fn queued_audio_size(&self) -> usize {
-    unsafe { fermium::SDL_GetQueuedAudioSize(self.dev) as usize }
-  }
-  /// Clears any queued data that has not yet been sent to the sound card.
-  pub fn clear(&self) {
-    unsafe { fermium::SDL_ClearQueuedAudio(self.dev) }
-  }
-  /// Pushes audio data into the queue.
-  ///
-  /// The size of the queue has no particular limit, but you can't queue more
-  /// than `u32::MAX` bytes at once.
-  pub fn queue_audio(&self, data: &[u8]) -> Result<(), String> {
-    assert!(data.len() < core::u32::MAX as usize);
-    let ptr = data.as_ptr() as *const fermium::c_void;
-    let len = data.len() as u32;
-    let err = unsafe { fermium::SDL_QueueAudio(self.dev, ptr, len) };
-    if err == 0 {
-      Ok(())
-    } else {
-      Err(get_error())
-    }
-  }
+  /// Usually indicates a closed or error'd device.
+  Stopped = fermium::SDL_AUDIO_STOPPED,
+  /// Device is playing.
+  Playing = fermium::SDL_AUDIO_PLAYING,
+  /// Device is paused.
+  Paused = fermium::SDL_AUDIO_PAUSED,
 }

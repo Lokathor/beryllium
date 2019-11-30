@@ -37,6 +37,7 @@ script:
   # dynamic
   - cargo build
   - cargo test
+  - cargo build --features="extern_crate_raw_window_handle"
   - cargo clean
   # static
   - cargo build --no-default-features --features="link_static"

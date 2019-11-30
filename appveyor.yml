@@ -31,6 +31,7 @@ test_script:
   # dynamic 2.0.8
   - cargo build
   - cargo test
+  - cargo build --features="extern_crate_raw_window_handle"
   - cargo clean
   # dynamic 2.0.9
   - cargo build --features="fermium/bind_SDL2_2_0_9"
