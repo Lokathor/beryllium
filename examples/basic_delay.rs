@@ -9,7 +9,7 @@ fn main() {
       WindowPosition::default(),
       800,
       600,
-      fermium::SDL_WINDOW_SHOWN as u32,
+      WindowFlags::Shown,
     )
     .expect("couldn't open a window");
   sdl.delay_ms(Duration::from_secs(1).as_millis() as u32);

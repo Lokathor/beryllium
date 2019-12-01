@@ -179,18 +179,20 @@ pub enum SdlGlAttr {
   AcceleratedVisual = fermium::SDL_GL_ACCELERATED_VISUAL,
 
   /// OpenGL context major version; see Remarks for details
-  ContextMajorVersion = fermium::SDL_GL_CONTEXT_MAJOR_VERSION,
+  MajorVersion = fermium::SDL_GL_CONTEXT_MAJOR_VERSION,
 
   /// OpenGL context minor version; see Remarks for details
-  ContextMinorVersion = fermium::SDL_GL_CONTEXT_MINOR_VERSION,
+  MinorVersion = fermium::SDL_GL_CONTEXT_MINOR_VERSION,
 
-  /// some combination of 0 or more of elements of the SDL_GLcontextFlag
+  /// some combination of 0 or more of elements of the
+  /// [SDL_GLcontextFlag](https://wiki.libsdl.org/SDL_GLcontextFlag)
   /// enumeration; defaults to 0
-  ContextFlags = fermium::SDL_GL_CONTEXT_FLAGS,
+  Flags = fermium::SDL_GL_CONTEXT_FLAGS,
 
-  /// type of GL context (Core, Compatibility, ES). See SDL_GLprofile; default
-  /// value depends on platform
-  ContextProfileMask = fermium::SDL_GL_CONTEXT_PROFILE_MASK,
+  /// type of GL context (Core, Compatibility, ES). See
+  /// [SDL_GLprofile](https://wiki.libsdl.org/SDL_GLprofile); default value
+  /// depends on platform
+  Profile = fermium::SDL_GL_CONTEXT_PROFILE_MASK,
 
   /// OpenGL context sharing; defaults to 0
   ShareWithCurrentContext = fermium::SDL_GL_SHARE_WITH_CURRENT_CONTEXT,
@@ -200,6 +202,51 @@ pub enum SdlGlAttr {
 
   /// sets context the release behavior; defaults to 1 (>= SDL 2.0.4)
   ContextReleaseBehavior = fermium::SDL_GL_CONTEXT_RELEASE_BEHAVIOR,
+}
+
+/// Values you can pass as `SdlGlAttr::Flags`, combine with `|`.
+pub struct ContextFlag;
+#[allow(non_upper_case_globals)]
+impl ContextFlag {
+  /// Tell GL to use "debug" mode processing.
+  ///
+  /// Possibly gives more developer insight to things. Possibly drops
+  /// performance. Possibly does nothing at all.
+  pub const Debug: i32 = fermium::SDL_GL_CONTEXT_DEBUG_FLAG as i32;
+
+  /// Tells GL to actually not support deprecated functionality.
+  ///
+  /// Possibly a gain in performance. Possibly does nothing.
+  pub const ForwardCompatible: i32 =
+    fermium::SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG as i32;
+
+  /// Allows some safe APIs in place of the usual defaults.
+  ///
+  /// See [ARB_robustness](https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_robustness.txt)
+  pub const RobustAccess: i32 =
+    fermium::SDL_GL_CONTEXT_ROBUST_ACCESS_FLAG as i32;
+
+  /// Allows some promises about what happens when the driver fails.
+  ///
+  /// (I really don't know what this does because the links for this in the wiki
+  /// are dead, but it's in the wiki at all so yolo)
+  pub const ResetIsolation: i32 =
+    fermium::SDL_GL_CONTEXT_RESET_ISOLATION_FLAG as i32;
+}
+
+/// Values you can pass as `SdlGlAttr::Profile`, pick just one.
+pub struct GlProfile;
+#[allow(non_upper_case_globals)]
+impl GlProfile {
+  /// Deprecated functions are disabled.
+  pub const Core: i32 = fermium::SDL_GL_CONTEXT_PROFILE_CORE as i32;
+
+  /// Deprecated functions are allowed.
+  pub const Compatibility: i32 =
+    fermium::SDL_GL_CONTEXT_PROFILE_COMPATIBILITY as i32;
+
+  /// Only allow the ES subset of functionality.
+  pub const ES: i32 = fermium::SDL_GL_CONTEXT_PROFILE_ES as i32;
 }
 
 /// The swap interval affects the video card's swapping of the video buffer.

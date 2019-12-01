@@ -62,7 +62,11 @@ pub struct KeyInfo {
 
 impl From<fermium::SDL_Keysym> for KeyInfo {
   fn from(key: fermium::SDL_Keysym) -> Self {
-    Self { scancode: key.scancode, keycode: key.sym, modifiers: KeyModifiers(key.mod_) }
+    Self {
+      scancode: key.scancode,
+      keycode: key.sym,
+      modifiers: KeyModifiers(key.mod_),
+    }
   }
 }
 impl From<KeyInfo> for fermium::SDL_Keysym {
@@ -85,7 +89,8 @@ impl KeyModifiers {
   pub const LeftShift: KeyModifiers = KeyModifiers(fermium::KMOD_LSHIFT as u16);
 
   /// Right shift
-  pub const RightShift: KeyModifiers = KeyModifiers(fermium::KMOD_RSHIFT as u16);
+  pub const RightShift: KeyModifiers =
+    KeyModifiers(fermium::KMOD_RSHIFT as u16);
 
   /// Left control
   pub const LeftCtrl: KeyModifiers = KeyModifiers(fermium::KMOD_LCTRL as u16);
@@ -98,16 +103,16 @@ impl KeyModifiers {
 
   /// Right alt
   pub const RightAlt: KeyModifiers = KeyModifiers(fermium::KMOD_RALT as u16);
-  
+
   /// Left GUI key (usually the windows key)
   pub const LeftGUI: KeyModifiers = KeyModifiers(fermium::KMOD_LGUI as u16);
 
   /// Right GUI key (usually the windows key)
   pub const RightGUI: KeyModifiers = KeyModifiers(fermium::KMOD_RGUI as u16);
-  
+
   /// Caps Lock key
   pub const CapsLock: KeyModifiers = KeyModifiers(fermium::KMOD_CAPS as u16);
-  
+
   /// Num Lock key
   pub const NumLock: KeyModifiers = KeyModifiers(fermium::KMOD_NUM as u16);
 
@@ -115,7 +120,8 @@ impl KeyModifiers {
   pub const AltGr: KeyModifiers = KeyModifiers(fermium::KMOD_MODE as u16);
 }
 impl KeyModifiers {
-  /// Does the modifiers value on the left contain the modifiers value on the right?
+  /// Does the modifiers value on the left contain the modifiers value on the
+  /// right?
   pub fn contains(self, modifiers: KeyModifiers) -> bool {
     (self.0 & modifiers.0) == modifiers.0
   }
@@ -129,12 +135,12 @@ impl KeyModifiers {
   pub fn shift(self) -> bool {
     self.contains(Self::LeftShift) || self.contains(Self::RightShift)
   }
-  
+
   /// Either Alt is pressed.
   pub fn alt(self) -> bool {
     self.contains(Self::LeftAlt) || self.contains(Self::RightAlt)
   }
-  
+
   /// Either Ctrl is pressed.
   pub fn control(self) -> bool {
     self.contains(Self::LeftCtrl) || self.contains(Self::RightCtrl)
