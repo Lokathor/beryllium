@@ -59,7 +59,8 @@ impl From<MouseButtonEvent> for fermium::SDL_MouseButtonEvent {
   }
 }
 
-// Note: Fermium is accidentally incomplete, so we have to define this ourselves.
+// Note: Fermium is accidentally incomplete, so we have to define this
+// ourselves.
 const fn button(input: u32) -> u32 {
   1 << (input - 1)
 }

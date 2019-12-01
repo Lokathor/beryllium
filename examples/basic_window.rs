@@ -8,7 +8,7 @@ fn main() {
       WindowPosition::default(),
       800,
       600,
-      fermium::SDL_WINDOW_SHOWN as u32,
+      WindowFlags::Shown,
     )
     .expect("couldn't open a window");
 

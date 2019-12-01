@@ -31,10 +31,10 @@ impl Drop for Window {
 
 impl Window {
   /// Use this to move the mouse to a given position within the window.
-  /// 
+  ///
   /// This generates a mouse motion event.
   pub fn warp_mouse_in_window(&self, x: i32, y: i32) {
-    unsafe { fermium::SDL_WarpMouseInWindow(self.win, x,y) }
+    unsafe { fermium::SDL_WarpMouseInWindow(self.win, x, y) }
   }
 }
 
@@ -70,5 +70,38 @@ impl WindowPosition {
         fermium::SDL_WINDOWPOS_UNDEFINED_MASK as i32,
       ),
     }
+  }
+}
+
+/// Allows you to specify the flags for window creation.
+///
+/// See [`SDL_WindowFlags`](https://wiki.libsdl.org/SDL_WindowFlags)
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(transparent)]
+pub struct WindowFlags(pub(crate) u32);
+#[allow(non_upper_case_globals)]
+impl WindowFlags {
+  /// Window is visible.
+  pub const Shown: WindowFlags = WindowFlags(fermium::SDL_WINDOW_SHOWN as u32);
+
+  /// Window should support OpenGL.
+  pub const OpenGL: WindowFlags =
+    WindowFlags(fermium::SDL_WINDOW_OPENGL as u32);
+
+  /// Window should support Vulkan.
+  pub const Vulkan: WindowFlags =
+    WindowFlags(fermium::SDL_WINDOW_VULKAN as u32);
+
+  // TODO: more flags later.
+}
+impl core::ops::BitOr for WindowFlags {
+  type Output = Self;
+  fn bitor(self, rhs: Self) -> Self {
+    Self(self.0 | rhs.0)
+  }
+}
+impl core::ops::BitOrAssign for WindowFlags {
+  fn bitor_assign(&mut self, rhs: Self) {
+    *self = *self | rhs;
   }
 }

@@ -89,7 +89,7 @@ impl SDL {
     pos: WindowPosition,
     width: u32,
     height: u32,
-    flags: u32,
+    flags: WindowFlags,
   ) -> Result<GlWindow, String> {
     if unsafe { fermium::SDL_WasInit(InitFlags::Video.0) == 0 } {
       return Err(String::from(
@@ -102,6 +102,8 @@ impl SDL {
       // make a window
       let title_null = title.alloc_c_str();
       let (x, y) = pos.what_sdl_wants();
+      let flags = (flags.0 | (fermium::SDL_WINDOW_OPENGL as u32))
+        & !(WindowFlags::Vulkan.0);
       let win = unsafe {
         fermium::SDL_CreateWindow(
           title_null.as_ptr(),
@@ -109,7 +111,7 @@ impl SDL {
           y,
           width as i32,
           height as i32,
-          flags | (fermium::SDL_WINDOW_OPENGL as u32),
+          flags,
         )
       };
       if win.is_null() {
@@ -517,11 +519,11 @@ impl SDL {
   }
 
   /// Use this to move the mouse to a given position in global screen space.
-  /// 
+  ///
   /// This generates a mouse motion event.
   pub fn warp_mouse_global(&self, x: i32, y: i32) -> Result<(), String> {
     if WINDOW_EXISTS.load(Ordering::Relaxed) {
-      let ret = unsafe { fermium::SDL_WarpMouseGlobal(x,y) };
+      let ret = unsafe { fermium::SDL_WarpMouseGlobal(x, y) };
       if ret >= 0 {
         Ok(())
       } else {
