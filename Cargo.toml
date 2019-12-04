@@ -2,7 +2,7 @@
 name = "beryllium"
 description = "An opinionated set of high level wrappers for the `fermium` SDL2 bindings."
 repository = "https://github.com/Lokathor/beryllium"
-version = "0.2.0-alpha.2"
+version = "0.2.0-alpha.3"
 authors = ["Lokathor <zefria@gmail.com>"]
 edition = "2018"
 license = "Zlib"
