@@ -533,4 +533,11 @@ impl SDL {
       Err(String::from("beryllium: There's no open window!"))
     }
   }
+
+  /// Gets the number of milliseconds since SDL was initialized.
+  /// 
+  /// A `u32` will wrap milliseconds after about 49 days of operation.
+  pub fn get_ticks(&self) -> u32 {
+    unsafe { fermium::SDL_GetTicks() }
+  }
 }
