@@ -15,7 +15,7 @@ categories = ["api-bindings", "multimedia", "game-engines", "no-std"]
 default-target = "x86_64-pc-windows-msvc"
 
 [features]
-default = ["link_dynamic", "extern_crate_raw_window_handle"]
+default = ["link_dynamic"]
 link_dynamic = ["fermium/link_dynamic"]
 link_static = ["fermium/link_static"]
 extern_crate_raw_window_handle = ["raw-window-handle"]
