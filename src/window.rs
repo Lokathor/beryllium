@@ -36,6 +36,14 @@ impl Window {
   pub fn warp_mouse_in_window(&self, x: i32, y: i32) {
     unsafe { fermium::SDL_WarpMouseInWindow(self.win, x, y) }
   }
+
+  /// Assigns a new window title.
+  /// 
+  /// See [`SDL_SetWindowTitle`](https://wiki.libsdl.org/SDL_SetWindowTitle)
+  pub fn set_title(&mut self, title: &str) {
+    let v: Vec<u8> = title.bytes().chain(Some(0)).collect();
+    unsafe { fermium::SDL_SetWindowTitle(self.win, v.as_ptr() as *const c_char) }
+  }
 }
 
 /// The starting position for a window.
