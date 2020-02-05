@@ -37,6 +37,11 @@ impl core::ops::Deref for RawWindow {
     &self.win
   }
 }
+impl core::ops::DerefMut for RawWindow {
+  fn deref_mut(&mut self) -> &mut Window {
+    &mut self.win
+  }
+}
 
 unsafe impl HasRawWindowHandle for RawWindow {
   fn raw_window_handle(&self) -> RawWindowHandle {

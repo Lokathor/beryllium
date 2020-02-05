@@ -22,6 +22,11 @@ impl core::ops::Deref for GlWindow {
     &self.win
   }
 }
+impl core::ops::DerefMut for GlWindow {
+  fn deref_mut(&mut self) -> &mut Window {
+    &mut self.win
+  }
+}
 
 /// Handle to a [`SDL_GLContext`](https://wiki.libsdl.org/SDL_GL_CreateContext).
 #[repr(transparent)]
