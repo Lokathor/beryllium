@@ -202,6 +202,20 @@ impl SDL {
     }
     unsafe { fermium::SDL_Delay(ms) }
   }
+  
+  pub fn get_dpi(&self, display_index: i32) -> DPI {
+    let mut diagonal = 1.0;
+    let mut horizontal = 1.0;
+    let mut vertical = 1.0;
+
+    unsafe { fermium::SDL_GetDisplayDPI(display_index, &mut diagonal, &mut horizontal, &mut vertical) };
+    
+    DPI {
+      diagonal,
+      horizontal,
+      vertical
+    }
+  }
 
   /// Blocks for the given [`Duration`](core::time::Duration) with millisecond
   /// granularity.

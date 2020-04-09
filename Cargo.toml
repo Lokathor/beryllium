@@ -22,7 +22,7 @@ extern_crate_raw_window_handle = ["raw-window-handle"]
 #impl_global_alloc = []
 
 [dependencies]
-fermium = { version = "0.1", default-features = false }
+fermium = { version = "0.1.4", default-features = false }
 raw-window-handle = { version = "0.3", optional = true }
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
