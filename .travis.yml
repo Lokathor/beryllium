@@ -40,6 +40,6 @@ script:
   - cargo build --features="extern_crate_raw_window_handle"
   - cargo clean
   # static
-  - cargo build --no-default-features --features="link_static"
-  - cargo test --no-default-features --features="link_static" -- --test-threads=1
+  - cargo build --no-default-features --features="static_link"
+  - cargo test --no-default-features --features="static_link" -- --test-threads=1
   - cargo clean
