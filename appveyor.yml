@@ -42,14 +42,14 @@ test_script:
   - cargo test --features="fermium/bind_SDL2_2_0_10" -- --test-threads=1
   - cargo clean
   # static 2.0.8
-  - cargo build --no-default-features --features="link_static"
-  - cargo test --no-default-features --features="link_static" -- --test-threads=1
+  - cargo build --no-default-features --features="static_link"
+  - cargo test --no-default-features --features="static_link" -- --test-threads=1
   - cargo clean
   # static 2.0.9
-  - cargo build --no-default-features --features="link_static,fermium/bind_SDL2_2_0_9"
-  - cargo test --no-default-features --features="link_static,fermium/bind_SDL2_2_0_9" -- --test-threads=1
+  - cargo build --no-default-features --features="static_link,fermium/bind_SDL2_2_0_9"
+  - cargo test --no-default-features --features="static_link,fermium/bind_SDL2_2_0_9" -- --test-threads=1
   - cargo clean
   # static 2.0.10
-  - cargo build --no-default-features --features="link_static,fermium/bind_SDL2_2_0_10"
-  - cargo test --no-default-features --features="link_static,fermium/bind_SDL2_2_0_10" -- --test-threads=1
+  - cargo build --no-default-features --features="static_link,fermium/bind_SDL2_2_0_10"
+  - cargo test --no-default-features --features="static_link,fermium/bind_SDL2_2_0_10" -- --test-threads=1
   - cargo clean
