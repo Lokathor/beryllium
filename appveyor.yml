@@ -35,20 +35,20 @@ test_script:
   - cargo clean
   # dynamic 2.0.9
   - cargo build
-  - cargo test --test-threads=1
+  - cargo test
   - cargo clean
   # dynamic 2.0.10
   - cargo build
-  - cargo test --test-threads=1
+  - cargo test
   - cargo clean
   # static 2.0.8
   - cargo build --no-default-features --features="static_link"
-  - cargo test --no-default-features --features="static_link" -- --test-threads=1
+  - cargo test --no-default-features --features="static_link"
   - cargo clean
   # static 2.0.9
   - cargo build --no-default-features --features="static_link"
-  - cargo test --no-default-features --features="static_link" -- --test-threads=1
+  - cargo test --no-default-features --features="static_link"
   - cargo clean
   # static 2.0.10
   - cargo build --no-default-features --features="static_link"
-  - cargo test --no-default-features --features="static_link" -- --test-threads=1
+  - cargo test --no-default-features --features="static_link"
