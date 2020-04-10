@@ -34,22 +34,22 @@ test_script:
   - cargo build --features="extern_crate_raw_window_handle"
   - cargo clean
   # dynamic 2.0.9
-  - cargo build --features="fermium/bind_SDL2_2_0_9"
-  - cargo test --features="fermium/bind_SDL2_2_0_9" -- --test-threads=1
+  - cargo build
+  - cargo test --test-threads=1
   - cargo clean
   # dynamic 2.0.10
-  - cargo build --features="fermium/bind_SDL2_2_0_10"
-  - cargo test --features="fermium/bind_SDL2_2_0_10" -- --test-threads=1
+  - cargo build
+  - cargo test --test-threads=1
   - cargo clean
   # static 2.0.8
-  - cargo build --no-default-features --features="link_static"
-  - cargo test --no-default-features --features="link_static" -- --test-threads=1
+  - cargo build --no-default-features --features="static_link"
+  - cargo test --no-default-features --features="static_link" -- --test-threads=1
   - cargo clean
   # static 2.0.9
-  - cargo build --no-default-features --features="link_static,fermium/bind_SDL2_2_0_9"
-  - cargo test --no-default-features --features="link_static,fermium/bind_SDL2_2_0_9" -- --test-threads=1
+  - cargo build --no-default-features --features="static_link_9"
+  - cargo test --no-default-features --features="static_link" -- --test-threads=1
   - cargo clean
   # static 2.0.10
-  - cargo build --no-default-features --features="link_static,fermium/bind_SDL2_2_0_10"
-  - cargo test --no-default-features --features="link_static,fermium/bind_SDL2_2_0_10" -- --test-threads=1
+  - cargo build --no-default-features --features="static_link"
+  - cargo test --no-default-features --features="static_link" -- --test-threads=1
   - cargo clean
