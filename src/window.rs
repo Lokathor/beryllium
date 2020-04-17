@@ -113,3 +113,10 @@ impl core::ops::BitOrAssign for WindowFlags {
     *self = *self | rhs;
   }
 }
+
+#[derive(Debug, Clone, Copy)]
+pub struct DPI {
+  pub diagonal: f32,
+  pub horizontal: f32,
+  pub vertical: f32,
+}
