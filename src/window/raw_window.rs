@@ -47,6 +47,7 @@ unsafe impl HasRawWindowHandle for RawWindow {
   fn raw_window_handle(&self) -> RawWindowHandle {
     //
     let mut wm_info = fermium::SDL_SysWMinfo::default();
+    unsafe { fermium::SDL_GetVersion(&mut wm_info.version) };
     let b = unsafe { fermium::SDL_GetWindowWMInfo(self.win.win, &mut wm_info) };
     if b == fermium::SDL_TRUE {
       match wm_info.subsystem {
