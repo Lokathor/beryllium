@@ -717,7 +717,7 @@ mod touch_finger {
       touch_finger_event: SDL_TouchFingerEvent,
     ) -> Result<Self, Self::Error> {
       Ok(Self {
-        ty: match touch_finger_event.type_ {
+        ty: match touch_finger_event.type_ as SDL_EventType {
           SDL_FINGERMOTION => TouchFingerEventType::Motion,
           SDL_FINGERDOWN => TouchFingerEventType::Down,
           SDL_FINGERUP => TouchFingerEventType::Up,
