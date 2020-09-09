@@ -1,11 +1,13 @@
 use core::convert::{TryFrom, TryInto};
 
 use fermium::{
-  SDL_Event, SDL_EventType, SDL_KEYDOWN, SDL_KEYUP, SDL_QUIT, SDL_WINDOWEVENT, SDL_MOUSEMOTION,
-  SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONUP, SDL_MOUSEWHEEL,
+  SDL_Event, SDL_EventType, SDL_JOYAXISMOTION, SDL_JOYBALLMOTION, SDL_KEYDOWN,
+  SDL_KEYUP, SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONUP, SDL_MOUSEMOTION,
+  SDL_MOUSEWHEEL, SDL_QUIT, SDL_WINDOWEVENT, SDL_JOYHATMOTION,
+  SDL_JOYBUTTONDOWN, SDL_JOYBUTTONUP,SDL_JOYDEVICEADDED, SDL_JOYDEVICEREMOVED
 };
 
-use crate::{WindowID, MouseID, MouseButtonState};
+use crate::{JoystickID, MouseButtonState, MouseID, WindowID};
 
 #[non_exhaustive]
 pub enum Event {
@@ -18,6 +20,11 @@ pub enum Event {
   MouseMotion(MouseMotionEvent),
   MouseButton(MouseButtonEvent),
   MouseWheel(MouseWheelEvent),
+  JoyAxis(JoyAxisEvent),
+  JoyBall(JoyBallEvent),
+  JoyHat(JoyHatEvent),
+  JoyButton(JoyButtonEvent),
+  JoyDevice(JoyDeviceEvent),
 }
 
 impl TryFrom<SDL_Event> for Event {
@@ -32,8 +39,15 @@ impl TryFrom<SDL_Event> for Event {
         SDL_WINDOWEVENT => Event::Window(sdl_event.window.try_into()?),
         SDL_KEYDOWN | SDL_KEYUP => Event::Keyboard(sdl_event.key.into()),
         SDL_MOUSEMOTION => Event::MouseMotion(sdl_event.motion.into()),
-        SDL_MOUSEBUTTONDOWN | SDL_MOUSEBUTTONUP => Event::MouseButton(sdl_event.button.into()),
+        SDL_MOUSEBUTTONDOWN | SDL_MOUSEBUTTONUP => {
+          Event::MouseButton(sdl_event.button.into())
+        }
         SDL_MOUSEWHEEL => Event::MouseWheel(sdl_event.wheel.into()),
+        SDL_JOYAXISMOTION => Event::JoyAxis(sdl_event.jaxis.into()),
+        SDL_JOYBALLMOTION => Event::JoyBall(sdl_event.jball.into()),
+        SDL_JOYHATMOTION => Event::JoyHat(sdl_event.jhat.try_into()?),
+        SDL_JOYBUTTONDOWN | SDL_JOYBUTTONUP => Event::JoyButton(sdl_event.jbutton.into()),
+        SDL_JOYDEVICEADDED | SDL_JOYDEVICEREMOVED => Event::JoyDevice(sdl_event.jdevice.try_into()?),
         _ => return Err(()),
       })
     }
@@ -250,6 +264,169 @@ mod mouse_wheel {
         out.dy = -out.dy;
       }
       out
+    }
+  }
+}
+
+pub use joy_axis::*;
+mod joy_axis {
+  use super::*;
+  use fermium::SDL_JoyAxisEvent;
+  //
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  pub struct JoyAxisEvent {
+    pub joystick_id: JoystickID,
+    pub axis: u8,
+    pub value: i16,
+  }
+  impl From<SDL_JoyAxisEvent> for JoyAxisEvent {
+    #[inline]
+    #[must_use]
+    fn from(joy_axis_event: SDL_JoyAxisEvent) -> Self {
+      Self {
+        joystick_id: JoystickID(joy_axis_event.which),
+        axis: joy_axis_event.axis,
+        value: joy_axis_event.value,
+      }
+    }
+  }
+}
+
+pub use joy_ball::*;
+mod joy_ball {
+  use super::*;
+  use fermium::SDL_JoyBallEvent;
+  //
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  pub struct JoyBallEvent {
+    pub joystick_id: JoystickID,
+    pub ball: u8,
+    pub dx: i16,
+    pub dy: i16,
+  }
+  impl From<SDL_JoyBallEvent> for JoyBallEvent {
+    #[inline]
+    #[must_use]
+    fn from(joy_ball_event: SDL_JoyBallEvent) -> Self {
+      Self {
+        joystick_id: JoystickID(joy_ball_event.which),
+        ball: joy_ball_event.ball,
+        dx: joy_ball_event.xrel,
+        dy: joy_ball_event.yrel,
+      }
+    }
+  }
+}
+
+pub use joy_hat::*;
+mod joy_hat {
+  use super::*;
+  use fermium::{
+    SDL_JoyHatEvent, SDL_HAT_CENTERED, SDL_HAT_DOWN, SDL_HAT_LEFT,
+    SDL_HAT_LEFTDOWN, SDL_HAT_LEFTUP, SDL_HAT_RIGHT, SDL_HAT_RIGHTDOWN,
+    SDL_HAT_RIGHTUP, SDL_HAT_UP,
+  };
+  //
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  pub enum HatValue {
+    Centered = SDL_HAT_CENTERED as _,
+    LeftUp = SDL_HAT_LEFTUP as _,
+    Up = SDL_HAT_UP as _,
+    RightUp = SDL_HAT_RIGHTUP as _,
+    Left = SDL_HAT_LEFT as _,
+    Right = SDL_HAT_RIGHT as _,
+    LeftDown = SDL_HAT_LEFTDOWN as _,
+    Down = SDL_HAT_DOWN as _,
+    RightDown = SDL_HAT_RIGHTDOWN as _,
+  }
+  impl TryFrom<u8> for HatValue {
+    type Error = ();
+    #[inline]
+    #[must_use]
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+      Ok(match value as u32 {
+        SDL_HAT_CENTERED => Self::Centered,
+        SDL_HAT_LEFTUP => Self::LeftUp,
+        SDL_HAT_UP => Self::Up,
+        SDL_HAT_RIGHTUP => Self::RightUp,
+        SDL_HAT_LEFT => Self::Left,
+        SDL_HAT_RIGHT => Self::Right,
+        SDL_HAT_LEFTDOWN => Self::LeftDown,
+        SDL_HAT_DOWN => Self::Down,
+        SDL_HAT_RIGHTDOWN => Self::RightDown,
+        _ => return Err(()),
+      })
+    }
+  }
+  //
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  pub struct JoyHatEvent {
+    pub joystick_id: JoystickID,
+    pub hat: u8,
+    pub value: HatValue,
+  }
+  impl TryFrom<SDL_JoyHatEvent> for JoyHatEvent {
+    type Error = ();
+    #[inline]
+    #[must_use]
+    fn try_from(joy_hat_event: SDL_JoyHatEvent) -> Result<Self, Self::Error> {
+      Ok(Self {
+        joystick_id: JoystickID(joy_hat_event.which),
+        hat: joy_hat_event.hat,
+        value: joy_hat_event.value.try_into()?,
+      })
+    }
+  }
+}
+
+pub use joy_button::*;
+mod joy_button {
+  use super::*;
+  use fermium::{SDL_JoyButtonEvent, SDL_PRESSED};
+  //
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  pub struct JoyButtonEvent {
+    pub joystick_id: JoystickID,
+    pub button: u8,
+    pub is_pressed: bool,
+  }
+  impl From<SDL_JoyButtonEvent> for JoyButtonEvent {
+    #[inline]
+    #[must_use]
+    fn from(joy_button_event: SDL_JoyButtonEvent) -> Self {
+      Self {
+        joystick_id: JoystickID(joy_button_event.which),
+        button: joy_button_event.button,
+        is_pressed: joy_button_event.state as u32 == SDL_PRESSED,
+      }
+    }
+  }
+}
+
+pub use joy_device::*;
+mod joy_device {
+  use super::*;
+  use fermium::{
+    SDL_JoyDeviceEvent
+  };
+
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  #[non_exhaustive]
+  pub enum JoyDeviceEvent {
+    Added { device_index: i32 },
+    Removed { joystick_id: JoystickID },
+  }
+
+  impl TryFrom<SDL_JoyDeviceEvent> for JoyDeviceEvent {
+    type Error = ();
+    #[inline]
+    #[must_use]
+    fn try_from(joy_device_event: SDL_JoyDeviceEvent) -> Result<Self, Self::Error> {
+      Ok(match joy_device_event.type_ as SDL_EventType {
+        SDL_JOYDEVICEADDED => JoyDeviceEvent::Added { device_index: joy_device_event.which },
+        SDL_JOYDEVICEREMOVED => JoyDeviceEvent::Removed { joystick_id: JoystickID(joy_device_event.which) },
+        _ => return Err(())
+      })
     }
   }
 }
