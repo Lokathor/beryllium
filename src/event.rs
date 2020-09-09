@@ -696,19 +696,6 @@ mod touch_finger {
     Down,
     Up,
   }
-  impl TryFrom<SDL_EventType> for TouchFingerEventType {
-    type Error = ();
-    #[inline]
-    #[must_use]
-    fn try_from(event_ty: SDL_EventType) -> Result<Self, Self::Error> {
-      Ok(match event_ty {
-        SDL_FINGERMOTION => Self::Motion,
-        SDL_FINGERDOWN => Self::Down,
-        SDL_FINGERUP => Self::Up,
-        _ => return Err(()),
-      })
-    }
-  }
 
   #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
   pub struct TouchFingerEvent {
@@ -730,7 +717,12 @@ mod touch_finger {
       touch_finger_event: SDL_TouchFingerEvent,
     ) -> Result<Self, Self::Error> {
       Ok(Self {
-        ty: touch_finger_event.type_.try_into()?,
+        ty: match touch_finger_event.type_ {
+          SDL_FINGERMOTION => TouchFingerEventType::Motion,
+          SDL_FINGERDOWN => TouchFingerEventType::Down,
+          SDL_FINGERUP => TouchFingerEventType::Up,
+          _ => return Err(()),
+        },
         touch_id: TouchID(touch_finger_event.touchId),
         finger_id: FingerID(touch_finger_event.fingerId),
         x: touch_finger_event.x,
