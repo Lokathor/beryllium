@@ -1,10 +1,13 @@
 use core::convert::{TryFrom, TryInto};
 
 use fermium::{
-  SDL_Event, SDL_EventType, SDL_JOYAXISMOTION, SDL_JOYBALLMOTION, SDL_KEYDOWN,
-  SDL_KEYUP, SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONUP, SDL_MOUSEMOTION,
-  SDL_MOUSEWHEEL, SDL_QUIT, SDL_WINDOWEVENT, SDL_JOYHATMOTION,
-  SDL_JOYBUTTONDOWN, SDL_JOYBUTTONUP,SDL_JOYDEVICEADDED, SDL_JOYDEVICEREMOVED
+  SDL_Event, SDL_EventType, SDL_CONTROLLERAXISMOTION, SDL_CONTROLLERBUTTONDOWN,
+  SDL_CONTROLLERBUTTONUP, SDL_CONTROLLERDEVICEADDED,
+  SDL_CONTROLLERDEVICEREMAPPED, SDL_CONTROLLERDEVICEREMOVED, SDL_JOYAXISMOTION,
+  SDL_JOYBALLMOTION, SDL_JOYBUTTONDOWN, SDL_JOYBUTTONUP, SDL_JOYDEVICEADDED,
+  SDL_JOYDEVICEREMOVED, SDL_JOYHATMOTION, SDL_KEYDOWN, SDL_KEYUP,
+  SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONUP, SDL_MOUSEMOTION, SDL_MOUSEWHEEL,
+  SDL_QUIT, SDL_WINDOWEVENT,
 };
 
 use crate::{JoystickID, MouseButtonState, MouseID, WindowID};
@@ -25,6 +28,9 @@ pub enum Event {
   JoyHat(JoyHatEvent),
   JoyButton(JoyButtonEvent),
   JoyDevice(JoyDeviceEvent),
+  ControllerAxis(ControllerAxisEvent),
+  ControllerButton(ControllerButtonEvent),
+  ControllerDevice(ControllerDeviceEvent),
 }
 
 impl TryFrom<SDL_Event> for Event {
@@ -46,8 +52,23 @@ impl TryFrom<SDL_Event> for Event {
         SDL_JOYAXISMOTION => Event::JoyAxis(sdl_event.jaxis.into()),
         SDL_JOYBALLMOTION => Event::JoyBall(sdl_event.jball.into()),
         SDL_JOYHATMOTION => Event::JoyHat(sdl_event.jhat.try_into()?),
-        SDL_JOYBUTTONDOWN | SDL_JOYBUTTONUP => Event::JoyButton(sdl_event.jbutton.into()),
-        SDL_JOYDEVICEADDED | SDL_JOYDEVICEREMOVED => Event::JoyDevice(sdl_event.jdevice.try_into()?),
+        SDL_JOYBUTTONDOWN | SDL_JOYBUTTONUP => {
+          Event::JoyButton(sdl_event.jbutton.into())
+        }
+        SDL_JOYDEVICEADDED | SDL_JOYDEVICEREMOVED => {
+          Event::JoyDevice(sdl_event.jdevice.try_into()?)
+        }
+        SDL_CONTROLLERAXISMOTION => {
+          Event::ControllerAxis(sdl_event.caxis.into())
+        }
+        SDL_CONTROLLERBUTTONDOWN | SDL_CONTROLLERBUTTONUP => {
+          Event::ControllerButton(sdl_event.cbutton.into())
+        }
+        SDL_CONTROLLERDEVICEADDED
+        | SDL_CONTROLLERDEVICEREMOVED
+        | SDL_CONTROLLERDEVICEREMAPPED => {
+          Event::ControllerDevice(sdl_event.cdevice.try_into()?)
+        }
         _ => return Err(()),
       })
     }
@@ -406,9 +427,7 @@ mod joy_button {
 pub use joy_device::*;
 mod joy_device {
   use super::*;
-  use fermium::{
-    SDL_JoyDeviceEvent
-  };
+  use fermium::SDL_JoyDeviceEvent;
 
   #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
   #[non_exhaustive]
@@ -421,11 +440,188 @@ mod joy_device {
     type Error = ();
     #[inline]
     #[must_use]
-    fn try_from(joy_device_event: SDL_JoyDeviceEvent) -> Result<Self, Self::Error> {
+    fn try_from(
+      joy_device_event: SDL_JoyDeviceEvent,
+    ) -> Result<Self, Self::Error> {
       Ok(match joy_device_event.type_ as SDL_EventType {
-        SDL_JOYDEVICEADDED => JoyDeviceEvent::Added { device_index: joy_device_event.which },
-        SDL_JOYDEVICEREMOVED => JoyDeviceEvent::Removed { joystick_id: JoystickID(joy_device_event.which) },
-        _ => return Err(())
+        SDL_JOYDEVICEADDED => {
+          Self::Added { device_index: joy_device_event.which }
+        }
+        SDL_JOYDEVICEREMOVED => {
+          Self::Removed { joystick_id: JoystickID(joy_device_event.which) }
+        }
+        _ => return Err(()),
+      })
+    }
+  }
+}
+
+pub use controller_axis::*;
+mod controller_axis {
+  use super::*;
+  use fermium::{
+    SDL_ControllerAxisEvent, SDL_CONTROLLER_AXIS_INVALID,
+    SDL_CONTROLLER_AXIS_LEFTX, SDL_CONTROLLER_AXIS_LEFTY,
+    SDL_CONTROLLER_AXIS_RIGHTX, SDL_CONTROLLER_AXIS_RIGHTY,
+    SDL_CONTROLLER_AXIS_TRIGGERLEFT, SDL_CONTROLLER_AXIS_TRIGGERRIGHT,
+  };
+
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  pub enum ControllerAxis {
+    Invalid = SDL_CONTROLLER_AXIS_INVALID as _,
+    LeftX = SDL_CONTROLLER_AXIS_LEFTX as _,
+    LeftY = SDL_CONTROLLER_AXIS_LEFTY as _,
+    RightX = SDL_CONTROLLER_AXIS_RIGHTX as _,
+    RightY = SDL_CONTROLLER_AXIS_RIGHTY as _,
+    LeftTrigger = SDL_CONTROLLER_AXIS_TRIGGERLEFT as _,
+    RightTrigger = SDL_CONTROLLER_AXIS_TRIGGERRIGHT as _,
+  }
+  impl From<u8> for ControllerAxis {
+    #[inline]
+    #[must_use]
+    fn from(axis: u8) -> Self {
+      match axis as i32 {
+        SDL_CONTROLLER_AXIS_LEFTX => Self::LeftX,
+        SDL_CONTROLLER_AXIS_LEFTY => Self::LeftY,
+        SDL_CONTROLLER_AXIS_RIGHTX => Self::RightX,
+        SDL_CONTROLLER_AXIS_RIGHTY => Self::RightY,
+        SDL_CONTROLLER_AXIS_TRIGGERLEFT => Self::LeftTrigger,
+        SDL_CONTROLLER_AXIS_TRIGGERRIGHT => Self::RightTrigger,
+        _ => Self::Invalid,
+      }
+    }
+  }
+
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  pub struct ControllerAxisEvent {
+    joystick_id: JoystickID,
+    axis: ControllerAxis,
+    value: i16,
+  }
+
+  impl From<SDL_ControllerAxisEvent> for ControllerAxisEvent {
+    #[inline]
+    #[must_use]
+    fn from(controller_axis_event: SDL_ControllerAxisEvent) -> Self {
+      Self {
+        joystick_id: JoystickID(controller_axis_event.which),
+        axis: controller_axis_event.axis.into(),
+        value: controller_axis_event.value,
+      }
+    }
+  }
+}
+
+pub use controller_button::*;
+mod controller_button {
+  use super::*;
+  use fermium::{
+    SDL_ControllerButtonEvent, SDL_CONTROLLER_BUTTON_A,
+    SDL_CONTROLLER_BUTTON_B, SDL_CONTROLLER_BUTTON_BACK,
+    SDL_CONTROLLER_BUTTON_DPAD_DOWN, SDL_CONTROLLER_BUTTON_DPAD_LEFT,
+    SDL_CONTROLLER_BUTTON_DPAD_RIGHT, SDL_CONTROLLER_BUTTON_DPAD_UP,
+    SDL_CONTROLLER_BUTTON_GUIDE, SDL_CONTROLLER_BUTTON_INVALID,
+    SDL_CONTROLLER_BUTTON_LEFTSHOULDER, SDL_CONTROLLER_BUTTON_LEFTSTICK,
+    SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, SDL_CONTROLLER_BUTTON_RIGHTSTICK,
+    SDL_CONTROLLER_BUTTON_START, SDL_CONTROLLER_BUTTON_X,
+    SDL_CONTROLLER_BUTTON_Y, SDL_PRESSED,
+  };
+
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  pub enum ControllerButton {
+    Invalid = SDL_CONTROLLER_BUTTON_INVALID as _,
+    North = SDL_CONTROLLER_BUTTON_Y as _,
+    South = SDL_CONTROLLER_BUTTON_A as _,
+    East = SDL_CONTROLLER_BUTTON_B as _,
+    West = SDL_CONTROLLER_BUTTON_X as _,
+    Back = SDL_CONTROLLER_BUTTON_BACK as _,
+    Guide = SDL_CONTROLLER_BUTTON_GUIDE as _,
+    Start = SDL_CONTROLLER_BUTTON_START as _,
+    LeftStick = SDL_CONTROLLER_BUTTON_LEFTSTICK as _,
+    RightStick = SDL_CONTROLLER_BUTTON_RIGHTSTICK as _,
+    LeftShoulder = SDL_CONTROLLER_BUTTON_LEFTSHOULDER as _,
+    RightShoulder = SDL_CONTROLLER_BUTTON_RIGHTSHOULDER as _,
+    Up = SDL_CONTROLLER_BUTTON_DPAD_UP as _,
+    Down = SDL_CONTROLLER_BUTTON_DPAD_DOWN as _,
+    Left = SDL_CONTROLLER_BUTTON_DPAD_LEFT as _,
+    Right = SDL_CONTROLLER_BUTTON_DPAD_RIGHT as _,
+  }
+  impl From<u8> for ControllerButton {
+    #[inline]
+    #[must_use]
+    fn from(axis: u8) -> Self {
+      match axis as i32 {
+        SDL_CONTROLLER_BUTTON_Y => Self::North,
+        SDL_CONTROLLER_BUTTON_A => Self::South,
+        SDL_CONTROLLER_BUTTON_B => Self::East,
+        SDL_CONTROLLER_BUTTON_X => Self::West,
+        SDL_CONTROLLER_BUTTON_BACK => Self::Back,
+        SDL_CONTROLLER_BUTTON_GUIDE => Self::Guide,
+        SDL_CONTROLLER_BUTTON_START => Self::Start,
+        SDL_CONTROLLER_BUTTON_LEFTSTICK => Self::LeftStick,
+        SDL_CONTROLLER_BUTTON_RIGHTSTICK => Self::RightStick,
+        SDL_CONTROLLER_BUTTON_LEFTSHOULDER => Self::LeftShoulder,
+        SDL_CONTROLLER_BUTTON_RIGHTSHOULDER => Self::RightShoulder,
+        SDL_CONTROLLER_BUTTON_DPAD_UP => Self::Up,
+        SDL_CONTROLLER_BUTTON_DPAD_DOWN => Self::Down,
+        SDL_CONTROLLER_BUTTON_DPAD_LEFT => Self::Left,
+        SDL_CONTROLLER_BUTTON_DPAD_RIGHT => Self::Right,
+        _ => Self::Invalid,
+      }
+    }
+  }
+
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  pub struct ControllerButtonEvent {
+    joystick_id: JoystickID,
+    button: ControllerButton,
+    is_pressed: bool,
+  }
+
+  impl From<SDL_ControllerButtonEvent> for ControllerButtonEvent {
+    #[inline]
+    #[must_use]
+    fn from(controller_button_event: SDL_ControllerButtonEvent) -> Self {
+      Self {
+        joystick_id: JoystickID(controller_button_event.which),
+        button: controller_button_event.button.into(),
+        is_pressed: controller_button_event.state as u32 == SDL_PRESSED,
+      }
+    }
+  }
+}
+
+pub use controller_device::*;
+mod controller_device {
+  use super::*;
+  use fermium::SDL_ControllerDeviceEvent;
+
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  #[non_exhaustive]
+  pub enum ControllerDeviceEvent {
+    Added { device_index: i32 },
+    Removed { joystick_id: JoystickID },
+    Remapped { joystick_id: JoystickID },
+  }
+
+  impl TryFrom<SDL_ControllerDeviceEvent> for ControllerDeviceEvent {
+    type Error = ();
+    #[inline]
+    #[must_use]
+    fn try_from(
+      controller_device_event: SDL_ControllerDeviceEvent,
+    ) -> Result<Self, Self::Error> {
+      Ok(match controller_device_event.type_ as SDL_EventType {
+        SDL_CONTROLLERDEVICEADDED => {
+          Self::Added { device_index: controller_device_event.which }
+        }
+        SDL_CONTROLLERDEVICEREMOVED => Self::Removed {
+          joystick_id: JoystickID(controller_device_event.which),
+        },
+        SDL_CONTROLLERDEVICEREMAPPED => Self::Remapped {
+          joystick_id: JoystickID(controller_device_event.which),
+        },
+        _ => return Err(()),
       })
     }
   }
