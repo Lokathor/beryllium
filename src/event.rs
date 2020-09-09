@@ -1,10 +1,11 @@
 use core::convert::{TryFrom, TryInto};
 
 use fermium::{
-  SDL_Event, SDL_EventType, SDL_KEYDOWN, SDL_KEYUP, SDL_QUIT, SDL_WINDOWEVENT,
+  SDL_Event, SDL_EventType, SDL_KEYDOWN, SDL_KEYUP, SDL_QUIT, SDL_WINDOWEVENT, SDL_MOUSEMOTION,
+  SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONUP, SDL_MOUSEWHEEL,
 };
 
-use crate::WindowID;
+use crate::{WindowID, MouseID, MouseButtonState};
 
 #[non_exhaustive]
 pub enum Event {
@@ -14,6 +15,9 @@ pub enum Event {
   Keyboard(KeyboardEvent),
   /* TODO: TextEditing,
    * TODO: TextInput, */
+  MouseMotion(MouseMotionEvent),
+  MouseButton(MouseButtonEvent),
+  MouseWheel(MouseWheelEvent),
 }
 
 impl TryFrom<SDL_Event> for Event {
@@ -27,6 +31,9 @@ impl TryFrom<SDL_Event> for Event {
         SDL_QUIT => Event::Quit,
         SDL_WINDOWEVENT => Event::Window(sdl_event.window.try_into()?),
         SDL_KEYDOWN | SDL_KEYUP => Event::Keyboard(sdl_event.key.into()),
+        SDL_MOUSEMOTION => Event::MouseMotion(sdl_event.motion.into()),
+        SDL_MOUSEBUTTONDOWN | SDL_MOUSEBUTTONUP => Event::MouseButton(sdl_event.button.into()),
+        SDL_MOUSEWHEEL => Event::MouseWheel(sdl_event.wheel.into()),
         _ => return Err(()),
       })
     }
@@ -115,12 +122,15 @@ mod keyboard_event {
   use fermium::{SDL_KeyboardEvent, SDL_Keysym, SDL_PRESSED};
   //
   #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  #[repr(transparent)]
   pub struct Scancode(u32);
   //
   #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  #[repr(transparent)]
   pub struct Keycode(u32);
   //
   #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  #[repr(transparent)]
   pub struct KeyModifiers(u16);
   //
   #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -134,6 +144,7 @@ mod keyboard_event {
   }
   impl From<SDL_KeyboardEvent> for KeyboardEvent {
     #[inline]
+    #[must_use]
     fn from(keyboard_event: SDL_KeyboardEvent) -> Self {
       Self {
         window_id: WindowID(keyboard_event.windowID),
@@ -146,4 +157,99 @@ mod keyboard_event {
     }
   }
   // TODO: Key constants
+}
+
+pub use mouse_motion::*;
+mod mouse_motion {
+  use super::*;
+  use fermium::SDL_MouseMotionEvent;
+  //
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  pub struct MouseMotionEvent {
+    pub window_id: WindowID,
+    pub mouse_id: MouseID,
+    pub button_state: MouseButtonState,
+    pub x_pos: i32,
+    pub y_pos: i32,
+    pub dx: i32,
+    pub dy: i32,
+  }
+  impl From<SDL_MouseMotionEvent> for MouseMotionEvent {
+    #[inline]
+    #[must_use]
+    fn from(mouse_motion_event: SDL_MouseMotionEvent) -> Self {
+      Self {
+        window_id: WindowID(mouse_motion_event.windowID),
+        mouse_id: MouseID(mouse_motion_event.which),
+        button_state: MouseButtonState(mouse_motion_event.state),
+        x_pos: mouse_motion_event.x,
+        y_pos: mouse_motion_event.y,
+        dx: mouse_motion_event.xrel,
+        dy: mouse_motion_event.yrel,
+      }
+    }
+  }
+}
+
+pub use mouse_button::*;
+mod mouse_button {
+  use super::*;
+  use fermium::{SDL_MouseButtonEvent, SDL_PRESSED};
+  //
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  pub struct MouseButtonEvent {
+    pub window_id: WindowID,
+    pub mouse_id: MouseID,
+    pub button: MouseButtonState,
+    pub is_pressed: bool,
+    pub clicks: u8,
+    pub x_pos: i32,
+    pub y_pos: i32,
+  }
+  impl From<SDL_MouseButtonEvent> for MouseButtonEvent {
+    #[inline]
+    #[must_use]
+    fn from(mouse_button_event: SDL_MouseButtonEvent) -> Self {
+      Self {
+        window_id: WindowID(mouse_button_event.windowID),
+        mouse_id: MouseID(mouse_button_event.which),
+        button: MouseButtonState(mouse_button_event.button as u32),
+        is_pressed: mouse_button_event.state as u32 == SDL_PRESSED,
+        clicks: mouse_button_event.clicks,
+        x_pos: mouse_button_event.x,
+        y_pos: mouse_button_event.y,
+      }
+    }
+  }
+}
+
+pub use mouse_wheel::*;
+mod mouse_wheel {
+  use super::*;
+  use fermium::{SDL_MouseWheelEvent, SDL_MOUSEWHEEL_FLIPPED};
+  //
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  pub struct MouseWheelEvent {
+    pub window_id: WindowID,
+    pub mouse_id: MouseID,
+    pub dx: i32,
+    pub dy: i32,
+  }
+  impl From<SDL_MouseWheelEvent> for MouseWheelEvent {
+    #[inline]
+    #[must_use]
+    fn from(mouse_wheel_event: SDL_MouseWheelEvent) -> Self {
+      let mut out = Self {
+        window_id: WindowID(mouse_wheel_event.windowID),
+        mouse_id: MouseID(mouse_wheel_event.which),
+        dx: mouse_wheel_event.x,
+        dy: mouse_wheel_event.y,
+      };
+      if mouse_wheel_event.direction == SDL_MOUSEWHEEL_FLIPPED {
+        out.dx = -out.dx;
+        out.dy = -out.dy;
+      }
+      out
+    }
+  }
 }
