@@ -245,7 +245,7 @@ mod mouse_wheel {
         dx: mouse_wheel_event.x,
         dy: mouse_wheel_event.y,
       };
-      if mouse_wheel_event.direction == SDL_MOUSEWHEEL_FLIPPED {
+      if mouse_wheel_event.direction == SDL_MOUSEWHEEL_FLIPPED as u32 {
         out.dx = -out.dx;
         out.dy = -out.dy;
       }
@@ -253,3 +253,5 @@ mod mouse_wheel {
     }
   }
 }
+
+//
