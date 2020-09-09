@@ -1,33 +1,25 @@
 [package]
 name = "beryllium"
-description = "An opinionated set of high level wrappers for the `fermium` SDL2 bindings."
+description = "Opinionated, high-level wrappers for `fermium`."
 repository = "https://github.com/Lokathor/beryllium"
-version = "0.3.3-alpha.0"
+version = "0.4.0-alpha.0"
 authors = ["Lokathor <zefria@gmail.com>"]
 edition = "2018"
-license = "Zlib"
+license = "Zlib OR Apache-2.0 OR MIT"
 keywords = ["SDL2"]
-categories = ["api-bindings", "multimedia", "game-engines", "no-std"]
-
-# This forces docs.rs to build us on windows, which has the simplest build for
-# docs.rs to perform.
-[package.metadata.docs.rs]
-default-target = "x86_64-pc-windows-msvc"
+categories = ["api-bindings", "multimedia", "no-std"]
 
 [features]
 default = ["dynamic_link"]
 dynamic_link = ["fermium/dynamic_link"]
 static_link = ["fermium/static_link"]
-extern_crate_raw_window_handle = ["raw-window-handle"]
-#impl_global_alloc = []
 
 [dependencies]
-fermium = { version = "200.12.0", default-features = false }
-raw-window-handle = { version = "0.3", optional = true }
+fermium = { version = "200.12", default-features = false }
+raw-window-handle = { version = "0.3.3", optional = true }
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 objc = "0.2"
 
-[badges]
-appveyor = { repository = "Lokathor/beryllium" }
-travis-ci = { repository = "Lokathor/beryllium" }
+[package.metadata.docs.rs]
+default-target = "x86_64-pc-windows-msvc"

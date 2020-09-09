@@ -1,0 +1,55 @@
+name: Rust
+
+on:
+  push: {}
+  pull_request: {}
+
+jobs:
+  build_test:
+    runs-on: ${{ matrix.rust.os }}
+    strategy:
+      matrix:
+        rust:
+        #
+        - { os: windows-latest, target: x86_64-pc-windows-msvc, toolchain: 1.46.0 }
+        - { os: windows-latest, target: x86_64-pc-windows-msvc, toolchain: stable }
+        - { os: windows-latest, target: x86_64-pc-windows-msvc, toolchain: beta }
+        #
+        - { os: windows-latest, target: i686-pc-windows-msvc, toolchain: 1.46.0 }
+        - { os: windows-latest, target: i686-pc-windows-msvc, toolchain: stable }
+        - { os: windows-latest, target: i686-pc-windows-msvc, toolchain: beta }
+        #
+        - { os: macOS-latest, target: x86_64-apple-darwin, toolchain: 1.46.0 }
+        - { os: macOS-latest, target: x86_64-apple-darwin, toolchain: stable }
+        - { os: macOS-latest, target: x86_64-apple-darwin, toolchain: beta }
+        #
+        - { os: ubuntu-latest, target: x86_64-unknown-linux-gnu, toolchain: 1.46.0 }
+        - { os: ubuntu-latest, target: x86_64-unknown-linux-gnu, toolchain: stable }
+        - { os: ubuntu-latest, target: x86_64-unknown-linux-gnu, toolchain: beta }
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.rust.toolchain }}
+        target:  ${{ matrix.rust.target }}
+        profile: minimal
+        default: true
+    # Note(Lokathor): We don't need to install SDL2 on windows, it's bundled.
+    - name: Install SDL2 from Brew (if Mac)
+      if: matrix.rust.target == 'x86_64-apple-darwin'
+      run: brew update && brew install sdl2
+    - name: Install SDL2 from Source (if Linux)
+      if: matrix.rust.target == 'x86_64-unknown-linux-gnu'
+      run: sudo install-sdl2.sh
+    - name: Run Tests with Dynamic Link
+      uses: actions-rs/cargo@v1
+      with:
+        toolchain: ${{ matrix.rust.toolchain }}
+        command: test
+        args: --features=dynamic_link
+    - name: Run Tests with Static Link
+      uses: actions-rs/cargo@v1
+      with:
+        toolchain: ${{ matrix.rust.toolchain }}
+        command: test
+        args: --features=static_link
