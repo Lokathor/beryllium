@@ -40,7 +40,7 @@ jobs:
       run: brew update && brew install sdl2
     - name: Install SDL2 from Source (if Linux)
       if: matrix.rust.target == 'x86_64-unknown-linux-gnu'
-      run: sudo install-sdl2.sh
+      run: sudo ./install-sdl2.sh
     - name: Run Tests with Dynamic Link
       uses: actions-rs/cargo@v1
       with:
