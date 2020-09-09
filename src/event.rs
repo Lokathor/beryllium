@@ -1,20 +1,27 @@
 use core::convert::{TryFrom, TryInto};
 
+use alloc::vec::Vec;
+
 use fermium::{
-  SDL_Event, SDL_EventType, SDL_CONTROLLERAXISMOTION, SDL_CONTROLLERBUTTONDOWN,
-  SDL_CONTROLLERBUTTONUP, SDL_CONTROLLERDEVICEADDED,
-  SDL_CONTROLLERDEVICEREMAPPED, SDL_CONTROLLERDEVICEREMOVED, SDL_JOYAXISMOTION,
-  SDL_JOYBALLMOTION, SDL_JOYBUTTONDOWN, SDL_JOYBUTTONUP, SDL_JOYDEVICEADDED,
-  SDL_JOYDEVICEREMOVED, SDL_JOYHATMOTION, SDL_KEYDOWN, SDL_KEYUP,
-  SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONUP, SDL_MOUSEMOTION, SDL_MOUSEWHEEL,
-  SDL_QUIT, SDL_WINDOWEVENT,
+  SDL_Event, SDL_EventType, SDL_AUDIODEVICEADDED, SDL_AUDIODEVICEREMOVED,
+  SDL_CONTROLLERAXISMOTION, SDL_CONTROLLERBUTTONDOWN, SDL_CONTROLLERBUTTONUP,
+  SDL_CONTROLLERDEVICEADDED, SDL_CONTROLLERDEVICEREMAPPED,
+  SDL_CONTROLLERDEVICEREMOVED, SDL_DROPBEGIN, SDL_DROPCOMPLETE, SDL_DROPFILE,
+  SDL_DROPTEXT, SDL_FINGERDOWN, SDL_FINGERMOTION, SDL_FINGERUP,
+  SDL_JOYAXISMOTION, SDL_JOYBALLMOTION, SDL_JOYBUTTONDOWN, SDL_JOYBUTTONUP,
+  SDL_JOYDEVICEADDED, SDL_JOYDEVICEREMOVED, SDL_JOYHATMOTION, SDL_KEYDOWN,
+  SDL_KEYUP, SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONUP, SDL_MOUSEMOTION,
+  SDL_MOUSEWHEEL, SDL_MULTIGESTURE, SDL_QUIT, SDL_WINDOWEVENT,
 };
 
-use crate::{JoystickID, MouseButtonState, MouseID, WindowID};
+use crate::{
+  AudioDeviceID, FingerID, JoystickID, MouseButtonState, MouseID, TouchID,
+  WindowID,
+};
 
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 #[non_exhaustive]
 pub enum Event {
-  Quit,
   // TODO: DisplayEvent
   Window(WindowEvent),
   Keyboard(KeyboardEvent),
@@ -31,6 +38,12 @@ pub enum Event {
   ControllerAxis(ControllerAxisEvent),
   ControllerButton(ControllerButtonEvent),
   ControllerDevice(ControllerDeviceEvent),
+  AudioDevice(AudioDeviceEvent),
+  Quit,
+  TouchFinger(TouchFingerEvent),
+  MultiGesture(MultiGestureEvent),
+  // TODO: DollarGesture
+  FileDrop(FileDropEvent),
 }
 
 impl TryFrom<SDL_Event> for Event {
@@ -41,7 +54,6 @@ impl TryFrom<SDL_Event> for Event {
     // Safety: `sdl_event` is a union so there's all sorts of union access here
     unsafe {
       Ok(match sdl_event.type_ as SDL_EventType {
-        SDL_QUIT => Event::Quit,
         SDL_WINDOWEVENT => Event::Window(sdl_event.window.try_into()?),
         SDL_KEYDOWN | SDL_KEYUP => Event::Keyboard(sdl_event.key.into()),
         SDL_MOUSEMOTION => Event::MouseMotion(sdl_event.motion.into()),
@@ -68,6 +80,17 @@ impl TryFrom<SDL_Event> for Event {
         | SDL_CONTROLLERDEVICEREMOVED
         | SDL_CONTROLLERDEVICEREMAPPED => {
           Event::ControllerDevice(sdl_event.cdevice.try_into()?)
+        }
+        SDL_AUDIODEVICEADDED | SDL_AUDIODEVICEREMOVED => {
+          Event::AudioDevice(sdl_event.adevice.try_into()?)
+        }
+        SDL_QUIT => Event::Quit,
+        SDL_FINGERMOTION | SDL_FINGERDOWN | SDL_FINGERUP => {
+          Event::TouchFinger(sdl_event.tfinger.try_into()?)
+        }
+        SDL_MULTIGESTURE => Event::MultiGesture(sdl_event.mgesture.into()),
+        SDL_DROPFILE | SDL_DROPTEXT | SDL_DROPBEGIN | SDL_DROPCOMPLETE => {
+          Event::FileDrop(sdl_event.drop.try_into()?)
         }
         _ => return Err(()),
       })
@@ -621,6 +644,181 @@ mod controller_device {
         SDL_CONTROLLERDEVICEREMAPPED => Self::Remapped {
           joystick_id: JoystickID(controller_device_event.which),
         },
+        _ => return Err(()),
+      })
+    }
+  }
+}
+
+pub use audio_device::*;
+mod audio_device {
+  use super::*;
+  use fermium::SDL_AudioDeviceEvent;
+
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  #[non_exhaustive]
+  pub enum AudioDeviceEvent {
+    Added { device_index: u32, is_capture: bool },
+    Removed { device_id: AudioDeviceID, is_capture: bool },
+  }
+
+  impl TryFrom<SDL_AudioDeviceEvent> for AudioDeviceEvent {
+    type Error = ();
+    #[inline]
+    #[must_use]
+    fn try_from(
+      audio_device_event: SDL_AudioDeviceEvent,
+    ) -> Result<Self, Self::Error> {
+      Ok(match audio_device_event.type_ as SDL_EventType {
+        SDL_CONTROLLERDEVICEADDED => Self::Added {
+          device_index: audio_device_event.which,
+          is_capture: audio_device_event.iscapture != 0,
+        },
+        SDL_CONTROLLERDEVICEREMOVED => Self::Removed {
+          device_id: AudioDeviceID(audio_device_event.which),
+          is_capture: audio_device_event.iscapture != 0,
+        },
+        _ => return Err(()),
+      })
+    }
+  }
+}
+
+pub use touch_finger::*;
+mod touch_finger {
+  use super::*;
+  use fermium::SDL_TouchFingerEvent;
+
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  #[non_exhaustive]
+  pub enum TouchFingerEventType {
+    Motion,
+    Down,
+    Up,
+  }
+  impl TryFrom<SDL_EventType> for TouchFingerEventType {
+    type Error = ();
+    #[inline]
+    #[must_use]
+    fn try_from(event_ty: SDL_EventType) -> Result<Self, Self::Error> {
+      Ok(match event_ty {
+        SDL_FINGERMOTION => Self::Motion,
+        SDL_FINGERDOWN => Self::Down,
+        SDL_FINGERUP => Self::Up,
+        _ => return Err(()),
+      })
+    }
+  }
+
+  #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+  pub struct TouchFingerEvent {
+    ty: TouchFingerEventType,
+    touch_id: TouchID,
+    finger_id: FingerID,
+    x: f32,
+    y: f32,
+    dx: f32,
+    dy: f32,
+    pressure: f32,
+  }
+
+  impl TryFrom<SDL_TouchFingerEvent> for TouchFingerEvent {
+    type Error = ();
+    #[inline]
+    #[must_use]
+    fn try_from(
+      touch_finger_event: SDL_TouchFingerEvent,
+    ) -> Result<Self, Self::Error> {
+      Ok(Self {
+        ty: touch_finger_event.type_.try_into()?,
+        touch_id: TouchID(touch_finger_event.touchId),
+        finger_id: FingerID(touch_finger_event.fingerId),
+        x: touch_finger_event.x,
+        y: touch_finger_event.y,
+        dx: touch_finger_event.dx,
+        dy: touch_finger_event.dy,
+        pressure: touch_finger_event.pressure,
+      })
+    }
+  }
+}
+
+pub use multi_gesture::*;
+mod multi_gesture {
+  use super::*;
+  use fermium::SDL_MultiGestureEvent;
+
+  #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+  pub struct MultiGestureEvent {
+    touch_id: TouchID,
+    d_angle: f32,
+    d_pinch: f32,
+    x_pos: f32,
+    y_pos: f32,
+    num_fingers: u16,
+  }
+
+  impl From<SDL_MultiGestureEvent> for MultiGestureEvent {
+    #[inline]
+    #[must_use]
+    fn from(multi_gesture_event: SDL_MultiGestureEvent) -> Self {
+      Self {
+        touch_id: TouchID(multi_gesture_event.touchId),
+        d_angle: multi_gesture_event.dTheta,
+        d_pinch: multi_gesture_event.dDist,
+        x_pos: multi_gesture_event.x,
+        y_pos: multi_gesture_event.y,
+        num_fingers: multi_gesture_event.numFingers,
+      }
+    }
+  }
+}
+
+pub use file_drop::*;
+mod file_drop {
+  use super::*;
+  use fermium::SDL_DropEvent;
+
+  #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  pub enum FileDropEvent {
+    File { window_id: WindowID, name: Vec<u8> },
+    Text { window_id: WindowID, text: Vec<u8> },
+    Begin,
+    Complete,
+  }
+
+  impl TryFrom<SDL_DropEvent> for FileDropEvent {
+    type Error = ();
+    #[inline]
+    #[must_use]
+    fn try_from(drop_event: SDL_DropEvent) -> Result<Self, Self::Error> {
+      Ok(match drop_event.type_ as SDL_EventType {
+        SDL_DROPFILE => unsafe {
+          let mut name = Vec::with_capacity(1024);
+          let mut ptr = drop_event.file;
+          while *ptr != 0 {
+            name.push(*ptr as u8);
+            ptr = ptr.add(1);
+          }
+          let out =
+            Self::File { window_id: WindowID(drop_event.windowID), name };
+          fermium::SDL_free(drop_event.file.cast());
+          out
+        },
+        SDL_DROPTEXT => unsafe {
+          let mut text = Vec::with_capacity(1024);
+          let mut ptr = drop_event.file;
+          while *ptr != 0 {
+            text.push(*ptr as u8);
+            ptr = ptr.add(1);
+          }
+          let out =
+            Self::Text { window_id: WindowID(drop_event.windowID), text };
+          fermium::SDL_free(drop_event.file.cast());
+          out
+        },
+        SDL_DROPBEGIN => Self::Begin,
+        SDL_DROPCOMPLETE => Self::Complete,
         _ => return Err(()),
       })
     }
