@@ -16,6 +16,8 @@ static_link = ["fermium/static_link"]
 
 [dependencies]
 fermium = { version = "200.12", default-features = false }
+tinyvec = { version = "1" }
+
 raw-window-handle = { version = "0.3.3", optional = true }
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]

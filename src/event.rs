@@ -1,12 +1,19 @@
 use core::convert::{TryFrom, TryInto};
 
-use fermium::{SDL_Event, SDL_EventType, SDL_QUIT, SDL_WINDOWEVENT};
+use fermium::{
+  SDL_Event, SDL_EventType, SDL_KEYDOWN, SDL_KEYUP, SDL_QUIT, SDL_WINDOWEVENT,
+};
+
+use crate::WindowID;
 
 #[non_exhaustive]
 pub enum Event {
   Quit,
-  // TODO: display
+  // TODO: DisplayEvent
   Window(WindowEvent),
+  Keyboard(KeyboardEvent),
+  /* TODO: TextEditing,
+   * TODO: TextInput, */
 }
 
 impl TryFrom<SDL_Event> for Event {
@@ -19,6 +26,7 @@ impl TryFrom<SDL_Event> for Event {
       Ok(match sdl_event.type_ as SDL_EventType {
         SDL_QUIT => Event::Quit,
         SDL_WINDOWEVENT => Event::Window(sdl_event.window.try_into()?),
+        SDL_KEYDOWN | SDL_KEYUP => Event::Keyboard(sdl_event.key.into()),
         _ => return Err(()),
       })
     }
@@ -39,24 +47,25 @@ mod window_event {
     SDL_WINDOWEVENT_TAKE_FOCUS,
   };
 
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
   #[non_exhaustive]
   pub enum WindowEvent {
-    Shown { window_id: u32 },
-    Hidden { window_id: u32 },
-    Exposed { window_id: u32 },
-    Maximized { window_id: u32 },
-    Minimized { window_id: u32 },
-    Restored { window_id: u32 },
-    MouseEntered { window_id: u32 },
-    MouseLeft { window_id: u32 },
-    FocusGained { window_id: u32 },
-    FocusLost { window_id: u32 },
-    Close { window_id: u32 },
-    TakeFocus { window_id: u32 },
-    HitTest { window_id: u32 },
-    Moved { window_id: u32, x: i32, y: i32 },
-    Resized { window_id: u32, width: u32, height: u32 },
-    SizeChanged { window_id: u32, width: u32, height: u32 },
+    Shown { window_id: WindowID },
+    Hidden { window_id: WindowID },
+    Exposed { window_id: WindowID },
+    Maximized { window_id: WindowID },
+    Minimized { window_id: WindowID },
+    Restored { window_id: WindowID },
+    MouseEntered { window_id: WindowID },
+    MouseLeft { window_id: WindowID },
+    FocusGained { window_id: WindowID },
+    FocusLost { window_id: WindowID },
+    Close { window_id: WindowID },
+    TakeFocus { window_id: WindowID },
+    HitTest { window_id: WindowID },
+    Moved { window_id: WindowID, x: i32, y: i32 },
+    Resized { window_id: WindowID, width: u32, height: u32 },
+    SizeChanged { window_id: WindowID, width: u32, height: u32 },
   }
 
   impl TryFrom<SDL_WindowEvent> for WindowEvent {
@@ -64,7 +73,7 @@ mod window_event {
     #[inline]
     #[must_use]
     fn try_from(window_event: SDL_WindowEvent) -> Result<Self, Self::Error> {
-      let window_id = window_event.windowID;
+      let window_id = WindowID(window_event.windowID);
       Ok(match window_event.event as SDL_WindowEventID {
         SDL_WINDOWEVENT_SHOWN => Self::Shown { window_id },
         SDL_WINDOWEVENT_HIDDEN => Self::Hidden { window_id },
@@ -98,4 +107,43 @@ mod window_event {
       })
     }
   }
+}
+
+pub use keyboard_event::*;
+mod keyboard_event {
+  use super::*;
+  use fermium::{SDL_KeyboardEvent, SDL_Keysym, SDL_PRESSED};
+  //
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  pub struct Scancode(u32);
+  //
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  pub struct Keycode(u32);
+  //
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  pub struct KeyModifiers(u16);
+  //
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+  pub struct KeyboardEvent {
+    pub window_id: WindowID,
+    pub scancode: Scancode,
+    pub keycode: Keycode,
+    pub modifiers: KeyModifiers,
+    pub is_pressed: bool,
+    pub repeat: u8,
+  }
+  impl From<SDL_KeyboardEvent> for KeyboardEvent {
+    #[inline]
+    fn from(keyboard_event: SDL_KeyboardEvent) -> Self {
+      Self {
+        window_id: WindowID(keyboard_event.windowID),
+        scancode: Scancode(keyboard_event.keysym.scancode as u32),
+        keycode: Keycode(keyboard_event.keysym.sym as u32),
+        modifiers: KeyModifiers(keyboard_event.keysym.mod_),
+        is_pressed: keyboard_event.state as u32 == SDL_PRESSED,
+        repeat: keyboard_event.repeat,
+      }
+    }
+  }
+  // TODO: Key constants
 }
