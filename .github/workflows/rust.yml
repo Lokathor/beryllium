@@ -52,4 +52,4 @@ jobs:
       with:
         toolchain: ${{ matrix.rust.toolchain }}
         command: test
-        args: --features=static_link
+        args: --no-default-features --features=static_link
