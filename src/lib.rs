@@ -2,8 +2,13 @@
 #![allow(unused_imports)]
 
 extern crate alloc;
+use alloc::{string::String, vec::Vec};
 
-use fermium;
+mod init;
+pub use init::InitFlags;
+
+mod event;
+pub use event::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
@@ -34,4 +39,29 @@ pub struct TouchID(i64);
 #[repr(transparent)]
 pub struct FingerID(i64);
 
-mod event;
+/// Attempts to make some bytes into a string without allocating.
+///
+/// On error, this falls back to lossy allocating.
+fn bytes_to_string(v: Vec<u8>) -> String {
+  match String::from_utf8(v) {
+    Ok(s) => s,
+    Err(from_utf8_error) => {
+      let bytes = from_utf8_error.as_bytes();
+      let cow = String::from_utf8_lossy(bytes);
+      cow.into_owned()
+    }
+  }
+}
+
+/// SDL2-2.0.12 has no thread-safe way to get the error string. Oh well.
+fn racey_get_error() -> String {
+  unsafe {
+    let mut buf = Vec::with_capacity(1024);
+    let mut p = fermium::SDL_GetError();
+    while *p != 0 {
+      buf.push(*p);
+      p = p.add(1);
+    }
+    bytes_to_string(buf)
+  }
+}

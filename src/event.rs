@@ -787,9 +787,9 @@ mod file_drop {
       Ok(match drop_event.type_ as SDL_EventType {
         SDL_DROPFILE => unsafe {
           let mut name = Vec::with_capacity(1024);
-          let mut ptr = drop_event.file;
+          let mut ptr = drop_event.file as *const u8;
           while *ptr != 0 {
-            name.push(*ptr as u8);
+            name.push(*ptr);
             ptr = ptr.add(1);
           }
           let out =
@@ -799,9 +799,9 @@ mod file_drop {
         },
         SDL_DROPTEXT => unsafe {
           let mut text = Vec::with_capacity(1024);
-          let mut ptr = drop_event.file;
+          let mut ptr = drop_event.file as *const u8;
           while *ptr != 0 {
-            text.push(*ptr as u8);
+            text.push(*ptr);
             ptr = ptr.add(1);
           }
           let out =
