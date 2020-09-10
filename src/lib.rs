@@ -61,7 +61,7 @@ pub(crate) fn sdl_get_error() -> String {
   const ERR_MAX_STRLEN: usize = 128;
   unsafe {
     let mut buf = Vec::with_capacity(ERR_MAX_STRLEN);
-    let mut p = fermium::SDL_GetError();
+    let mut p: *const u8 = fermium::SDL_GetError() as _;
     while *p != 0 {
       buf.push(*p);
       p = p.add(1);
