@@ -7,7 +7,7 @@ use alloc::{string::String, sync::Arc};
 
 use fermium::{SDL_Init, SDL_Quit};
 
-use crate::racey_get_error;
+use crate::sdl_get_error;
 
 static SDL_ACTIVE: AtomicBool = AtomicBool::new(false);
 
@@ -41,7 +41,7 @@ pub(crate) fn sdl_init(
     }
     let ret = unsafe { SDL_Init(flags.0) };
     if ret < 0 {
-      Err(racey_get_error())
+      Err(sdl_get_error())
     } else {
       Ok(Arc::new(Initialization(PhantomData)))
     }

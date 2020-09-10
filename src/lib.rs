@@ -53,10 +53,14 @@ fn bytes_to_string(v: Vec<u8>) -> String {
   }
 }
 
-/// SDL2-2.0.12 has no thread-safe way to get the error string. Oh well.
-fn racey_get_error() -> String {
+/// Gets the current SDL error string of this thread.
+pub(crate) fn sdl_get_error() -> String {
+  /// This is the current size of the error buffer in SDL, so we will
+  /// pre-allocate this much to save time. If the error buffer size grows in the
+  /// future then our vec will just realloc on long strings.
+  const ERR_MAX_STRLEN: usize = 128;
   unsafe {
-    let mut buf = Vec::with_capacity(1024);
+    let mut buf = Vec::with_capacity(ERR_MAX_STRLEN);
     let mut p = fermium::SDL_GetError();
     while *p != 0 {
       buf.push(*p);
