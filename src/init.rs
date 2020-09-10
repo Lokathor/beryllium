@@ -30,6 +30,7 @@ pub(crate) fn sdl_init(
     // false came back, so SDL was not on, so we begin normal initialization.
     #[cfg(any(target_os = "macos", target_os = "ios"))]
     {
+      extern crate std;
       use objc::{class, msg_send, sel, sel_impl};
       let is_main: bool = unsafe { msg_send![class!(NSThread), isMainThread] };
       if !is_main {
