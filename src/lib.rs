@@ -7,8 +7,8 @@ use alloc::{string::String, vec::Vec};
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 extern crate std;
 
-mod init;
-pub use init::InitFlags;
+mod sdl;
+pub use sdl::*;
 
 mod event;
 pub use event::*;
@@ -20,7 +20,11 @@ pub struct WindowID(u32);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct MouseID(u32);
-// TODO: is_touch_mouse
+impl MouseID {
+  pub const fn is_touch_mouse(self) -> bool {
+    self.0 == fermium::SDL_TOUCH_MOUSEID
+  }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
@@ -58,7 +62,7 @@ fn bytes_to_string(v: Vec<u8>) -> String {
 
 /// Gets the current SDL error string of this thread.
 pub(crate) fn sdl_get_error() -> String {
-  /// This is the current size of the error buffer in SDL, so we will
+  /// This is the size of the TLS error buffer in current SDL, so we will
   /// pre-allocate this much to save time. If the error buffer size grows in the
   /// future then our vec will just realloc on long strings.
   const ERR_MAX_STRLEN: usize = 128;
@@ -71,4 +75,11 @@ pub(crate) fn sdl_get_error() -> String {
     }
     bytes_to_string(buf)
   }
+}
+
+pub fn sdl_get_version() -> (u8, u8, u8) {
+  use fermium::{SDL_GetVersion, SDL_version};
+  let mut version = SDL_version::default();
+  unsafe { SDL_GetVersion(&mut version) };
+  (version.major, version.minor, version.patch)
 }
