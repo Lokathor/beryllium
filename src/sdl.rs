@@ -89,6 +89,8 @@ impl Sdl {
   ///
   /// * Always returns immediately.
   /// * If no event is pending, gives `None`.
+  /// * The `u32` is the event's timestamp (milliseconds since SDL's
+  ///   initialization).
   pub fn poll_event(&self) -> Option<(Event, u32)> {
     use fermium::{SDL_Event, SDL_PollEvent};
     let mut sdl_event = SDL_Event::default();
@@ -105,6 +107,8 @@ impl Sdl {
   ///
   /// * Blocks if no event is available.
   /// * Returns `Err` if there's a problem during the wait.
+  /// * The `u32` is the event's timestamp (milliseconds since SDL's
+  ///   initialization).
   pub fn wait_event(&self) -> Result<(Event, u32), String> {
     use fermium::{SDL_Event, SDL_WaitEvent};
     let mut sdl_event = SDL_Event::default();
@@ -122,8 +126,13 @@ impl Sdl {
   /// Waits for a pending event, but with a timeout.
   ///
   /// * Blocks if no event is available, up to the given number of milliseconds.
-  /// * Returns `Err` if there's a problem during the wait, or if the wait timed out.
-  pub fn wait_event_timeout(&self, milliseconds: i32) -> Result<(Event, u32), String> {
+  /// * Returns `Err` if there's a problem during the wait, or if the wait timed
+  ///   out.
+  /// * The `u32` is the event's timestamp (milliseconds since SDL's
+  ///   initialization).
+  pub fn wait_event_timeout(
+    &self, milliseconds: i32,
+  ) -> Result<(Event, u32), String> {
     use fermium::{SDL_Event, SDL_WaitEventTimeout};
     let mut sdl_event = SDL_Event::default();
     let ret = unsafe { SDL_WaitEventTimeout(&mut sdl_event, milliseconds) };
