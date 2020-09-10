@@ -4,6 +4,9 @@
 extern crate alloc;
 use alloc::{string::String, vec::Vec};
 
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+extern crate std;
+
 mod init;
 pub use init::InitFlags;
 
