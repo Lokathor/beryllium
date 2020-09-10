@@ -25,7 +25,7 @@ pub(crate) fn sdl_init(
 ) -> Result<Arc<Initialization>, String> {
   if SDL_ACTIVE.compare_and_swap(false, true, Ordering::SeqCst) {
     // true came back, so SDL was on, so this is a double init.
-    Err(String::from("beryllium: SDL is aleady active!"))
+    Err(String::from("beryllium: SDL is already active!"))
   } else {
     // false came back, so SDL was not on, so we begin normal initialization.
     #[cfg(any(target_os = "macos", target_os = "ios"))]
