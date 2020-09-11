@@ -13,6 +13,9 @@ pub use sdl::*;
 mod event;
 pub use event::*;
 
+mod window;
+pub use window::*;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct WindowID(u32);
@@ -77,6 +80,11 @@ pub(crate) fn sdl_get_error() -> String {
   }
 }
 
+/// Gets the SDL version that the program is actually using.
+///
+/// This *might* be a later version than the one you compiled against. However,
+/// SDL's dynamic loading system will not allow and ABI-incompatible version to
+/// be loaded.
 pub fn sdl_get_version() -> (u8, u8, u8) {
   use fermium::{SDL_GetVersion, SDL_version};
   let mut version = SDL_version::default();

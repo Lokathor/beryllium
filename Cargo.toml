@@ -16,7 +16,7 @@ static_link = ["fermium/static_link"]
 
 [dependencies]
 fermium = { version = "200.12", default-features = false }
-tinyvec = { version = "1" }
+tinyvec = { version = "1", features = ["alloc"] }
 
 raw-window-handle = { version = "0.3.3", optional = true }
 
