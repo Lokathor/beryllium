@@ -6,7 +6,7 @@ use core::{
 
 use alloc::{string::String, sync::Arc};
 
-use crate::{sdl_get_error, Event};
+use crate::{sdl_get_error, Event, RendererWindow, WindowCreationFlags};
 
 static SDL_ACTIVE: AtomicBool = AtomicBool::new(false);
 
@@ -142,5 +142,12 @@ impl Sdl {
     } else {
       Err(sdl_get_error())
     }
+  }
+
+  pub fn new_renderer_window(
+    &self, title: &str, pos: Option<[i32; 2]>, size: [u32; 2],
+    flags: WindowCreationFlags,
+  ) -> Result<RendererWindow, String> {
+    RendererWindow::new(self.init.clone(), title, pos, size, flags)
   }
 }

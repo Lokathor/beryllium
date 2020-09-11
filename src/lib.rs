@@ -16,6 +16,9 @@ pub use event::*;
 mod window;
 pub use window::*;
 
+mod renderer;
+pub use renderer::*;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct WindowID(u32);
