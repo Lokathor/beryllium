@@ -13,6 +13,7 @@ categories = ["api-bindings", "multimedia", "no-std"]
 default = ["dynamic_link"]
 dynamic_link = ["fermium/dynamic_link"]
 static_link = ["fermium/static_link"]
+# TODO: global alloc impl that makes the SDL alloc be the global alloc.
 
 [dependencies]
 fermium = { version = "200.12", default-features = false }

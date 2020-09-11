@@ -6,8 +6,6 @@ use core::{
 
 use alloc::{string::String, sync::Arc};
 
-use fermium::{SDL_Init, SDL_Quit};
-
 use crate::{sdl_get_error, Event};
 
 static SDL_ACTIVE: AtomicBool = AtomicBool::new(false);
@@ -16,7 +14,7 @@ pub(crate) struct Initialization(PhantomData<*mut u8>);
 
 impl Drop for Initialization {
   fn drop(&mut self) {
-    unsafe { SDL_Quit() }
+    unsafe { fermium::SDL_Quit() }
     SDL_ACTIVE.store(false, Ordering::SeqCst)
   }
 }
@@ -40,7 +38,7 @@ impl Initialization {
           ));
         }
       }
-      let ret = unsafe { SDL_Init(flags.0) };
+      let ret = unsafe { fermium::SDL_Init(flags.0) };
       if ret < 0 {
         Err(sdl_get_error())
       } else {
