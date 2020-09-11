@@ -120,6 +120,6 @@ impl WindowCreationFlags {
     out |= if self.is_input_grabbed { fermium::SDL_WINDOW_VULKAN } else { 0 };
     out |=
       if self.allow_high_dpi { fermium::SDL_WINDOW_ALLOW_HIGHDPI } else { 0 };
-    out
+    out as u32
   }
 }

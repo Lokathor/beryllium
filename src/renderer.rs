@@ -44,7 +44,7 @@ impl RendererWindow {
       fermium::SDL_CreateRenderer(
         win.as_ptr(),
         -1,
-        fermium::SDL_RENDERER_ACCELERATED | fermium::SDL_RENDERER_PRESENTVSYNC,
+        (fermium::SDL_RENDERER_ACCELERATED | fermium::SDL_RENDERER_PRESENTVSYNC) as u32,
       )
     })
     .ok_or_else(sdl_get_error)?;
