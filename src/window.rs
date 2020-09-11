@@ -1,4 +1,4 @@
-use core::{ptr::NonNull};
+use core::ptr::NonNull;
 
 use alloc::{rc::Rc, string::String, sync::Arc};
 
