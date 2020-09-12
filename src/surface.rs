@@ -70,9 +70,10 @@ impl Surface {
     };
     if rw_ops.is_null() {
       return Err(sdl_get_error());
+    } else {
+      NonNull::new(unsafe { fermium::SDL_LoadBMP_RW(rw_ops, true as _) })
+        .ok_or_else(sdl_get_error)
+        .map(|nn| Surface { nn })
     }
-    NonNull::new(unsafe { fermium::SDL_LoadBMP_RW(rw_ops, true as _) })
-      .ok_or_else(sdl_get_error)
-      .map(|nn| Surface { nn })
   }
 }
