@@ -22,6 +22,12 @@ pub use renderer::*;
 mod surface;
 pub use surface::*;
 
+mod pixel_format_enum;
+pub use pixel_format_enum::*;
+
+mod pixel_format;
+pub use pixel_format::*;
+
 mod palette;
 pub use palette::*;
 
