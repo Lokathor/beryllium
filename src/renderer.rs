@@ -6,7 +6,7 @@ use fermium::SDL_Renderer;
 
 use crate::{sdl_get_error, Initialization, Window, WindowCreationFlags};
 
-struct Renderer {
+pub(crate) struct Renderer {
   nn: NonNull<SDL_Renderer>,
   // Note(Lokathor): As long as the renderer lives, we have to also keep the
   // window that created it alive.
@@ -44,7 +44,8 @@ impl RendererWindow {
       fermium::SDL_CreateRenderer(
         win.as_ptr(),
         -1,
-        (fermium::SDL_RENDERER_ACCELERATED | fermium::SDL_RENDERER_PRESENTVSYNC) as u32,
+        (fermium::SDL_RENDERER_ACCELERATED | fermium::SDL_RENDERER_PRESENTVSYNC)
+          as u32,
       )
     })
     .ok_or_else(sdl_get_error)?;

@@ -19,6 +19,15 @@ pub use window::*;
 mod renderer;
 pub use renderer::*;
 
+mod surface;
+pub use surface::*;
+
+mod palette;
+pub use palette::*;
+
+mod texture;
+pub use texture::*;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct WindowID(u32);
