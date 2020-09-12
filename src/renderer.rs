@@ -1,10 +1,13 @@
-use core::{ops::Deref, ptr::NonNull};
+use core::{convert::TryInto, ops::Deref, ptr::NonNull};
 
 use alloc::{rc::Rc, string::String, sync::Arc};
 
 use fermium::SDL_Renderer;
 
-use crate::{sdl_get_error, Initialization, Window, WindowCreationFlags};
+use crate::{
+  sdl_get_error, Initialization, PixelFormatEnum, Surface, Texture, Window,
+  WindowCreationFlags,
+};
 
 pub(crate) struct Renderer {
   nn: NonNull<SDL_Renderer>,
@@ -65,4 +68,42 @@ impl RendererWindow {
   pub fn present(&self) {
     unsafe { fermium::SDL_RenderPresent(self.rend.nn.as_ptr()) }
   }
+
+  pub fn create_texture(
+    &self, pixel_format: PixelFormatEnum, access: TextureAccess, w: u32, h: u32,
+  ) -> Result<Texture, String> {
+    NonNull::new(unsafe {
+      fermium::SDL_CreateTexture(
+        self.rend.nn.as_ptr(),
+        pixel_format.0,
+        access as _,
+        w.try_into().unwrap(),
+        h.try_into().unwrap(),
+      )
+    })
+    .ok_or_else(sdl_get_error)
+    .map(|nn| Texture { nn, rend: self.rend.clone() })
+  }
+
+  pub fn create_texture_from_surface(
+    &self, surface: &Surface,
+  ) -> Result<Texture, String> {
+    NonNull::new(unsafe {
+      fermium::SDL_CreateTextureFromSurface(
+        self.rend.nn.as_ptr(),
+        surface.nn.as_ptr(),
+      )
+    })
+    .ok_or_else(sdl_get_error)
+    .map(|nn| Texture { nn, rend: self.rend.clone() })
+  }
+}
+
+pub enum TextureAccess {
+  /// Changes rarely, not lockable.
+  Static = fermium::SDL_TEXTUREACCESS_STATIC as _,
+  /// Changes frequently, lockable.
+  Streaming = fermium::SDL_TEXTUREACCESS_STREAMING as _,
+  /// Can be used as a render target.
+  Target = fermium::SDL_TEXTUREACCESS_TARGET as _,
 }

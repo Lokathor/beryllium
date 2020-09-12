@@ -14,7 +14,7 @@ but that would need to be a whole separate type with a lifetime and PhantomData 
 */
 
 pub struct Surface {
-  nn: NonNull<SDL_Surface>,
+  pub(crate) nn: NonNull<SDL_Surface>,
 }
 impl Drop for Surface {
   fn drop(&mut self) {
@@ -91,7 +91,7 @@ impl Surface {
 }
 
 pub struct SurfaceLock<'s> {
-  surface: &'s mut Surface
+  surface: &'s mut Surface,
 }
 impl<'s> Drop for SurfaceLock<'s> {
   fn drop(&mut self) {
