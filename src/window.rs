@@ -12,7 +12,7 @@ use crate::{sdl_get_error, Initialization};
 ///
 /// You don't ever make one of these directly. Instead, each drawing API has its
 /// own window "subtype" (`GlWindow`, `VkWindow`, `RendererWindow`, `RawWindow`)
-/// that can [`Deref`] into this type.
+/// that can [`Deref`](core::ops::Deref) into this type.
 pub struct Window {
   nn: NonNull<SDL_Window>,
   // Note(Lokathor): As long as the window lives, we have to also keep SDL
