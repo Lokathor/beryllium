@@ -9,7 +9,7 @@ use fermium::SDL_Surface;
 use crate::{sdl_get_error, PixelFormatEnum};
 
 /*
-Some day maybe support: SDL_CreateRGBSurfaceFrom and SDL_CreateRGBSurfaceWithFormatFrom,
+Some day maybe support SDL_CreateRGBSurfaceFrom and SDL_CreateRGBSurfaceWithFormatFrom,
 but that would need to be a whole separate type with a lifetime and PhantomData and all that.
 */
 
@@ -75,5 +75,26 @@ impl Surface {
         .ok_or_else(sdl_get_error)
         .map(|nn| Surface { nn })
     }
+  }
+
+  // TODO: this is actually not needed for most surfaces, only ones that have
+  // RLE acceleration applied. It's not expensive for other surfaces to do the
+  // lock/unlock, but it's not very ergonomic.
+  pub fn lock(&mut self) -> Result<SurfaceLock<'_>, String> {
+    let ret = unsafe { fermium::SDL_LockSurface(self.nn.as_ptr()) };
+    if ret >= 0 {
+      Ok(SurfaceLock { surface: self })
+    } else {
+      Err(sdl_get_error())
+    }
+  }
+}
+
+pub struct SurfaceLock<'s> {
+  surface: &'s mut Surface
+}
+impl<'s> Drop for SurfaceLock<'s> {
+  fn drop(&mut self) {
+    unsafe { fermium::SDL_UnlockSurface(self.surface.nn.as_ptr()) }
   }
 }
