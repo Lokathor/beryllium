@@ -4,6 +4,11 @@ use fermium::SDL_Palette;
 
 use crate::{sdl_get_error, SdlError};
 
+/// A palette of colors, for use with [`PixelFormat`] and [`Surface`].
+///
+/// You *basically never* need to allocate one of these yourself. They are
+/// automatically created as necessary as part of allocating a new PixelFormat.
+#[repr(transparent)]
 pub struct Palette {
   nn: NonNull<SDL_Palette>,
 }
@@ -23,6 +28,18 @@ impl Palette {
 
   pub fn len(&self) -> usize {
     unsafe { (*self.nn.as_ptr()).ncolors as usize }
+  }
+
+  pub fn get_color(&self, i: usize) -> [u8; 4] {
+    assert!(i < self.len());
+    unsafe { *(*self.nn.as_ptr()).colors.add(i).cast() }
+  }
+
+  pub fn set_color(&self, i: usize, rgba: [u8; 4]) {
+    assert!(i < self.len());
+    unsafe {
+      *(*self.nn.as_ptr()).colors.add(i).cast() = rgba;
+    }
   }
 
   pub fn get_colors(&self, buf: &mut [[u8; 4]]) {

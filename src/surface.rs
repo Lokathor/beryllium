@@ -1,10 +1,14 @@
-use core::{convert::TryInto, ptr::NonNull};
+use core::{
+  convert::TryInto,
+  ops::{Deref, Index, IndexMut},
+  ptr::NonNull,
+};
 
 use tinyvec::TinyVec;
 
-use fermium::SDL_Surface;
+use fermium::{SDL_PixelFormat, SDL_Surface};
 
-use crate::{sdl_get_error, PixelFormatEnum, SdlError};
+use crate::{sdl_get_error, PixelFormat, PixelFormatEnum, SdlError};
 
 /*
 Some day maybe support SDL_CreateRGBSurfaceFrom and SDL_CreateRGBSurfaceWithFormatFrom,
@@ -86,6 +90,27 @@ impl Surface {
       Err(sdl_get_error())
     }
   }
+
+  pub fn pixel_format(&self) -> &PixelFormat {
+    unsafe {
+      let f: *const SDL_PixelFormat = (*self.nn.as_ptr()).format;
+      assert!(!f.is_null());
+      core::mem::transmute::<&*const SDL_PixelFormat, &PixelFormat>(&f)
+    }
+  }
+
+  /// Width in pixels
+  pub fn width(&self) -> usize {
+    unsafe { (*self.nn.as_ptr()).w as usize }
+  }
+  /// Height in pixels
+  pub fn height(&self) -> usize {
+    unsafe { (*self.nn.as_ptr()).h as usize }
+  }
+  /// Pitch between row starts, in bytes.
+  pub fn pitch(&self) -> isize {
+    unsafe { (*self.nn.as_ptr()).h as isize }
+  }
 }
 
 pub struct SurfaceLock<'s> {
@@ -94,5 +119,46 @@ pub struct SurfaceLock<'s> {
 impl<'s> Drop for SurfaceLock<'s> {
   fn drop(&mut self) {
     unsafe { fermium::SDL_UnlockSurface(self.surface.nn.as_ptr()) }
+  }
+}
+impl<'s> Deref for SurfaceLock<'s> {
+  type Target = Surface;
+  fn deref(&self) -> &Self::Target {
+    &self.surface
+  }
+}
+impl<'s> Index<(usize, usize)> for SurfaceLock<'s> {
+  type Output = [u8];
+  fn index(&self, (x, y): (usize, usize)) -> &Self::Output {
+    unsafe {
+      assert!(x < self.width());
+      assert!(y < self.height());
+      let bytes_per_pixel = self.pixel_format().bytes_per_pixel();
+      let base = self.pixels();
+      let row_start = base.offset(self.pitch() * (y as isize));
+      let pixel = row_start.add(x * bytes_per_pixel);
+      core::slice::from_raw_parts(pixel, bytes_per_pixel)
+    }
+  }
+}
+impl<'s> IndexMut<(usize, usize)> for SurfaceLock<'s> {
+  fn index_mut(&mut self, (x, y): (usize, usize)) -> &mut Self::Output {
+    unsafe {
+      assert!(x < self.width());
+      assert!(y < self.height());
+      let bytes_per_pixel = self.pixel_format().bytes_per_pixel();
+      let base = self.pixels_mut();
+      let row_start = base.offset(self.pitch() * (y as isize));
+      let pixel = row_start.add(x * bytes_per_pixel);
+      core::slice::from_raw_parts_mut(pixel, bytes_per_pixel)
+    }
+  }
+}
+impl<'s> SurfaceLock<'s> {
+  fn pixels(&self) -> *const u8 {
+    unsafe { (*self.surface.nn.as_ptr()).pixels as *const u8 }
+  }
+  fn pixels_mut(&mut self) -> *mut u8 {
+    unsafe { (*self.surface.nn.as_ptr()).pixels as *mut u8 }
   }
 }
