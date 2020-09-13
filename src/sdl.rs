@@ -4,9 +4,11 @@ use core::{
   sync::atomic::{AtomicBool, Ordering},
 };
 
-use alloc::{string::String, sync::Arc};
+use alloc::{boxed::Box, string::String, sync::Arc};
 
-use crate::{sdl_get_error, Event, RendererWindow, WindowCreationFlags};
+use crate::{
+  sdl_get_error, Event, RendererWindow, SdlError, WindowCreationFlags,
+};
 
 static SDL_ACTIVE: AtomicBool = AtomicBool::new(false);
 
@@ -20,10 +22,10 @@ impl Drop for Initialization {
 }
 
 impl Initialization {
-  fn init(flags: InitFlags) -> Result<Arc<Initialization>, String> {
+  fn init(flags: InitFlags) -> Result<Arc<Initialization>, SdlError> {
     if SDL_ACTIVE.compare_and_swap(false, true, Ordering::SeqCst) {
       // true came back, so SDL was on, so this is a double init.
-      Err(String::from("beryllium: SDL is already active!"))
+      Err(SdlError(Box::new(String::from("beryllium: SDL is already active!"))))
     } else {
       // false came back, so SDL was not on, so we begin normal initialization.
       #[cfg(any(target_os = "macos", target_os = "ios"))]
@@ -79,7 +81,7 @@ impl Sdl {
   /// Possible failures include:
   /// * On Mac, you must initialize SDL from the main thread.
   /// * You cannot double initialize SDL.
-  pub fn init(flags: InitFlags) -> Result<Self, String> {
+  pub fn init(flags: InitFlags) -> Result<Self, SdlError> {
     Initialization::init(flags).map(|init| Self { init })
   }
 
@@ -87,6 +89,7 @@ impl Sdl {
   ///
   /// * Always returns immediately.
   /// * If no event is pending, gives `None`.
+  /// * If the event from SDL can't be parsed, you also get `None`.
   /// * The `u32` is the event's timestamp (milliseconds since SDL's
   ///   initialization).
   pub fn poll_event(&self) -> Option<(Event, u32)> {
@@ -107,15 +110,18 @@ impl Sdl {
   /// * Returns `Err` if there's a problem during the wait.
   /// * The `u32` is the event's timestamp (milliseconds since SDL's
   ///   initialization).
-  pub fn wait_event(&self) -> Result<(Event, u32), String> {
+  pub fn wait_event(&self) -> Result<(Event, u32), SdlError> {
     use fermium::{SDL_Event, SDL_WaitEvent};
     let mut sdl_event = SDL_Event::default();
     let ret = unsafe { SDL_WaitEvent(&mut sdl_event) };
     if ret != 0 {
       let timestamp = unsafe { sdl_event.common.timestamp };
-      Event::try_from(sdl_event)
-        .map(|ev| (ev, timestamp))
-        .map_err(|_| String::from(""))
+      Event::try_from(sdl_event).map(|ev| (ev, timestamp)).map_err(|()| {
+        SdlError(Box::new(alloc::format!(
+          "Could not parse event, {:?}",
+          sdl_event
+        )))
+      })
     } else {
       Err(sdl_get_error())
     }
@@ -130,15 +136,18 @@ impl Sdl {
   ///   initialization).
   pub fn wait_event_timeout(
     &self, milliseconds: i32,
-  ) -> Result<(Event, u32), String> {
+  ) -> Result<(Event, u32), SdlError> {
     use fermium::{SDL_Event, SDL_WaitEventTimeout};
     let mut sdl_event = SDL_Event::default();
     let ret = unsafe { SDL_WaitEventTimeout(&mut sdl_event, milliseconds) };
     if ret != 0 {
       let timestamp = unsafe { sdl_event.common.timestamp };
-      Event::try_from(sdl_event)
-        .map(|ev| (ev, timestamp))
-        .map_err(|_| String::from(""))
+      Event::try_from(sdl_event).map(|ev| (ev, timestamp)).map_err(|()| {
+        SdlError(Box::new(alloc::format!(
+          "Could not parse event, {:?}",
+          sdl_event
+        )))
+      })
     } else {
       Err(sdl_get_error())
     }
@@ -147,7 +156,7 @@ impl Sdl {
   pub fn new_renderer_window(
     &self, title: &str, pos: Option<[i32; 2]>, size: [u32; 2],
     flags: WindowCreationFlags,
-  ) -> Result<RendererWindow, String> {
+  ) -> Result<RendererWindow, SdlError> {
     RendererWindow::new(self.init.clone(), title, pos, size, flags)
   }
 }

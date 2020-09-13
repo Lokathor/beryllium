@@ -53,3 +53,9 @@ jobs:
         toolchain: ${{ matrix.rust.toolchain }}
         command: test
         args: --no-default-features --features=static_link
+    - name: Run Tests with Std feature
+      uses: actions-rs/cargo@v1
+      with:
+        toolchain: ${{ matrix.rust.toolchain }}
+        command: test
+        args: --features=std

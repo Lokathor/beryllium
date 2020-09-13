@@ -2,9 +2,9 @@
 #![allow(unused_imports)]
 
 extern crate alloc;
-use alloc::{string::String, vec::Vec};
+use alloc::{boxed::Box, string::String, vec::Vec};
 
-#[cfg(any(target_os = "macos", target_os = "ios"))]
+#[cfg(any(target_os = "macos", target_os = "ios", feature = "std"))]
 extern crate std;
 
 mod sdl;
@@ -81,8 +81,22 @@ fn bytes_to_string(v: Vec<u8>) -> String {
   }
 }
 
+/// An error string from SDL.
+#[derive(Debug, Default)]
+pub struct SdlError(
+  // You  may not like it, but this is what peak performance looks like.
+  Box<String>,
+);
+impl core::fmt::Display for SdlError {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    write!(f, "{}", self.0)
+  }
+}
+#[cfg(feature = "std")]
+impl std::error::Error for SdlError {}
+
 /// Gets the current SDL error string of this thread.
-pub(crate) fn sdl_get_error() -> String {
+pub(crate) fn sdl_get_error() -> SdlError {
   /// This is the size of the TLS error buffer in current SDL, so we will
   /// pre-allocate this much to save time. If the error buffer size grows in the
   /// future then our vec will just realloc on long strings.
@@ -94,7 +108,7 @@ pub(crate) fn sdl_get_error() -> String {
       buf.push(*p);
       p = p.add(1);
     }
-    bytes_to_string(buf)
+    SdlError(Box::new(bytes_to_string(buf)))
   }
 }
 

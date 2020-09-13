@@ -1,12 +1,12 @@
 use core::{convert::TryInto, ops::Deref, ptr::NonNull};
 
-use alloc::{rc::Rc, string::String, sync::Arc};
+use alloc::{rc::Rc, sync::Arc};
 
 use fermium::SDL_Renderer;
 
 use crate::{
-  sdl_get_error, Initialization, PixelFormatEnum, Surface, Texture, Window,
-  WindowCreationFlags,
+  sdl_get_error, Initialization, PixelFormatEnum, SdlError, Surface, Texture,
+  Window, WindowCreationFlags,
 };
 
 pub(crate) struct Renderer {
@@ -41,7 +41,7 @@ impl RendererWindow {
   pub(crate) fn new(
     init: Arc<Initialization>, title: &str, pos: Option<[i32; 2]>,
     size: [u32; 2], flags: WindowCreationFlags,
-  ) -> Result<Self, String> {
+  ) -> Result<Self, SdlError> {
     let win = Rc::new(Window::new(init, title, pos, size, flags)?);
     let nn = NonNull::new(unsafe {
       fermium::SDL_CreateRenderer(
@@ -56,7 +56,7 @@ impl RendererWindow {
     Ok(RendererWindow { win, rend })
   }
 
-  pub fn clear(&self) -> Result<(), String> {
+  pub fn clear(&self) -> Result<(), SdlError> {
     let ret = unsafe { fermium::SDL_RenderClear(self.rend.nn.as_ptr()) };
     if ret >= 0 {
       Ok(())
@@ -71,7 +71,7 @@ impl RendererWindow {
 
   pub fn create_texture(
     &self, pixel_format: PixelFormatEnum, access: TextureAccess, w: u32, h: u32,
-  ) -> Result<Texture, String> {
+  ) -> Result<Texture, SdlError> {
     NonNull::new(unsafe {
       fermium::SDL_CreateTexture(
         self.rend.nn.as_ptr(),
@@ -87,7 +87,7 @@ impl RendererWindow {
 
   pub fn create_texture_from_surface(
     &self, surface: &Surface,
-  ) -> Result<Texture, String> {
+  ) -> Result<Texture, SdlError> {
     NonNull::new(unsafe {
       fermium::SDL_CreateTextureFromSurface(
         self.rend.nn.as_ptr(),

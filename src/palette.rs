@@ -1,10 +1,8 @@
 use core::{convert::TryInto, ptr::NonNull};
 
-use alloc::string::String;
-
 use fermium::SDL_Palette;
 
-use crate::sdl_get_error;
+use crate::{sdl_get_error, SdlError};
 
 pub struct Palette {
   nn: NonNull<SDL_Palette>,
@@ -15,7 +13,7 @@ impl Drop for Palette {
   }
 }
 impl Palette {
-  pub fn new(num_colors: usize) -> Result<Self, String> {
+  pub fn new(num_colors: usize) -> Result<Self, SdlError> {
     NonNull::new(unsafe {
       fermium::SDL_AllocPalette(num_colors.try_into().unwrap_or(i32::MAX))
     })
@@ -38,7 +36,7 @@ impl Palette {
 
   pub fn set_colors(
     &self, buf: &[[u8; 4]], offset: usize,
-  ) -> Result<(), String> {
+  ) -> Result<(), SdlError> {
     let ret = unsafe {
       fermium::SDL_SetPaletteColors(
         self.nn.as_ptr(),

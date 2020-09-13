@@ -1,12 +1,10 @@
 use core::{convert::TryInto, ptr::NonNull};
 
-use alloc::string::String;
-
 use tinyvec::TinyVec;
 
 use fermium::SDL_Surface;
 
-use crate::{sdl_get_error, PixelFormatEnum};
+use crate::{sdl_get_error, PixelFormatEnum, SdlError};
 
 /*
 Some day maybe support SDL_CreateRGBSurfaceFrom and SDL_CreateRGBSurfaceWithFormatFrom,
@@ -25,7 +23,7 @@ impl Surface {
   pub fn new(
     width: usize, height: usize, bit_depth: usize, r_mask: u32, g_mask: u32,
     b_mask: u32, a_mask: u32,
-  ) -> Result<Self, String> {
+  ) -> Result<Self, SdlError> {
     NonNull::new(unsafe {
       fermium::SDL_CreateRGBSurface(
         0,
@@ -45,7 +43,7 @@ impl Surface {
   pub fn new_with_format(
     width: usize, height: usize, bit_depth: usize,
     pixel_format: PixelFormatEnum,
-  ) -> Result<Self, String> {
+  ) -> Result<Self, SdlError> {
     NonNull::new(unsafe {
       fermium::SDL_CreateRGBSurfaceWithFormat(
         0,
@@ -59,7 +57,7 @@ impl Surface {
     .map(|nn| Surface { nn })
   }
 
-  pub fn load_from_bmp(filename: &str) -> Result<Self, String> {
+  pub fn load_from_bmp(filename: &str) -> Result<Self, SdlError> {
     let filename_null: TinyVec<[u8; 64]> =
       filename.as_bytes().iter().copied().chain(Some(0)).collect();
     let rw_ops = unsafe {
@@ -80,7 +78,7 @@ impl Surface {
   // TODO: this is actually not needed for most surfaces, only ones that have
   // RLE acceleration applied. It's not expensive for other surfaces to do the
   // lock/unlock, but it's not very ergonomic.
-  pub fn lock(&mut self) -> Result<SurfaceLock<'_>, String> {
+  pub fn lock(&mut self) -> Result<SurfaceLock<'_>, SdlError> {
     let ret = unsafe { fermium::SDL_LockSurface(self.nn.as_ptr()) };
     if ret >= 0 {
       Ok(SurfaceLock { surface: self })

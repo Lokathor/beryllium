@@ -29,7 +29,8 @@ impl PixelFormatEnum {
   pub const RGBA8888: Self = Self(fermium::SDL_PIXELFORMAT_RGBA8888 as u32);
   pub const ABGR8888: Self = Self(fermium::SDL_PIXELFORMAT_ABGR8888 as u32);
   pub const BGRA8888: Self = Self(fermium::SDL_PIXELFORMAT_BGRA8888 as u32);
-  pub const ARGB2101010: Self = Self(fermium::SDL_PIXELFORMAT_ARGB2101010 as u32);
+  pub const ARGB2101010: Self =
+    Self(fermium::SDL_PIXELFORMAT_ARGB2101010 as u32);
   ///alias for RGBA byte array of color data, for the current platform (>= SDL
   /// 2.0.5)
   pub const RGBA32: Self = Self(fermium::SDL_PIXELFORMAT_RGBA32 as u32);

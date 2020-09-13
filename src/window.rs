@@ -1,12 +1,12 @@
 use core::ptr::NonNull;
 
-use alloc::{rc::Rc, string::String, sync::Arc};
+use alloc::{rc::Rc, sync::Arc};
 
 use tinyvec::TinyVec;
 
 use fermium::SDL_Window;
 
-use crate::{sdl_get_error, Initialization};
+use crate::{sdl_get_error, Initialization, SdlError};
 
 /// The "superclass" for the SDL window types.
 ///
@@ -35,7 +35,7 @@ impl Window {
   pub(crate) fn new(
     init: Arc<Initialization>, title: &str, pos: Option<[i32; 2]>,
     [w, h]: [u32; 2], flags: WindowCreationFlags,
-  ) -> Result<Self, String> {
+  ) -> Result<Self, SdlError> {
     let title_null: TinyVec<[u8; 64]> =
       title.as_bytes().iter().copied().chain(Some(0)).collect();
     const CENTERED: i32 = fermium::SDL_WINDOWPOS_CENTERED;
