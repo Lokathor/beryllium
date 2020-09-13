@@ -35,9 +35,9 @@ impl Initialization {
           unsafe { msg_send![class!(NSThread), isMainThread] };
         if !is_main {
           SDL_ACTIVE.store(false, Ordering::SeqCst);
-          return Err(Box::new(String::from(
+          return Err(SdlError(Box::new(String::from(
             "beryllium: SDL must be initialized on the main thread.",
-          )));
+          ))));
         }
       }
       let ret = unsafe { fermium::SDL_Init(flags.0) };
