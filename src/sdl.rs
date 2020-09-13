@@ -7,7 +7,10 @@ use core::{
 use alloc::{boxed::Box, string::String, sync::Arc};
 
 use crate::{
-  sdl_get_error, Event, RendererWindow, SdlError, WindowCreationFlags, Controller,
+  sdl_get_error, AllowedAudioChanges, AudioCallbackDevice,
+  AudioCallbackRequestSpec, AudioDeviceObtainedSpec, AudioQueueDevice,
+  AudioQueueRequestSpec, Controller, Event, RendererWindow, SdlError,
+  WindowCreationFlags,
 };
 
 static SDL_ACTIVE: AtomicBool = AtomicBool::new(false);
@@ -172,5 +175,31 @@ impl Sdl {
 
   pub fn open_controller(&self, id: usize) -> Result<Controller, SdlError> {
     Controller::open(self.init.clone(), id)
+  }
+
+  pub fn open_audio_queue_device(
+    &self, device_name: Option<&str>, capture: bool,
+    spec: &AudioQueueRequestSpec, changes: AllowedAudioChanges,
+  ) -> Result<(AudioQueueDevice, AudioDeviceObtainedSpec), SdlError> {
+    AudioQueueDevice::open(
+      self.init.clone(),
+      device_name,
+      capture,
+      spec,
+      changes,
+    )
+  }
+
+  pub unsafe fn open_audio_callback_device(
+    &self, device_name: Option<&str>, capture: bool,
+    spec: &AudioCallbackRequestSpec, changes: AllowedAudioChanges,
+  ) -> Result<(AudioCallbackDevice, AudioDeviceObtainedSpec), SdlError> {
+    AudioCallbackDevice::open(
+      self.init.clone(),
+      device_name,
+      capture,
+      spec,
+      changes,
+    )
   }
 }

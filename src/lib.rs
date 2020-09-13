@@ -37,6 +37,9 @@ pub use texture::*;
 mod controller;
 pub use controller::*;
 
+mod audio;
+pub use audio::*;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct WindowID(u32);
@@ -70,20 +73,6 @@ pub struct TouchID(i64);
 #[repr(transparent)]
 pub struct FingerID(i64);
 
-/// Attempts to make some bytes into a string without allocating.
-///
-/// On error, this falls back to lossy allocating.
-fn bytes_to_string(v: Vec<u8>) -> String {
-  match String::from_utf8(v) {
-    Ok(s) => s,
-    Err(from_utf8_error) => {
-      let bytes = from_utf8_error.as_bytes();
-      let cow = String::from_utf8_lossy(bytes);
-      cow.into_owned()
-    }
-  }
-}
-
 /// An error string from SDL.
 #[derive(Debug, Default)]
 pub struct SdlError(
@@ -104,6 +93,20 @@ pub(crate) fn sdl_get_error() -> SdlError {
   /// pre-allocate this much to save time. If the error buffer size grows in the
   /// future then our vec will just realloc on long strings.
   const ERR_MAX_STRLEN: usize = 128;
+
+  /// Attempts to make some bytes into a string without allocating.
+  ///
+  /// On error, this falls back to lossy allocating.
+  fn bytes_to_string(v: Vec<u8>) -> String {
+    match String::from_utf8(v) {
+      Ok(s) => s,
+      Err(from_utf8_error) => {
+        let bytes = from_utf8_error.as_bytes();
+        let cow = String::from_utf8_lossy(bytes);
+        cow.into_owned()
+      }
+    }
+  }
   unsafe {
     let mut buf = Vec::with_capacity(ERR_MAX_STRLEN);
     let mut p: *const u8 = fermium::SDL_GetError() as _;

@@ -1,11 +1,10 @@
-
 use core::ptr::NonNull;
 
 use alloc::sync::Arc;
 
 use fermium::SDL_GameController;
 
-use crate::{Initialization, sdl_get_error, SdlError};
+use crate::{sdl_get_error, Initialization, SdlError};
 
 pub struct Controller {
   nn: NonNull<SDL_GameController>,
@@ -21,7 +20,9 @@ impl Drop for Controller {
   }
 }
 impl Controller {
-  pub(crate) fn open(init: Arc<Initialization>, id: usize) -> Result<Self, SdlError> {
+  pub(crate) fn open(
+    init: Arc<Initialization>, id: usize,
+  ) -> Result<Self, SdlError> {
     NonNull::new(unsafe { fermium::SDL_GameControllerOpen(id as i32) })
       .ok_or_else(sdl_get_error)
       .map(|nn| Controller { init, nn })
