@@ -74,11 +74,15 @@ pub struct TouchID(i64);
 pub struct FingerID(i64);
 
 /// An error string from SDL.
-#[derive(Debug, Default)]
 pub struct SdlError(
   // You  may not like it, but this is what peak performance looks like.
   Box<String>,
 );
+impl core::fmt::Debug for SdlError {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    write!(f, "{:?}", self.0)
+  }
+}
 impl core::fmt::Display for SdlError {
   fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
     write!(f, "{}", self.0)
