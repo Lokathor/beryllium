@@ -7,7 +7,7 @@ use core::{
 use alloc::{boxed::Box, string::String, sync::Arc};
 
 use crate::{
-  sdl_get_error, Event, RendererWindow, SdlError, WindowCreationFlags,
+  sdl_get_error, Event, RendererWindow, SdlError, WindowCreationFlags, Controller,
 };
 
 static SDL_ACTIVE: AtomicBool = AtomicBool::new(false);
@@ -35,9 +35,9 @@ impl Initialization {
           unsafe { msg_send![class!(NSThread), isMainThread] };
         if !is_main {
           SDL_ACTIVE.store(false, Ordering::SeqCst);
-          return Err(String::from(
+          return Err(Box::new(String::from(
             "beryllium: SDL must be initialized on the main thread.",
-          ));
+          )));
         }
       }
       let ret = unsafe { fermium::SDL_Init(flags.0) };
@@ -153,10 +153,24 @@ impl Sdl {
     }
   }
 
+  /// Creates a new window that uses SDL2's 2D rendering system.
   pub fn new_renderer_window(
     &self, title: &str, pos: Option<[i32; 2]>, size: [u32; 2],
     flags: WindowCreationFlags,
   ) -> Result<RendererWindow, SdlError> {
     RendererWindow::new(self.init.clone(), title, pos, size, flags)
+  }
+
+  pub fn get_number_of_joysticks(&self) -> Result<usize, SdlError> {
+    let ret = unsafe { fermium::SDL_NumJoysticks() };
+    if ret >= 0 {
+      Ok(ret as usize)
+    } else {
+      Err(sdl_get_error())
+    }
+  }
+
+  pub fn open_controller(&self, id: usize) -> Result<Controller, SdlError> {
+    Controller::open(self.init.clone(), id)
   }
 }

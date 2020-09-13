@@ -34,6 +34,9 @@ pub use palette::*;
 mod texture;
 pub use texture::*;
 
+mod controller;
+pub use controller::*;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct WindowID(u32);
