@@ -1,25 +1,30 @@
-use super::*;
+use core::ptr::NonNull;
 
-/// A game controller.
-///
-/// This is a more abstract interface over top of a joystick.
-///
-/// You don't need to do much with it, just keep it open somewhere and events
-/// will come in through [`poll_events`](SDL::poll_events).
+use alloc::sync::Arc;
+
+use fermium::SDL_GameController;
+
+use crate::{sdl_get_error, Initialization, SdlError};
+
 pub struct Controller {
-  #[allow(unused)]
-  pub(crate) init_token: Arc<Initialization>,
-  pub(crate) device: *mut fermium::SDL_GameController,
-  pub(crate) joystick_id: fermium::SDL_JoystickID,
+  nn: NonNull<SDL_GameController>,
+  // Note(Lokathor): As long as the window lives, we have to also keep SDL
+  // itself alive.
+  #[allow(dead_code)]
+  init: Arc<Initialization>,
 }
 impl Drop for Controller {
+  // Note(Lokathor): The drop for the Arc runs *after* this drop code.
   fn drop(&mut self) {
-    unsafe { fermium::SDL_GameControllerClose(self.device) }
+    unsafe { fermium::SDL_GameControllerClose(self.nn.as_ptr()) }
   }
 }
 impl Controller {
-  /// Get the instance ID for the joystick backing this controller.
-  pub fn joystick_id(&self) -> fermium::SDL_JoystickID {
-    self.joystick_id
+  pub(crate) fn open(
+    init: Arc<Initialization>, id: usize,
+  ) -> Result<Self, SdlError> {
+    NonNull::new(unsafe { fermium::SDL_GameControllerOpen(id as i32) })
+      .ok_or_else(sdl_get_error)
+      .map(|nn| Controller { init, nn })
   }
 }
