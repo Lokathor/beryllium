@@ -1,0 +1,25 @@
+[package]
+name = "beryllium"
+description = "Safe wrapper for the `fermium` crate."
+repository = "https://github.com/Lokathor/beryllium"
+version = "0.4.0-alpha.0"
+authors = ["Lokathor <zefria@gmail.com>"]
+edition = "2018"
+license = "Zlib OR Apache-2.0 OR MIT"
+keywords = []
+categories = []
+
+[dependencies]
+fermium = "20012"
+raw-window-handle = { version = "0.3", optional = true }
+
+[features]
+# Enable this to dynamicly link to SDL2. See fermium for more info.
+dynamic_link = ["fermium/dynamic_link"]
+
+# Enable this to skip the SDL2 build. See fermium for more info.
+cargo_check = ["fermium/cargo_check"]
+
+[package.metadata.docs.rs]
+# building the docs is a "check only" style operation.
+features = ["cargo_check"]
