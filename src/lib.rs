@@ -108,11 +108,10 @@ pub enum MessageBoxStyle {
   Information,
 }
 
-/// Show a simple message box (title + message).
+/// Show a simple message box with a single button.
 ///
 /// * The message box isn't modal to any window.
 /// * This blocks until the message box is closed.
-/// * There is only one button ("okay") for the user to click.
 /// * The `style` value changes the icon that goes with the message box, but the
 ///   details vary by OS.
 pub fn show_simple_message_box(
@@ -143,7 +142,7 @@ pub fn show_simple_message_box(
 ///
 /// * The message box isn't modal to any window.
 /// * This blocks until the message box is closed.
-/// * The `buttons` is a list of button texts and ID values.
+/// * The `buttons` is a list of button texts.
 /// * `buttons_left_to_right` sets if the buttons should be given left to right
 ///   (otherwise they are right to left).
 /// * `return_default` is the index of the button that the return key should

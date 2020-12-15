@@ -23,6 +23,7 @@ impl std::error::Error for BerylliumError {}
 pub type BerylliumResult<T> = Result<T, BerylliumError>;
 
 /// Gets the thread-local error string.
+#[doc(hidden)]
 pub fn get_error_string() -> String {
   let mut v: Vec<u8> = Vec::new();
   unsafe {
@@ -42,6 +43,7 @@ pub fn get_error_string() -> String {
 
 /// Clears the thread-local error string.
 #[inline]
+#[doc(hidden)]
 pub fn clear_error_string() {
   unsafe { SDL_ClearError() }
 }
@@ -49,6 +51,7 @@ pub fn clear_error_string() {
 /// Gets the thread-local error as a [`BerylliumError`].
 #[inline]
 #[must_use]
+#[doc(hidden)]
 pub fn get_error() -> BerylliumError {
   BerylliumError(Box::new(get_error_string()))
 }

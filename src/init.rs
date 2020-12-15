@@ -44,7 +44,7 @@ impl InitFlags {
   /// All subsystems.
   pub const EVERYTHING: Self = Self(SDL_INIT_EVERYTHING);
 
-  /// Turn on no subsystems. Primarily useful for some unit tests.
+  /// Turn on none of the subsystems. Primarily useful for some unit tests.
   pub const NONE: Self = Self(SDL_InitFlags(0));
 }
 
