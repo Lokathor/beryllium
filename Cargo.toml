@@ -14,6 +14,9 @@ fermium = "20012"
 raw-window-handle = { version = "0.3", optional = true }
 
 [features]
+# Integrate with extra stuff from the `std` crate.
+std = []
+
 # Enable this to dynamicly link to SDL2. See fermium for more info.
 dynamic_link = ["fermium/dynamic_link"]
 
