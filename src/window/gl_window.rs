@@ -115,6 +115,49 @@ impl GlWindow {
       Err(self.init_token.get_error())
     }
   }
+
+  /// Use this to set the window size
+  pub fn set_window_size(&self, w: i32, h: i32) {
+    unsafe {
+      fermium::SDL_SetWindowSize(self.win.win, w, h);
+    }
+  }
+
+  /// Use this to set the window minimum allowed size
+  pub fn set_minimum_size(&self, w: i32, h: i32) {
+    unsafe {
+      fermium::SDL_SetWindowMinimumSize(self.win.win, w, h);
+    }
+  }
+
+  /// Use this to set the window maximum allowed size
+  pub fn set_maximum_size(&self, w: i32, h: i32) {
+    unsafe {
+      fermium::SDL_SetWindowMaximumSize(self.win.win, w, h);
+    }
+  }
+
+  /// Use this to get the fullscreen state of the window
+  ///
+  /// * `true`: the window is in fullscreen mode
+  /// * `false`: the window is in windowed mode
+  pub fn is_fullscreen(&self) -> bool {
+    unsafe {
+      let is_fullscreen: bool = (fermium::SDL_GetWindowFlags(self.win.win)
+        & WindowFlags::FullscreenDesktop.0)
+        > 0;
+      is_fullscreen
+    }
+  }
+  /// Use this to set the fullscreen state of the window
+  pub fn set_fullscreen(&self, fullscreen: bool) {
+    unsafe {
+      fermium::SDL_SetWindowFullscreen(
+        self.win.win,
+        if fullscreen { WindowFlags::FullscreenDesktop.0 } else { 0 },
+      );
+    }
+  }
 }
 
 /// The various attributes that you can request a specific value for.

@@ -100,6 +100,17 @@ impl WindowFlags {
   pub const Vulkan: WindowFlags =
     WindowFlags(fermium::SDL_WINDOW_VULKAN as u32);
 
+  /// Window run in fullscreen mode
+  pub const Fullscreen: WindowFlags = WindowFlags(fermium::SDL_WINDOW_FULLSCREEN as u32);
+
+  /// Window run in fullscreen mode at the current desktop resolution
+  pub const FullscreenDesktop: WindowFlags = WindowFlags(fermium::SDL_WINDOW_FULLSCREEN_DESKTOP as u32);
+
+  /// Window is resizable
+  pub const Resizable: WindowFlags = WindowFlags(fermium::SDL_WINDOW_RESIZABLE as u32);
+
+  /// Window as no border
+  pub const Borderless: WindowFlags = WindowFlags(fermium::SDL_WINDOW_BORDERLESS as u32);
   // TODO: more flags later.
 }
 impl core::ops::BitOr for WindowFlags {
