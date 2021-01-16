@@ -150,12 +150,18 @@ impl GlWindow {
     }
   }
   /// Use this to set the fullscreen state of the window
-  pub fn set_fullscreen(&self, fullscreen: bool) {
-    unsafe {
+  pub fn set_fullscreen(&self, fullscreen: bool) -> Result<(), String> {
+    let ret = unsafe {
       fermium::SDL_SetWindowFullscreen(
         self.win.win,
         if fullscreen { WindowFlags::FullscreenDesktop.0 } else { 0 },
-      );
+      )
+    };
+
+    if ret >= 0 {
+      Ok(())
+    } else {
+      Err(self.init_token.get_error());
     }
   }
 }
