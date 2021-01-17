@@ -161,7 +161,7 @@ impl GlWindow {
     if ret >= 0 {
       Ok(())
     } else {
-      Err(self.init_token.get_error());
+      Err(self.init_token.get_error())
     }
   }
 }
