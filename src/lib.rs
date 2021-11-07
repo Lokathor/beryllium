@@ -61,6 +61,7 @@ macro_rules! impl_bit_ops_for_tuple_newtype {
   };
 }
 
+pub mod event;
 pub mod gl;
 pub mod init;
 pub mod window;

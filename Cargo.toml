@@ -17,12 +17,11 @@ dynamic_link = ["fermium/dynamic_link"]
 fermium = { version = "20016", default-features = false }
 zstring = "0.0.3"
 
-# tinyvec = { version = "1", features = ["alloc"] }
-
-# raw-window-handle = { version = "0.3.3", optional = true }
-
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 objc = "0.2"
+
+[dev-dependencies]
+glitz = "0.1"
 
 [package.metadata.docs.rs]
 default-target = "x86_64-pc-windows-msvc"
