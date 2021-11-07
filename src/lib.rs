@@ -1,4 +1,4 @@
-//#![no_std]
+#![no_std]
 
 extern crate alloc;
 use alloc::{boxed::Box, string::String, vec::Vec};
@@ -62,7 +62,6 @@ macro_rules! impl_bit_ops_for_tuple_newtype {
 }
 
 pub mod event;
-pub mod gl;
 pub mod init;
 pub mod window;
 
@@ -96,5 +95,7 @@ pub fn get_error() -> SdlError {
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct SdlError(Box<String>);
+#[cfg(feature = "std")]
+impl std::error::Error for SdlError {}
 
 pub type SdlResult<T> = Result<T, SdlError>;

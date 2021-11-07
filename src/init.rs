@@ -1,9 +1,12 @@
 use alloc::{boxed::Box, string::String, sync::Arc};
-use core::sync::atomic::{AtomicBool, Ordering};
+use core::{
+  marker::PhantomData,
+  sync::atomic::{AtomicBool, Ordering},
+};
 use fermium::{
-  SDL_Init, SDL_InitFlags, SDL_Quit, SDL_INIT_AUDIO, SDL_INIT_EVENTS,
-  SDL_INIT_EVERYTHING, SDL_INIT_GAMECONTROLLER, SDL_INIT_HAPTIC,
-  SDL_INIT_JOYSTICK, SDL_INIT_SENSOR, SDL_INIT_TIMER, SDL_INIT_VIDEO,
+  SDL_Init, SDL_InitFlags, SDL_Quit, SDL_INIT_AUDIO, SDL_INIT_EVENTS, SDL_INIT_EVERYTHING,
+  SDL_INIT_GAMECONTROLLER, SDL_INIT_HAPTIC, SDL_INIT_JOYSTICK, SDL_INIT_SENSOR, SDL_INIT_TIMER,
+  SDL_INIT_VIDEO,
 };
 
 use crate::{SdlError, SdlResult};
@@ -26,7 +29,9 @@ impl InitFlags {
 
 static SDL_IS_INIT: AtomicBool = AtomicBool::new(false);
 
-pub(crate) struct Initialization;
+pub(crate) struct Initialization {
+  _no_send_or_sync: PhantomData<*mut ()>,
+}
 impl Initialization {
   fn try_init(flags: InitFlags) -> SdlResult<Self> {
     #[cfg(any(target_os = "macos", target_os = "ios"))]
@@ -39,39 +44,24 @@ impl Initialization {
         ))));
       }
     }
-    match SDL_IS_INIT.compare_exchange(
-      false,
-      true,
-      Ordering::SeqCst,
-      Ordering::SeqCst,
-    ) {
+    match SDL_IS_INIT.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst) {
       Ok(_) => {
-        // TODO: main thread check!
         let ret = unsafe { SDL_Init(flags.0) };
         if ret == 0 {
-          Ok(Self)
+          Ok(Self { _no_send_or_sync: PhantomData })
         } else {
           Err(crate::get_error())
         }
       }
-      Err(_) => Err(SdlError(Box::new(String::from(
-        "beryllium: SDL2 is already initialized",
-      )))),
+      Err(_) => Err(SdlError(Box::new(String::from("beryllium: SDL2 is already initialized")))),
     }
   }
 }
 impl Drop for Initialization {
   fn drop(&mut self) {
-    match SDL_IS_INIT.compare_exchange(
-      true,
-      false,
-      Ordering::SeqCst,
-      Ordering::SeqCst,
-    ) {
+    match SDL_IS_INIT.compare_exchange(true, false, Ordering::SeqCst, Ordering::SeqCst) {
       Ok(_) => unsafe { SDL_Quit() },
-      Err(_) => panic!(
-        "beryllium: SDL tried to quit when it already wasn't initialized."
-      ),
+      Err(_) => panic!("beryllium: SDL tried to quit when it already wasn't initialized."),
     }
   }
 }

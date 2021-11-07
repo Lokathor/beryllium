@@ -12,6 +12,7 @@ categories = ["api-bindings", "multimedia", "no-std"]
 [features]
 default = []
 dynamic_link = ["fermium/dynamic_link"]
+std = []
 
 [dependencies]
 fermium = { version = "20016", default-features = false }
