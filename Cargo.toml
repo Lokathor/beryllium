@@ -4,23 +4,22 @@ description = "Opinionated, high-level wrappers for `fermium`."
 repository = "https://github.com/Lokathor/beryllium"
 version = "0.4.0-alpha.0"
 authors = ["Lokathor <zefria@gmail.com>"]
-edition = "2018"
+edition = "2021"
 license = "Zlib OR Apache-2.0 OR MIT"
 keywords = ["SDL2"]
 categories = ["api-bindings", "multimedia", "no-std"]
 
 [features]
-default = ["dynamic_link"]
+default = []
 dynamic_link = ["fermium/dynamic_link"]
-static_link = ["fermium/static_link"]
-std = []
-# TODO: global alloc impl that makes the SDL alloc be the global alloc.
 
 [dependencies]
-fermium = { version = "200.12", default-features = false }
-tinyvec = { version = "1", features = ["alloc"] }
+fermium = { version = "20016", default-features = false }
+zstring = "0.0.3"
 
-raw-window-handle = { version = "0.3.3", optional = true }
+# tinyvec = { version = "1", features = ["alloc"] }
+
+# raw-window-handle = { version = "0.3.3", optional = true }
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 objc = "0.2"
