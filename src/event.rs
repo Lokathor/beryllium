@@ -177,17 +177,22 @@ pub enum Event {
     x: i32,
     y: i32,
   },
+  /// The window has been resized by an external event.
+  ///
+  /// The dimensions given are in screen coordinates (I think).
   WindowResized {
     timestamp: u32,
     window_id: u32,
     width: u32,
     height: u32,
   },
+  /// The window's size has changed.
+  ///
+  /// If the size was changed by an external event, then this event will be
+  /// followed by a `WindowResized` event.
   WindowSizeChanged {
     timestamp: u32,
     window_id: u32,
-    width: u32,
-    height: u32,
   },
   WindowMinimized {
     timestamp: u32,
@@ -492,8 +497,6 @@ impl TryFrom<SDL_Event> for Event {
           SDL_WINDOWEVENT_SIZE_CHANGED => Self::WindowSizeChanged {
             timestamp: event.window.timestamp,
             window_id: event.window.windowID,
-            width: event.window.data1 as _,
-            height: event.window.data2 as _,
           },
           SDL_WINDOWEVENT_MINIMIZED => Self::WindowMinimized {
             timestamp: event.window.timestamp,
