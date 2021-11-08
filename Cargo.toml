@@ -10,19 +10,21 @@ keywords = ["SDL2"]
 categories = ["api-bindings", "multimedia", "no-std"]
 
 [features]
-default = []
+default = ["std"]
 dynamic_link = ["fermium/dynamic_link"]
 std = []
 
 [dependencies]
 fermium = { version = "20016", default-features = false }
 zstring = "0.0.3"
+tinyvec = "1"
+bytemuck = "1"
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
-objc = "0.2"
+objc = "0.2" # needed to verify that we're on the main thread.
 
 [dev-dependencies]
-glitz = "0.1"
+glitz = {version = "0.2", features=["std"]}
 
 [package.metadata.docs.rs]
 default-target = "x86_64-pc-windows-msvc"

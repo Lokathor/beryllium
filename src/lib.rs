@@ -1,7 +1,16 @@
 #![no_std]
 
+#[cfg(feature = "std")]
+extern crate std;
+
 extern crate alloc;
+
 use alloc::{boxed::Box, string::String, vec::Vec};
+use fermium::{
+  audio::SDL_GetNumAudioDevices,
+  prelude::{SDL_EventState, SDL_GetTicks, SDL_DISABLE, SDL_DROPFILE, SDL_DROPTEXT, SDL_ENABLE},
+};
+use init::Sdl;
 
 macro_rules! impl_bit_ops_for_tuple_newtype {
   ($t:ty) => {
@@ -61,12 +70,15 @@ macro_rules! impl_bit_ops_for_tuple_newtype {
   };
 }
 
+pub mod controller;
 pub mod event;
 pub mod init;
+pub mod joystick;
 pub mod window;
 
 /// Converts a `Vec<u8>` into a `String` using the minimum amount of
 /// re-allocation.
+#[inline]
 fn min_alloc_lossy_into_string(bytes: Vec<u8>) -> String {
   match String::from_utf8(bytes) {
     Ok(s) => s,
@@ -77,6 +89,7 @@ fn min_alloc_lossy_into_string(bytes: Vec<u8>) -> String {
 /// Gets the current (thread local) SDL2 error message.
 ///
 /// You shouldn't need to call this, but you can I guess.
+#[inline]
 pub fn get_error() -> SdlError {
   use fermium::error::SDL_GetErrorMsg;
 
@@ -95,7 +108,41 @@ pub fn get_error() -> SdlError {
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct SdlError(Box<String>);
+impl core::fmt::Display for SdlError {
+  #[inline]
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    core::fmt::Display::fmt(self.0.as_str(), f)
+  }
+}
 #[cfg(feature = "std")]
 impl std::error::Error for SdlError {}
 
 pub type SdlResult<T> = Result<T, SdlError>;
+
+impl Sdl {
+  #[inline]
+  pub fn get_ticks(&self) -> u32 {
+    unsafe { SDL_GetTicks() }
+  }
+
+  /// Attempts to get the number of audio devices available.
+  ///
+  /// * `is_capture`: if recording devices should be checked for (otherwise
+  ///   playback devices are checked for).
+  ///
+  /// If an explicit list is not available -1 will be returned. This is not
+  /// necessarily an error. Various audio devices, particularly remote devices,
+  /// might still be available.
+  #[inline]
+  pub fn get_num_audio_devices(&self, is_capture: bool) -> i32 {
+    unsafe { SDL_GetNumAudioDevices(is_capture as _) }
+  }
+
+  #[inline]
+  pub fn allow_drop_events(&self, enabled: bool) {
+    unsafe {
+      SDL_EventState(SDL_DROPFILE, if enabled { SDL_ENABLE } else { SDL_DISABLE });
+      SDL_EventState(SDL_DROPTEXT, if enabled { SDL_ENABLE } else { SDL_DISABLE });
+    }
+  }
+}

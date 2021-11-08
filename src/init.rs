@@ -33,6 +33,7 @@ pub(crate) struct Initialization {
   _no_send_or_sync: PhantomData<*mut ()>,
 }
 impl Initialization {
+  #[inline]
   fn try_init(flags: InitFlags) -> SdlResult<Self> {
     #[cfg(any(target_os = "macos", target_os = "ios"))]
     {
@@ -71,6 +72,7 @@ impl Drop for Initialization {
 pub struct Sdl(Arc<Initialization>);
 
 impl Sdl {
+  #[inline]
   pub fn init(flags: InitFlags) -> SdlResult<Self> {
     Initialization::try_init(flags).map(|i| Self(Arc::new(i)))
   }
