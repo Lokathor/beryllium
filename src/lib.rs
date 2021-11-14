@@ -72,8 +72,10 @@ macro_rules! impl_bit_ops_for_tuple_newtype {
 
 pub mod controller;
 pub mod event;
+pub mod gl_window;
 pub mod init;
 pub mod joystick;
+pub mod vk_window;
 pub mod window;
 
 /// Converts a `Vec<u8>` into a `String` using the minimum amount of

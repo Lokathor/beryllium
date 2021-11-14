@@ -1,7 +1,8 @@
 use beryllium::{
   event::Event,
+  gl_window::{GlAttr, GlContextFlags, GlProfile},
   init::{InitFlags, Sdl},
-  window::{GlAttr, GlContextFlags, GlProfile, WindowFlags},
+  window::WindowFlags,
   SdlResult,
 };
 use core::{ptr::null, str};
@@ -23,7 +24,7 @@ fn main() -> SdlResult<()> {
   sdl.gl_set_attribute(GlAttr::Flags, FLAGS)?;
 
   let gl_win =
-    sdl.create_gl_window(zstr!("GL Window Demo"), None, (800, 600), WindowFlags::ALLOW_HIGHDPI)?;
+    sdl.create_gl_window(zstr!("GL Demo Window"), None, (800, 600), WindowFlags::ALLOW_HIGHDPI)?;
   gl_win.set_swap_interval(1)?;
 
   let gl = unsafe { GlFns::from_loader(&|zs| gl_win.get_proc_address(zs)).unwrap() };
