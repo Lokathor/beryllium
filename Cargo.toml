@@ -12,6 +12,7 @@ categories = ["api-bindings", "multimedia", "no-std"]
 [features]
 default = ["std"]
 dynamic_link = ["fermium/dynamic_link"]
+cargo_check = ["fermium/cargo_check"]
 std = []
 
 [dependencies]
@@ -29,3 +30,5 @@ glitz = {version = "0.2", features=["std"]}
 
 [package.metadata.docs.rs]
 default-target = "x86_64-pc-windows-msvc"
+# building the docs is a "check only" style operation.
+features = ["cargo_check"]
