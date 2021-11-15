@@ -15,6 +15,10 @@ fn main() -> SdlResult<()> {
     sdl.create_vk_window(zstr!("VK Demo Window"), None, (800, 600), WindowFlags::ALLOW_HIGHDPI)?;
   #[allow(non_snake_case)]
   let _vkGetInstanceProcAddr = vk_win.get_vkGetInstanceProcAddr()?;
+  println!("SDL2 will require the following extensions for surface creation:");
+  for ext in vk_win.get_required_instance_extensions()?.into_iter() {
+    println!("`{}`", ext);
+  }
   // TODO: use ash or something to actually make the instance.
 
   'top: loop {
@@ -22,12 +26,7 @@ fn main() -> SdlResult<()> {
     while let Some(e) = sdl.poll_event() {
       match e {
         Event::Quit => break 'top,
-        Event::MouseMotion { .. } => (),
-        Event::Keyboard { .. } => (),
-        Event::TextInput { text, .. } => {
-          println!("TextInput: {:?}", str::from_utf8(&text));
-        }
-        other => println!("Event: {:?}", other),
+        _ => (),
       }
     }
     // now draw and swap

@@ -1,11 +1,11 @@
 use core::ptr::NonNull;
 
-use alloc::{boxed::Box, string::String};
+use alloc::{boxed::Box, string::String, vec::Vec};
 use fermium::{
   c_void,
   prelude::{
-    SDL_CreateWindow, SDL_Vulkan_CreateSurface, SDL_Vulkan_GetVkGetInstanceProcAddr, SDL_Window,
-    SDL_TRUE, SDL_WINDOWPOS_CENTERED,
+    SDL_CreateWindow, SDL_Vulkan_CreateSurface, SDL_Vulkan_GetInstanceExtensions,
+    SDL_Vulkan_GetVkGetInstanceProcAddr, SDL_Window, SDL_TRUE, SDL_WINDOWPOS_CENTERED,
   },
 };
 use zstring::ZStr;
@@ -67,6 +67,32 @@ impl VkWindow {
       )
     }
     .ok_or_else(|| get_error())
+  }
+
+  /// Gets the instance extensions that you'll need to enable to make a surface
+  /// with this window.
+  #[inline]
+  #[must_use]
+  pub fn get_required_instance_extensions(&self) -> SdlResult<Vec<ZStr<'_>>> {
+    let mut count = 0;
+    if unsafe { SDL_Vulkan_GetInstanceExtensions(self.win.as_ptr(), &mut count, 0 as _) }
+      != SDL_TRUE
+    {
+      return Err(get_error());
+    }
+    //
+    let mut v: Vec<ZStr<'_>> = Vec::new();
+    v.try_reserve(count as _)
+      .map_err(|_| SdlError(Box::new(String::from("beryllium: Failed to allocate space"))))?;
+    if unsafe {
+      SDL_Vulkan_GetInstanceExtensions(self.win.as_ptr(), &mut count, v.as_mut_ptr().cast())
+    } != SDL_TRUE
+    {
+      Err(SdlError(Box::new(String::from("beryllium: Failed to allocate space"))))
+    } else {
+      unsafe { v.set_len(count as _) };
+      Ok(v)
+    }
   }
 
   #[inline]
