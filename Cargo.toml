@@ -25,7 +25,7 @@ bytemuck = "1"
 objc = "0.2" # needed to verify that we're on the main thread.
 
 [dev-dependencies]
-glitz = {version = "0.2", features=["std"]}
+glitz = {version = "0.4", features=["std"]}
 #ash = "0.33"
 
 [package.metadata.docs.rs]
