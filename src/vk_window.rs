@@ -4,8 +4,8 @@ use alloc::{boxed::Box, string::String};
 use fermium::{
   c_void,
   prelude::{
-    SDL_CreateWindow, SDL_Vulkan_GetVkGetInstanceProcAddr, SDL_Window, VkInstance,
-    SDL_WINDOWPOS_CENTERED,
+    SDL_CreateWindow, SDL_Vulkan_CreateSurface, SDL_Vulkan_GetVkGetInstanceProcAddr, SDL_Window,
+    VkInstance, VkSurfaceKHR, SDL_TRUE, SDL_WINDOWPOS_CENTERED,
   },
 };
 use zstring::ZStr;
@@ -65,5 +65,16 @@ impl VkWindow {
       )
     }
     .ok_or_else(|| get_error())
+  }
+
+  #[inline]
+  #[must_use]
+  pub unsafe fn create_surface(&self, instance: VkInstance) -> SdlResult<VkSurfaceKHR> {
+    let mut surface = VkSurfaceKHR::default();
+    if SDL_Vulkan_CreateSurface(self.win.as_ptr(), instance, &mut surface) == SDL_TRUE {
+      Ok(surface)
+    } else {
+      Err(get_error())
+    }
   }
 }
