@@ -5,7 +5,7 @@ use fermium::{
   c_void,
   prelude::{
     SDL_CreateWindow, SDL_Vulkan_CreateSurface, SDL_Vulkan_GetVkGetInstanceProcAddr, SDL_Window,
-    VkInstance, VkSurfaceKHR, SDL_TRUE, SDL_WINDOWPOS_CENTERED,
+    SDL_TRUE, SDL_WINDOWPOS_CENTERED,
   },
 };
 use zstring::ZStr;
@@ -16,6 +16,8 @@ use crate::{
   window::{Window, WindowFlags},
   SdlError, SdlResult,
 };
+
+pub use fermium::prelude::{VkInstance, VkSurfaceKHR};
 
 #[repr(C)]
 pub struct VkWindow {
