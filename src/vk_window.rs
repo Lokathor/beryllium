@@ -34,7 +34,7 @@ impl core::ops::Deref for VkWindow {
 
 #[allow(non_camel_case_types)]
 pub type vkGetInstanceProcAddr_t =
-  unsafe extern "system" fn(instance: VkInstance, pName: Option<ZStr<'_>>) -> *mut c_void;
+  unsafe extern "system" fn(instance: VkInstance, pName: ZStr<'_>) -> *mut c_void;
 
 impl Sdl {
   #[inline]
