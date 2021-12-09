@@ -10,7 +10,6 @@ use fermium::{
   syswm::{SDL_GetWindowWMInfo, SDL_SysWMinfo},
   version::SDL_VERSION,
 };
-use raw_window_handle::{RawWindowHandle, Win32Handle};
 use zstring::ZStr;
 
 #[derive(Debug, Clone, Copy, Default)]
@@ -46,6 +45,7 @@ unsafe impl raw_window_handle::HasRawWindowHandle for Window {
   /// If this can't get the window info, it'll give an empty win32 handle, which
   /// is the best that can be done because this trait doesn't allow for failure.
   fn raw_window_handle(&self) -> raw_window_handle::RawWindowHandle {
+    use raw_window_handle::{RawWindowHandle, Win32Handle};
     let mut info = SDL_SysWMinfo::default();
     SDL_VERSION(&mut info.version);
     if unsafe { SDL_GetWindowWMInfo(self.win.as_ptr(), &mut info) } == SDL_TRUE {
