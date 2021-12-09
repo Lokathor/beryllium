@@ -19,7 +19,9 @@ fn main() -> SdlResult<()> {
   for ext in vk_win.get_required_instance_extensions()?.into_iter() {
     println!("`{}`", ext);
   }
-  // TODO: use ash or something to actually make the instance.
+  // TODO: use ash or something to actually make the instance
+
+  // TODO: 5 million lines of vulkan setup
 
   'top: loop {
     // process all pending events
@@ -29,7 +31,7 @@ fn main() -> SdlResult<()> {
         _ => (),
       }
     }
-    // now draw and swap
+    // now update and draw
 
     // TODO: draw and swap
   }

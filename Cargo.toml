@@ -14,12 +14,14 @@ default = ["std"]
 dynamic_link = ["fermium/dynamic_link"]
 cargo_check = ["fermium/cargo_check"]
 std = []
+use-raw-window-handle = ["raw-window-handle", "fermium/raw-window-handle"]
 
 [dependencies]
-fermium = { version = "20016", default-features = false }
+fermium = { version = "20016.1.1", default-features = false }
 zstring = "0.1.1"
 tinyvec = "1"
 bytemuck = "1"
+raw-window-handle = { version = "0.4", optional = true }
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 objc = "0.2" # needed to verify that we're on the main thread.

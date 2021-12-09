@@ -23,8 +23,12 @@ fn main() -> SdlResult<()> {
   sdl.gl_set_attribute(GlAttr::Profile, GlProfile::Core as _)?;
   sdl.gl_set_attribute(GlAttr::Flags, FLAGS)?;
 
-  let gl_win =
-    sdl.create_gl_window(zstr!("GL Demo Window"), None, (800, 600), WindowFlags::ALLOW_HIGHDPI)?;
+  let gl_win = sdl.create_gl_window(
+    zstr!("GL Demo Window"),
+    None,
+    (8000000, 6000000),
+    WindowFlags::ALLOW_HIGHDPI,
+  )?;
   gl_win.set_swap_interval(1)?;
 
   let gl = unsafe { GlFns::from_loader(&|zs| gl_win.get_proc_address(zs)).unwrap() };
