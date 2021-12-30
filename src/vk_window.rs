@@ -4,8 +4,9 @@ use alloc::{boxed::Box, string::String, vec::Vec};
 use fermium::{
   c_void,
   prelude::{
-    SDL_CreateWindow, SDL_Vulkan_CreateSurface, SDL_Vulkan_GetInstanceExtensions,
-    SDL_Vulkan_GetVkGetInstanceProcAddr, SDL_Window, SDL_TRUE, SDL_WINDOWPOS_CENTERED,
+    SDL_CreateWindow, SDL_Vulkan_CreateSurface, SDL_Vulkan_GetDrawableSize,
+    SDL_Vulkan_GetInstanceExtensions, SDL_Vulkan_GetVkGetInstanceProcAddr, SDL_Window, SDL_TRUE,
+    SDL_WINDOWPOS_CENTERED,
   },
 };
 use zstring::ZStr;
@@ -104,5 +105,14 @@ impl VkWindow {
     } else {
       Err(get_error())
     }
+  }
+
+  #[inline]
+  #[must_use]
+  pub fn get_drawable_size(&self) -> (u32, u32) {
+    let mut w = 0_i32;
+    let mut h = 0_i32;
+    unsafe { SDL_Vulkan_GetDrawableSize(self.win.as_ptr(), &mut w, &mut h) };
+    (w as u32, h as u32)
   }
 }

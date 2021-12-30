@@ -8,6 +8,7 @@ edition = "2021"
 license = "Zlib OR Apache-2.0 OR MIT"
 keywords = ["SDL2"]
 categories = ["api-bindings", "multimedia", "no-std"]
+resolver = "2"
 
 [features]
 default = ["std"]
@@ -29,6 +30,9 @@ objc = "0.2" # needed to verify that we're on the main thread.
 [dev-dependencies]
 glitz = {version = "0.4", features=["std"]}
 #ash = "0.33"
+wgpu = "0.12"
+env_logger = "0.9"
+pollster = "0.2"
 
 [package.metadata.docs.rs]
 default-target = "x86_64-pc-windows-msvc"
