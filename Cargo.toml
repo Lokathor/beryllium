@@ -18,7 +18,7 @@ std = []
 use-raw-window-handle = ["raw-window-handle", "fermium/raw-window-handle"]
 
 [dependencies]
-fermium = { version = "20016.1.1", default-features = false }
+fermium = { version = "20022.0.0", default-features = false }
 zstring = "0.1.1"
 tinyvec = "1"
 bytemuck = "1"
