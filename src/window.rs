@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+
 use core::ptr::NonNull;
 
 use fermium::{
