@@ -48,18 +48,9 @@ jobs:
       with:
         toolchain: ${{ matrix.rust.toolchain }}
         command: test
-        args: --features=dynamic_link
     
     - name: Run Tests with Static Link
       uses: actions-rs/cargo@v1
       with:
         toolchain: ${{ matrix.rust.toolchain }}
         command: test
-        args: --no-default-features
-    
-    - name: Run Tests with Std feature
-      uses: actions-rs/cargo@v1
-      with:
-        toolchain: ${{ matrix.rust.toolchain }}
-        command: test
-        args: --features=std
