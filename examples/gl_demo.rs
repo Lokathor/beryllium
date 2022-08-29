@@ -26,7 +26,7 @@ fn main() -> SdlResult<()> {
   let gl_win = sdl.create_gl_window(
     zstr!("GL Demo Window"),
     None,
-    (8000000, 6000000),
+    (800, 600),
     WindowFlags::ALLOW_HIGHDPI,
   )?;
   gl_win.set_swap_interval(1)?;

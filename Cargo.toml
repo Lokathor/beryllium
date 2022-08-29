@@ -18,7 +18,7 @@ std = []
 use-raw-window-handle = ["raw-window-handle", "fermium/raw-window-handle"]
 
 [dependencies]
-fermium = { version = "20016.1.1", default-features = false }
+fermium = { version = "20022.0.0", default-features = false }
 zstring = "0.1.1"
 tinyvec = "1"
 bytemuck = "1"
@@ -38,3 +38,7 @@ pollster = "0.2"
 default-target = "x86_64-pc-windows-msvc"
 # building the docs is a "check only" style operation.
 features = ["cargo_check"]
+
+[[example]]
+name = "wgpu_demo"
+required-features = ["use-raw-window-handle"]
