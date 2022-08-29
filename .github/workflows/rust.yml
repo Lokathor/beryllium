@@ -39,6 +39,11 @@ jobs:
       if: matrix.rust.target == 'x86_64-unknown-linux-gnu'
       run: sudo ./install-sdl2.sh
     
+    - name: Install SDL2 from fermium (if Windows)
+      if: matrix.rust.target == 'x86_64-pc-windows-msvc'
+      run: cargo install fermium
+      run: fermium
+    
     - name: Run Tests with Dynamic Link
       uses: actions-rs/cargo@v1
       with:
