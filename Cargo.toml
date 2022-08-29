@@ -38,3 +38,7 @@ pollster = "0.2"
 default-target = "x86_64-pc-windows-msvc"
 # building the docs is a "check only" style operation.
 features = ["cargo_check"]
+
+[[example]]
+name = "wgpu_demo"
+required-features = ["use-raw-window-handle"]
