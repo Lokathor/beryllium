@@ -2,7 +2,7 @@ use beryllium::{events::Event, init::InitFlags, video::CreateWinArgs, Sdl};
 
 fn main() {
   // Initializes SDL2
-  let sdl = Sdl::init(InitFlags::EVENTS | InitFlags::VIDEO);
+  let sdl = Sdl::init(InitFlags::EVERYTHING);
 
   // TODO: set our GL attributes
 
@@ -18,8 +18,9 @@ fn main() {
     // Process events from this frame.
     #[allow(clippy::never_loop)]
     while let Some((event, _timestamp)) = sdl.poll_events() {
-      match event {
-        Event::Quit => break 'the_loop,
+      println!("{event:?}");
+      if event == Event::Quit {
+        break 'the_loop;
       }
     }
 

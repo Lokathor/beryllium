@@ -1,4 +1,4 @@
-#![no_std]
+//#![no_std]
 #![allow(dead_code)]
 #![warn(clippy::missing_inline_in_public_items)]
 
@@ -7,6 +7,7 @@ extern crate alloc;
 use alloc::sync::Arc;
 use init::{InitFlags, SdlInit};
 
+pub mod controller;
 pub mod error;
 pub mod events;
 pub mod init;
