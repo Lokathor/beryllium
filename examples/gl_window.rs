@@ -13,6 +13,8 @@ fn main() {
   println!("GL window size: {:?}", win.get_window_size());
   println!("GL drawable size: {:?}", win.get_drawable_size());
 
+  let mut controllers = Vec::new();
+
   // program "main loop".
   'the_loop: loop {
     // Process events from this frame.
@@ -21,6 +23,15 @@ fn main() {
       println!("{event:?}");
       if event == Event::Quit {
         break 'the_loop;
+      }
+      if let Event::ControllerAdded { index } = event {
+        match sdl.open_game_controller(index) {
+          Ok(controller) => {
+            println!("Opened `{}`", controller.get_name());
+            controllers.push(controller);
+          }
+          Err(msg) => println!("Couldn't open {index}: {msg:?}"),
+        }
       }
     }
 

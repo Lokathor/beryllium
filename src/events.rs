@@ -1,3 +1,4 @@
+use alloc::{string::String, vec::Vec};
 use bytemuck::cast_slice;
 use fermium::prelude::*;
 
@@ -272,7 +273,9 @@ impl TryFrom<SDL_Event> for Event {
       }
       SDL_DROPTEXT => {
         let v = unsafe { sdl_event.drop };
-        println!("DropText: {}, {:p}", v.windowID, v.file);
+        // Even if we don't gather up the text yet, we need to free the pointer
+        // or it'll just leak memory.
+        unsafe { SDL_free(v.file as _) };
         return Err(());
       }
       SDL_DROPCOMPLETE => Event::DropComplete { win_id: unsafe { sdl_event.drop.windowID } },

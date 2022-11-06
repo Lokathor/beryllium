@@ -1,4 +1,4 @@
-//#![no_std]
+#![no_std]
 #![allow(dead_code)]
 #![warn(clippy::missing_inline_in_public_items)]
 
