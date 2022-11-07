@@ -25,7 +25,7 @@ pub enum Event {
   Quit,
   DisplayConnected { display_index: u32 },
   DisplayDisconnected { display_index: u32 },
-  DisplayOrientationChanged { display_index: u32 },
+  DisplayOrientationChanged { display_index: u32, new_orientation: DisplayOrientation },
   WindowShown { win_id: u32 },
   WindowHidden { win_id: u32 },
   WindowExposed { win_id: u32 },
@@ -45,12 +45,15 @@ pub enum Event {
   // * TODO: SDL_TextEditingEvent
   
   TextInput { win_id: u32, text: String },
-  /// Mouse cursor change
+
+  /// Mouse cursor motion
   /// * `x_win` and `y_win` are the window-relative mouse position.
   /// * `x_delta` and `y_delta` are the change in position since the last event.
   /// * `button_state` has bit `N` set when mouse button `N` is held down during the event.
   MouseMotion { win_id: u32, mouse_id: u32, button_state: u32, x_win: i32, y_win: i32, x_delta: i32, y_delta: i32 },
+
   MouseButton { win_id: u32, mouse_id: u32, button: u8, pressed: bool, clicks: u8, x: i32, y: i32 },
+
   /// Mouse wheel change
   /// * `x`: horizontal, with positive to the right.
   /// * `y`: vertical, with positive *away* from the user.
@@ -66,7 +69,9 @@ pub enum Event {
   ControllerAdded { index: i32 },
   ControllerRemoved { ctrl_id: i32 },
   ControllerRemapped { ctrl_id: i32 },
-  //ControllerTouchpad { ctrl_id: i32, touchpad: i32, finger: i32, x: f32, y: f32, pressure: f32 },
+
+  //ControllerTouchpad { ?? },
+
   ControllerSensor { ctrl_id: i32, sensor: i32, data: [f32; 3] },
   AudioDeviceAdded { index: u32, is_capture: bool },
   AudioDeviceRemoved { audio_id: u32, is_capture: bool },
@@ -80,8 +85,10 @@ pub enum Event {
   
   /// Marks the start of a series of files being dropped onto the window.
   DropBegin { win_id: u32 },
+
   /// The name of a file or directory the user dropped into the window.
   DropFile { win_id: u32, name: String },
+
   /// This marks the end of a group of file drops.
   DropComplete { win_id: u32 },
 }
@@ -98,7 +105,14 @@ impl TryFrom<SDL_Event> for Event {
           SDL_DISPLAYEVENT_CONNECTED => Event::DisplayConnected { display_index: v.display },
           SDL_DISPLAYEVENT_DISCONNECTED => Event::DisplayDisconnected { display_index: v.display },
           SDL_DISPLAYEVENT_ORIENTATION => {
-            Event::DisplayOrientationChanged { display_index: v.display }
+            let new_orientation = match SDL_DisplayOrientation(v.data1 as u32) {
+              SDL_ORIENTATION_PORTRAIT => DisplayOrientation::Portrait,
+              SDL_ORIENTATION_LANDSCAPE => DisplayOrientation::Landscape,
+              SDL_ORIENTATION_PORTRAIT_FLIPPED => DisplayOrientation::PortraitFlipped,
+              SDL_ORIENTATION_LANDSCAPE_FLIPPED => DisplayOrientation::LandscapeFlipped,
+              _ => DisplayOrientation::Unknown,
+            };
+            Event::DisplayOrientationChanged { display_index: v.display, new_orientation }
           }
           _ => return Err(()),
         }
@@ -282,4 +296,13 @@ impl TryFrom<SDL_Event> for Event {
       _ => return Err(()),
     })
   }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum DisplayOrientation {
+  Unknown,
+  Portrait,
+  Landscape,
+  PortraitFlipped,
+  LandscapeFlipped,
 }
