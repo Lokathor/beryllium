@@ -19,6 +19,21 @@ pub struct CreateWinArgs<'s> {
   pub borderless: bool,
   pub resizable: bool,
 }
+impl CreateWinArgs<'_> {
+  fn window_flags(&self) -> SDL_WindowFlags {
+    let mut out = 0;
+    if self.allow_high_dpi {
+      out |= SDL_WINDOW_ALLOW_HIGHDPI.0;
+    }
+    if self.borderless {
+      out |= SDL_WINDOW_BORDERLESS.0
+    }
+    if self.resizable {
+      out |= SDL_WINDOW_RESIZABLE.0
+    }
+    SDL_WindowFlags(out)
+  }
+}
 impl Default for CreateWinArgs<'_> {
   #[inline]
   fn default() -> Self {
@@ -85,7 +100,7 @@ impl Sdl {
             SDL_WINDOWPOS_CENTERED,
             args.width,
             args.height,
-            SDL_WINDOW_OPENGL.0 | SDL_WINDOW_ALLOW_HIGHDPI.0,
+            SDL_WINDOW_OPENGL.0 | args.window_flags().0,
           )
         };
         match NonNull::new(win_p) {
