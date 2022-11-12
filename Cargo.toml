@@ -2,7 +2,7 @@
 name = "beryllium"
 description = "Opinionated wrapper for `fermium`."
 repository = "https://github.com/Lokathor/beryllium"
-version = "0.0.18"
+version = "0.0.19"
 edition = "2021"
 license = "Zlib OR Apache-2.0 OR MIT"
 
