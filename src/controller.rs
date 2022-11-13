@@ -103,6 +103,8 @@ impl ControllerButton {
 
 pub struct GameController {
   ctrl: NonNull<SDL_GameController>,
+  /// Note(Lokathor): The init is always the LAST field!
+  #[allow(dead_code)]
   init: Arc<SdlInit>,
 }
 impl Sdl {
