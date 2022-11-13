@@ -1,44 +1,22 @@
 [package]
 name = "beryllium"
-description = "Opinionated, high-level wrappers for `fermium`."
+description = "Opinionated wrapper for `fermium`."
 repository = "https://github.com/Lokathor/beryllium"
-version = "0.8.0"
-authors = ["Lokathor <zefria@gmail.com>"]
+version = "0.0.19"
 edition = "2021"
 license = "Zlib OR Apache-2.0 OR MIT"
-keywords = ["SDL2"]
-categories = ["api-bindings", "multimedia", "no-std"]
-resolver = "2"
 
 [features]
-default = ["std"]
-dynamic_link = ["fermium/dynamic_link"]
 cargo_check = ["fermium/cargo_check"]
-std = []
-use-raw-window-handle = ["raw-window-handle", "fermium/raw-window-handle"]
 
 [dependencies]
-fermium = { version = "20022.0.0", default-features = false }
-zstring = "0.1.1"
-tinyvec = "1"
+fermium = "22401.1.0"
 bytemuck = "1"
-raw-window-handle = { version = "0.4", optional = true }
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 objc = "0.2" # needed to verify that we're on the main thread.
-
-[dev-dependencies]
-glitz = {version = "0.4", features=["std"]}
-#ash = "0.33"
-wgpu = "0.12"
-env_logger = "0.9"
-pollster = "0.2"
 
 [package.metadata.docs.rs]
 default-target = "x86_64-pc-windows-msvc"
 # building the docs is a "check only" style operation.
 features = ["cargo_check"]
-
-[[example]]
-name = "wgpu_demo"
-required-features = ["use-raw-window-handle"]

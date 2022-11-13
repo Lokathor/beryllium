@@ -1,79 +1,67 @@
-use alloc::{boxed::Box, string::String, sync::Arc};
 use core::{
   marker::PhantomData,
   sync::atomic::{AtomicBool, Ordering},
 };
-use fermium::{
-  SDL_Init, SDL_InitFlags, SDL_Quit, SDL_INIT_AUDIO, SDL_INIT_EVENTS, SDL_INIT_EVERYTHING,
-  SDL_INIT_GAMECONTROLLER, SDL_INIT_HAPTIC, SDL_INIT_JOYSTICK, SDL_INIT_SENSOR, SDL_INIT_TIMER,
-  SDL_INIT_VIDEO,
-};
 
-use crate::{SdlError, SdlResult};
+use alloc::sync::Arc;
+use fermium::prelude::*;
 
-#[derive(Debug, Clone, Copy, Default)]
+use crate::error::{get_error, SdlError};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct InitFlags(SDL_InitFlags);
-impl_bit_ops_for_tuple_newtype!(InitFlags);
 impl InitFlags {
   pub const AUDIO: Self = Self(SDL_INIT_AUDIO);
   pub const EVENTS: Self = Self(SDL_INIT_EVENTS);
   pub const EVERYTHING: Self = Self(SDL_INIT_EVERYTHING);
-  pub const CONTROLLER: Self = Self(SDL_INIT_GAMECONTROLLER);
+  pub const GAMECONTROLLER: Self = Self(SDL_INIT_GAMECONTROLLER);
   pub const HAPTIC: Self = Self(SDL_INIT_HAPTIC);
   pub const JOYSTICK: Self = Self(SDL_INIT_JOYSTICK);
   pub const SENSOR: Self = Self(SDL_INIT_SENSOR);
   pub const TIMER: Self = Self(SDL_INIT_TIMER);
   pub const VIDEO: Self = Self(SDL_INIT_VIDEO);
 }
-
-static SDL_IS_INIT: AtomicBool = AtomicBool::new(false);
-
-pub(crate) struct Initialization {
-  _no_send_or_sync: PhantomData<*mut ()>,
-}
-impl Initialization {
+impl core::ops::BitOr for InitFlags {
+  type Output = Self;
   #[inline]
-  fn try_init(flags: InitFlags) -> SdlResult<Self> {
+  fn bitor(self, rhs: Self) -> Self::Output {
+    Self(self.0 | rhs.0)
+  }
+}
+
+static SDL_IS_ACTIVE: AtomicBool = AtomicBool::new(false);
+
+#[repr(transparent)]
+pub(crate) struct SdlInit(PhantomData<*mut ()>);
+impl SdlInit {
+  #[inline]
+  pub fn try_new_arc(flags: InitFlags) -> Result<Arc<Self>, SdlError> {
     #[cfg(any(target_os = "macos", target_os = "ios"))]
     {
       use objc::{class, msg_send, sel, sel_impl};
       let is_main: bool = unsafe { msg_send![class!(NSThread), isMainThread] };
       if !is_main {
-        return Err(SdlError(Box::new(String::from(
-          "beryllium: SDL can only be initialized on the main thread.",
-        ))));
+        return Err(SdlError::new("beryllium: can only be init on the main thread."));
       }
     }
-    match SDL_IS_INIT.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst) {
+    match SDL_IS_ACTIVE.compare_exchange(false, true, Ordering::Acquire, Ordering::Acquire) {
       Ok(_) => {
         let ret = unsafe { SDL_Init(flags.0) };
         if ret == 0 {
-          Ok(Self { _no_send_or_sync: PhantomData })
+          Ok(Arc::new(Self(PhantomData)))
         } else {
-          Err(crate::get_error())
+          Err(get_error())
         }
       }
-      Err(_) => Err(SdlError(Box::new(String::from("beryllium: SDL2 is already initialized")))),
+      Err(_) => Err(SdlError::new("beryllium: Double initialization.")),
     }
   }
 }
-impl Drop for Initialization {
-  fn drop(&mut self) {
-    match SDL_IS_INIT.compare_exchange(true, false, Ordering::SeqCst, Ordering::SeqCst) {
-      Ok(_) => unsafe { SDL_Quit() },
-      Err(_) => panic!("beryllium: SDL tried to quit when it already wasn't initialized."),
-    }
-  }
-}
-
-#[derive(Clone)]
-#[repr(transparent)]
-pub struct Sdl(Arc<Initialization>);
-
-impl Sdl {
+impl Drop for SdlInit {
   #[inline]
-  pub fn init(flags: InitFlags) -> SdlResult<Self> {
-    Initialization::try_init(flags).map(|i| Self(Arc::new(i)))
+  fn drop(&mut self) {
+    unsafe { SDL_Quit() }
+    SDL_IS_ACTIVE.store(false, Ordering::Release);
   }
 }
