@@ -35,18 +35,21 @@ fn main() {
     // Process events from this frame.
     #[allow(clippy::never_loop)]
     while let Some((event, _timestamp)) = sdl.poll_events() {
-      println!("{event:?}");
-      if event == Event::Quit {
-        break 'the_loop;
-      }
-      if let Event::ControllerAdded { index } = event {
-        match sdl.open_game_controller(index) {
+      match event {
+        Event::Quit => break 'the_loop,
+        Event::ControllerAdded { index } => match sdl.open_game_controller(index) {
           Ok(controller) => {
-            println!("Opened `{}`", controller.get_name());
+            println!(
+              "Opened `{name}` ({type_:?})",
+              name = controller.get_name(),
+              type_ = controller.get_type()
+            );
             controllers.push(controller);
           }
           Err(msg) => println!("Couldn't open {index}: {msg:?}"),
-        }
+        },
+        Event::JoystickAxis { .. } | Event::ControllerAxis { .. } | Event::MouseMotion { .. } => (),
+        _ => println!("{event:?}"),
       }
     }
 

@@ -44,10 +44,10 @@ impl ControllerAxis {
 #[repr(i32)]
 pub enum ControllerButton {
   Invalid = SDL_CONTROLLER_BUTTON_INVALID.0,
-  North = SDL_CONTROLLER_BUTTON_A.0,
-  South = SDL_CONTROLLER_BUTTON_B.0,
-  East = SDL_CONTROLLER_BUTTON_X.0,
-  West = SDL_CONTROLLER_BUTTON_Y.0,
+  North = SDL_CONTROLLER_BUTTON_Y.0,
+  South = SDL_CONTROLLER_BUTTON_A.0,
+  East = SDL_CONTROLLER_BUTTON_B.0,
+  West = SDL_CONTROLLER_BUTTON_X.0,
   Back = SDL_CONTROLLER_BUTTON_BACK.0,
   Guide = SDL_CONTROLLER_BUTTON_GUIDE.0,
   Start = SDL_CONTROLLER_BUTTON_START.0,
@@ -98,6 +98,38 @@ impl From<u8> for ControllerButton {
 impl ControllerButton {
   pub(crate) fn as_sdl_game_controller_button(self) -> SDL_GameControllerButton {
     SDL_GameControllerButton(self as i32)
+  }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(i32)]
+pub enum ControllerType {
+  Unknown = SDL_CONTROLLER_TYPE_UNKNOWN.0,
+  Xbox360 = SDL_CONTROLLER_TYPE_XBOX360.0,
+  XboxOne = SDL_CONTROLLER_TYPE_XBOXONE.0,
+  Ps3 = SDL_CONTROLLER_TYPE_PS3.0,
+  Ps4 = SDL_CONTROLLER_TYPE_PS4.0,
+  NintendoSwitchPro = SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_PRO.0,
+  Virtual = SDL_CONTROLLER_TYPE_VIRTUAL.0,
+  Ps5 = SDL_CONTROLLER_TYPE_PS5.0,
+  AmazonLuna = SDL_CONTROLLER_TYPE_AMAZON_LUNA.0,
+  Stadia = SDL_CONTROLLER_TYPE_GOOGLE_STADIA.0,
+}
+impl From<SDL_GameControllerType> for ControllerType {
+  #[inline]
+  fn from(value: SDL_GameControllerType) -> Self {
+    match value {
+      SDL_CONTROLLER_TYPE_XBOX360 => Self::Xbox360,
+      SDL_CONTROLLER_TYPE_XBOXONE => Self::XboxOne,
+      SDL_CONTROLLER_TYPE_PS3 => Self::Ps3,
+      SDL_CONTROLLER_TYPE_PS4 => Self::Ps4,
+      SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_PRO => Self::NintendoSwitchPro,
+      SDL_CONTROLLER_TYPE_VIRTUAL => Self::Virtual,
+      SDL_CONTROLLER_TYPE_PS5 => Self::Ps5,
+      SDL_CONTROLLER_TYPE_AMAZON_LUNA => Self::AmazonLuna,
+      SDL_CONTROLLER_TYPE_GOOGLE_STADIA => Self::Stadia,
+      _ => Self::Unknown,
+    }
   }
 }
 
@@ -159,5 +191,10 @@ impl GameController {
         Err(e) => String::from_utf8_lossy(e.as_bytes()).into_owned(),
       }
     }
+  }
+
+  #[inline]
+  pub fn get_type(&self) -> ControllerType {
+    ControllerType::from(unsafe { SDL_GameControllerGetType(self.ctrl.as_ptr()) })
   }
 }
