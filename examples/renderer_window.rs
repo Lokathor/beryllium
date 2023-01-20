@@ -1,7 +1,7 @@
 use beryllium::{
   events::Event,
   init::InitFlags,
-  video::{CreateWinArgs, GlProfile},
+  video::{CreateWinArgs, RendererFlags},
   Sdl,
 };
 
@@ -9,24 +9,19 @@ fn main() {
   // Initializes SDL2
   let sdl = Sdl::init(InitFlags::EVERYTHING);
 
-  // This part asks for an ES 3.1 context "just for fun", because that's what
-  // works best between Windows and also Raspberry Pi. Mac doesn't support ES
-  // contexts, but this is just a demo so for Mac we'll skip any configuration
-  // at all and just get some "don't care" GL context.
-  #[cfg(not(target_os = "macos"))]
-  {
-    sdl.set_gl_profile(GlProfile::ES).unwrap();
-    sdl.set_gl_context_major_version(3).unwrap();
-    sdl.set_gl_context_minor_version(1).unwrap();
+  for info in sdl.get_renderer_driver_infos().unwrap() {
+    println!("RendererDriver: {info:?}");
   }
 
   // Makes the window with a GL Context.
   let win = sdl
-    .create_gl_window(CreateWinArgs { title: "Example GL Window", ..Default::default() })
+    .create_renderer_window(
+      CreateWinArgs { title: "Example Renderer Window", ..Default::default() },
+      RendererFlags::ACCELERATED_VSYNC,
+    )
     .unwrap();
-  println!("GL window size: {:?}", win.get_window_size());
-  println!("GL drawable size: {:?}", win.get_drawable_size());
-  println!("GL_KHR_debug supported: {}", win.supports_extension("GL_KHR_debug"));
+  println!("Created The Renderer Window!");
+  println!("Selected Renderer Info: {:?}", win.get_renderer_info());
 
   let mut controllers = Vec::new();
 
