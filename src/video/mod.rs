@@ -13,6 +13,10 @@ use fermium::prelude::*;
 
 mod gl;
 pub use gl::*;
+
+mod vk;
+pub use vk::*;
+
 mod renderer;
 pub use renderer::*;
 
