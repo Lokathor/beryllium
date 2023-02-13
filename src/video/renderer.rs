@@ -13,6 +13,7 @@ impl RendererFlags {
     Self(SDL_RendererFlags(SDL_RENDERER_ACCELERATED.0 | SDL_RENDERER_PRESENTVSYNC.0));
 }
 impl core::fmt::Debug for RendererFlags {
+  #[inline]
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     let mut s = f.debug_set();
     if (self.0 .0 & Self::SOFTWARE.0 .0) != 0 {
@@ -35,6 +36,7 @@ impl core::fmt::Debug for RendererFlags {
 #[repr(transparent)]
 pub struct PixelFormatEnum(SDL_PixelFormatEnum);
 impl core::fmt::Debug for PixelFormatEnum {
+  #[inline]
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     let s = match self.0 {
       SDL_PIXELFORMAT_INDEX1LSB => "INDEX1LSB",
@@ -76,7 +78,7 @@ impl core::fmt::Debug for PixelFormatEnum {
       SDL_PIXELFORMAT_NV21 => "NV21",
       _ => "?",
     };
-    write!(f, "{}", s)
+    write!(f, "{s}")
   }
 }
 
@@ -90,6 +92,7 @@ pub struct RendererInfo {
 }
 
 impl Sdl {
+  #[inline]
   pub fn get_renderer_driver_infos(&self) -> Result<Vec<RendererInfo>, SdlError> {
     let num_drivers = unsafe { SDL_GetNumRenderDrivers() };
     if num_drivers < 0 {
@@ -176,6 +179,7 @@ impl Sdl {
 }
 
 impl RendererWindow {
+  #[inline]
   pub fn get_renderer_info(&self) -> Result<RendererInfo, SdlError> {
     let mut raw_info = SDL_RendererInfo::default();
     let get_result = unsafe { SDL_GetRendererInfo(self.rend.as_ptr(), &mut raw_info) };
