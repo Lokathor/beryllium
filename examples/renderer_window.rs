@@ -13,7 +13,7 @@ fn main() {
     println!("RendererDriver: {info:?}");
   }
 
-  // Makes the window with a GL Context.
+  // Makes the window with an associated SDL Renderer.
   let win = sdl
     .create_renderer_window(
       CreateWinArgs { title: "Example Renderer Window", ..Default::default() },
@@ -32,6 +32,7 @@ fn main() {
     while let Some((event, _timestamp)) = sdl.poll_events() {
       match event {
         Event::Quit => break 'the_loop,
+        Event::JoystickAxis { .. } | Event::ControllerAxis { .. } | Event::MouseMotion { .. } => (),
         Event::ControllerAdded { index } => match sdl.open_game_controller(index) {
           Ok(controller) => {
             println!(
@@ -43,7 +44,6 @@ fn main() {
           }
           Err(msg) => println!("Couldn't open {index}: {msg:?}"),
         },
-        Event::JoystickAxis { .. } | Event::ControllerAxis { .. } | Event::MouseMotion { .. } => (),
         _ => println!("{event:?}"),
       }
     }
