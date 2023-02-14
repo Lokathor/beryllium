@@ -46,6 +46,12 @@ impl Deref for VkWindow {
   }
 }
 impl VkWindow {
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn get_vkGetInstanceProcAddr(&self) -> Option<unsafe extern "system" fn()> {
+    unsafe { core::mem::transmute(SDL_Vulkan_GetVkGetInstanceProcAddr()) }
+  }
+
   /// Gets the list of extensions required during vulkan instance creation to
   /// make it work with this window.
   #[inline]
