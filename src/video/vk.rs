@@ -73,9 +73,14 @@ impl VkWindow {
   }
 
   /// Creates a surface for this window.
+  ///
+  /// ## Safety
+  /// The `instance` needs to be a valid instance with the surface creation
+  /// extension enabled. If you enabled all extensions listed by a call to the
+  /// `get_instance_extensions` method then that will be the case.
   #[inline]
-  pub fn create_surface(&self, instance: VkInstance) -> Result<VkSurfaceKHR, SdlError> {
-    let mut surface = VkSurfaceKHR(0);
+  pub unsafe fn create_surface(&self, instance: VkInstance) -> Result<VkSurfaceKHR, SdlError> {
+    let mut surface = VkSurfaceKHR::default();
     if unsafe { SDL_Vulkan_CreateSurface(self.win.as_ptr(), instance, &mut surface) } == SDL_TRUE {
       Ok(surface)
     } else {
