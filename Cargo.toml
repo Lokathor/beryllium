@@ -10,7 +10,7 @@ license = "Zlib OR Apache-2.0 OR MIT"
 cargo_check = ["fermium/cargo_check"]
 
 [dependencies]
-fermium = "22603.0.0"
+fermium = "22604.0.0"
 bytemuck = "1"
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]

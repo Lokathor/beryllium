@@ -44,10 +44,10 @@ impl ControllerAxis {
 #[repr(i32)]
 pub enum ControllerButton {
   Invalid = SDL_CONTROLLER_BUTTON_INVALID.0,
-  North = SDL_CONTROLLER_BUTTON_Y.0,
-  South = SDL_CONTROLLER_BUTTON_A.0,
-  East = SDL_CONTROLLER_BUTTON_B.0,
-  West = SDL_CONTROLLER_BUTTON_X.0,
+  Y = SDL_CONTROLLER_BUTTON_Y.0,
+  A = SDL_CONTROLLER_BUTTON_A.0,
+  B = SDL_CONTROLLER_BUTTON_B.0,
+  X = SDL_CONTROLLER_BUTTON_X.0,
   Back = SDL_CONTROLLER_BUTTON_BACK.0,
   Guide = SDL_CONTROLLER_BUTTON_GUIDE.0,
   Start = SDL_CONTROLLER_BUTTON_START.0,
@@ -70,10 +70,10 @@ impl From<u8> for ControllerButton {
   #[inline]
   fn from(value: u8) -> Self {
     match SDL_GameControllerButton(i32::from(value)) {
-      SDL_CONTROLLER_BUTTON_A => ControllerButton::South,
-      SDL_CONTROLLER_BUTTON_B => ControllerButton::East,
-      SDL_CONTROLLER_BUTTON_X => ControllerButton::West,
-      SDL_CONTROLLER_BUTTON_Y => ControllerButton::North,
+      SDL_CONTROLLER_BUTTON_A => ControllerButton::A,
+      SDL_CONTROLLER_BUTTON_B => ControllerButton::B,
+      SDL_CONTROLLER_BUTTON_X => ControllerButton::X,
+      SDL_CONTROLLER_BUTTON_Y => ControllerButton::Y,
       SDL_CONTROLLER_BUTTON_BACK => ControllerButton::Back,
       SDL_CONTROLLER_BUTTON_GUIDE => ControllerButton::Guide,
       SDL_CONTROLLER_BUTTON_START => ControllerButton::Start,
