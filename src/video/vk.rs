@@ -58,14 +58,13 @@ impl VkWindow {
   #[inline]
   pub fn get_instance_extensions(&self) -> Result<Vec<*const c_char>, SdlError> {
     let mut count: c_uint = 0;
-    if unsafe { SDL_Vulkan_GetInstanceExtensions(self.win.as_ptr(), &mut count, null_mut()) }
-      != SDL_TRUE
+    if unsafe { SDL_Vulkan_GetInstanceExtensions(self.win.as_ptr(), &mut count, null_mut()) }.into()
     {
       return Err(get_error());
     }
     let mut buf: Vec<*const c_char> = Vec::with_capacity(count.try_into().unwrap());
     if unsafe { SDL_Vulkan_GetInstanceExtensions(self.win.as_ptr(), &mut count, buf.as_mut_ptr()) }
-      != SDL_TRUE
+      .into()
     {
       return Err(get_error());
     }
@@ -82,7 +81,7 @@ impl VkWindow {
   #[inline]
   pub unsafe fn create_surface(&self, instance: VkInstance) -> Result<VkSurfaceKHR, SdlError> {
     let mut surface = VkSurfaceKHR::default();
-    if unsafe { SDL_Vulkan_CreateSurface(self.win.as_ptr(), instance, &mut surface) } == SDL_TRUE {
+    if unsafe { SDL_Vulkan_CreateSurface(self.win.as_ptr(), instance, &mut surface) }.into() {
       Ok(surface)
     } else {
       Err(get_error())

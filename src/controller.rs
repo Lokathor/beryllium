@@ -159,7 +159,7 @@ impl Drop for GameController {
 impl GameController {
   #[inline]
   pub fn is_attached(&self) -> bool {
-    SDL_TRUE == unsafe { SDL_GameControllerGetAttached(self.ctrl.as_ptr()) }
+    unsafe { SDL_GameControllerGetAttached(self.ctrl.as_ptr()) }.into()
   }
 
   /// Triggers are `0` to `i16::MAX`, Sticks are `i16::MIN` to `i16::MAX`

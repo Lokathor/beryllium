@@ -79,7 +79,7 @@ impl GlWindow {
   #[inline]
   pub fn supports_extension(&self, ext: &str) -> bool {
     let ext_null = alloc::format!("{ext}\0");
-    SDL_TRUE == unsafe { SDL_GL_ExtensionSupported(ext_null.as_ptr().cast()) }
+    unsafe { SDL_GL_ExtensionSupported(ext_null.as_ptr().cast()) }.into()
   }
 
   /// ## Safety
