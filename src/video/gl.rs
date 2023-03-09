@@ -101,7 +101,7 @@ impl GlWindow {
   }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct GlContextFlags(SDL_GLcontextFlag);
 impl GlContextFlags {
