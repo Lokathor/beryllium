@@ -117,6 +117,12 @@ impl core::ops::BitOr for GlContextFlags {
     Self(self.0 | rhs.0)
   }
 }
+impl core::ops::BitOrAssign for GlContextFlags {
+  #[inline]
+  fn bitor_assign(&mut self, rhs: Self) {
+    *self = *self | rhs;
+  }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(i32)]
