@@ -17,6 +17,13 @@ impl Sdl {
       None
     }
   }
+
+  /// Get the number of milliseconds since the SDL library initialization.
+  #[inline]
+  #[must_use]
+  pub fn get_ticks(&self) -> u32 {
+    unsafe { SDL_GetTicks() }
+  }
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
