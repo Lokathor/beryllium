@@ -1,5 +1,6 @@
 use core::ptr::null_mut;
 use raw_vulkan_handle::*;
+use zstring::{ZStr, ZString};
 
 use super::*;
 
@@ -49,27 +50,33 @@ impl Deref for VkWindow {
 impl VkWindow {
   #[inline]
   #[allow(non_snake_case)]
-  pub fn get_vkGetInstanceProcAddr(&self) -> Option<unsafe extern "system" fn()> {
+  pub fn get_vkGetInstanceProcAddr(
+    &self,
+  ) -> Option<unsafe extern "system" fn(VkInstance, *const u8)> {
     unsafe { core::mem::transmute(SDL_Vulkan_GetVkGetInstanceProcAddr()) }
   }
 
   /// Gets the list of extensions required during vulkan instance creation to
   /// make it work with this window.
   #[inline]
-  pub fn get_instance_extensions(&self) -> Result<Vec<*const c_char>, SdlError> {
+  pub fn get_instance_extensions(&self) -> Result<Vec<ZString>, SdlError> {
     let mut count: c_uint = 0;
     if unsafe { SDL_Vulkan_GetInstanceExtensions(self.win.as_ptr(), &mut count, null_mut()) }.into()
     {
       return Err(get_error());
     }
-    let mut buf: Vec<*const c_char> = Vec::with_capacity(count.try_into().unwrap());
-    if unsafe { SDL_Vulkan_GetInstanceExtensions(self.win.as_ptr(), &mut count, buf.as_mut_ptr()) }
-      .into()
+    let mut buf: Vec<ZStr<'_>> = Vec::with_capacity(count.try_into().unwrap());
+    if unsafe {
+      SDL_Vulkan_GetInstanceExtensions(self.win.as_ptr(), &mut count, buf.as_mut_ptr().cast())
+    }
+    .into()
     {
       return Err(get_error());
     }
-    unsafe { buf.set_len(count.try_into().unwrap()) }
-    Ok(buf)
+    unsafe {
+      buf.set_len(count.try_into().unwrap());
+    }
+    Ok(buf.into_iter().map(ZString::from).collect())
   }
 
   /// Creates a surface for this window.

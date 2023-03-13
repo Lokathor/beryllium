@@ -14,7 +14,9 @@ use fermium::prelude::*;
 mod gl;
 pub use gl::*;
 
+#[cfg(feature = "vulkan")]
 mod vk;
+#[cfg(feature = "vulkan")]
 pub use vk::*;
 
 mod renderer;

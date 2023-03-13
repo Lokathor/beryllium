@@ -8,11 +8,13 @@ license = "Zlib OR Apache-2.0 OR MIT"
 
 [features]
 cargo_check = ["fermium/cargo_check"]
+vulkan = ["raw_vulkan_handle"]
 
 [dependencies]
 fermium = "22604.0.0"
 bytemuck = "1"
-raw_vulkan_handle = "0.1.1"
+raw_vulkan_handle = { version = "0.1.1", optional = true }
+zstring = { version = "0.2.4", features = ["alloc"] }
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 objc = "0.2" # needed to verify that we're on the main thread.
