@@ -65,16 +65,17 @@ impl VkWindow {
   #[inline]
   pub fn get_instance_extensions(&self) -> Result<Vec<ZString>, SdlError> {
     let mut count: c_uint = 0;
-    if unsafe { SDL_Vulkan_GetInstanceExtensions(self.win.as_ptr(), &mut count, null_mut()) }.into()
-    {
+    let success: bool =
+      unsafe { SDL_Vulkan_GetInstanceExtensions(self.win.as_ptr(), &mut count, null_mut()) }.into();
+    if !success {
       return Err(get_error());
     }
     let mut buf: Vec<ZStr<'_>> = Vec::with_capacity(count.try_into().unwrap());
-    if unsafe {
+    let success: bool = unsafe {
       SDL_Vulkan_GetInstanceExtensions(self.win.as_ptr(), &mut count, buf.as_mut_ptr().cast())
     }
-    .into()
-    {
+    .into();
+    if !success {
       return Err(get_error());
     }
     unsafe {

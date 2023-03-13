@@ -22,6 +22,10 @@ objc = "0.2" # needed to verify that we're on the main thread.
 [dev-dependencies]
 ash = { version = "0.37.2", default-features = false }
 
+[[example]]
+name = "ash_init"
+required-features = ["vulkan"]
+
 [package.metadata.docs.rs]
 default-target = "x86_64-pc-windows-msvc"
 # building the docs is a "check only" style operation.

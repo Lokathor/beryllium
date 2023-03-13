@@ -37,12 +37,11 @@ fn main() {
   // program "main loop".
   'the_loop: loop {
     // Process events from this frame.
-    #[allow(clippy::never_loop)]
+    #[allow(clippy::single_match)]
     while let Some((event, _timestamp)) = sdl.poll_events() {
       match event {
         Event::Quit => break 'the_loop,
-        Event::JoystickAxis { .. } | Event::ControllerAxis { .. } | Event::MouseMotion { .. } => (),
-        _ => println!("{event:?}"),
+        _ => (),
       }
     }
 
