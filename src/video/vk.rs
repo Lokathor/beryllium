@@ -47,12 +47,16 @@ impl Deref for VkWindow {
     unsafe { &*(self as *const Self).cast::<CommonWindow>() }
   }
 }
+/// Khronos: [PFN_vkVoidFunction](https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/PFN_vkVoidFunction.html)
+#[allow(non_camel_case_types)]
+pub type PFN_vkVoidFunction = Option<unsafe extern "system" fn()>;
+
 impl VkWindow {
   #[inline]
   #[allow(non_snake_case)]
   pub fn get_vkGetInstanceProcAddr(
     &self,
-  ) -> Option<unsafe extern "system" fn(VkInstance, *const u8)> {
+  ) -> Option<unsafe extern "system" fn(VkInstance, *const u8) -> PFN_vkVoidFunction> {
     unsafe { core::mem::transmute(SDL_Vulkan_GetVkGetInstanceProcAddr()) }
   }
 
