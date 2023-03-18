@@ -77,6 +77,12 @@ impl CommonWindow {
     (width, height)
   }
 
+  /// Sets the window size in logical "screen units".
+  #[inline]
+  pub fn set_window_size(&self, width: i32, height: i32) {
+    unsafe { SDL_SetWindowSize(self.win.as_ptr(), width, height) }
+  }
+
   #[inline]
   pub fn set_title(&self, title: &str) {
     let new_title = alloc::format!("{title}\0");
