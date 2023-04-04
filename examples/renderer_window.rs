@@ -23,28 +23,15 @@ fn main() {
   println!("Created The Renderer Window!");
   println!("Selected Renderer Info: {:?}", win.get_renderer_info());
 
-  let mut controllers = Vec::new();
-
   // program "main loop".
   'the_loop: loop {
     // Process events from this frame.
     #[allow(clippy::never_loop)]
+    #[allow(clippy::single_match)]
     while let Some((event, _timestamp)) = sdl.poll_events() {
       match event {
         Event::Quit => break 'the_loop,
-        Event::JoystickAxis { .. } | Event::ControllerAxis { .. } | Event::MouseMotion { .. } => (),
-        Event::ControllerAdded { index } => match sdl.open_game_controller(index) {
-          Ok(controller) => {
-            println!(
-              "Opened `{name}` (type: {type_:?})",
-              name = controller.get_name(),
-              type_ = controller.get_type()
-            );
-            controllers.push(controller);
-          }
-          Err(msg) => println!("Couldn't open {index}: {msg:?}"),
-        },
-        _ => println!("{event:?}"),
+        _ => (),
       }
     }
 
