@@ -5,8 +5,8 @@ use fermium::prelude::*;
 
 #[repr(C)]
 pub struct Surface {
-  surf: NonNull<SDL_Surface>,
-  parent: Arc<SdlInit>,
+  pub(crate) surf: NonNull<SDL_Surface>,
+  pub(crate) parent: Arc<SdlInit>,
 }
 impl Drop for Surface {
   #[inline]
