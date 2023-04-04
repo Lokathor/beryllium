@@ -9,6 +9,7 @@ pub mod controller;
 pub mod error;
 pub mod events;
 pub mod init;
+pub mod surface;
 pub mod video;
 
 #[derive(Clone)]
