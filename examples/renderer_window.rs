@@ -35,9 +35,13 @@ fn main() {
       }
     }
 
-    // TODO: post-events drawing
+    win.set_draw_color(u8::MAX, u8::MAX, u8::MAX, u8::MAX).unwrap();
+    win.clear().unwrap();
 
-    // TODO: swap buffers.
+    win.set_draw_color(0, 0, 0, u8::MAX).unwrap();
+    win.draw_line(1, 1, 50, 50).unwrap();
+
+    win.present();
   }
 
   // All the cleanup is handled by the various drop impls.
