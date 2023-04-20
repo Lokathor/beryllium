@@ -39,7 +39,10 @@ fn main() {
     win.clear().unwrap();
 
     win.set_draw_color(0, 0, 0, u8::MAX).unwrap();
-    win.draw_line(1, 1, 50, 50).unwrap();
+    win.draw_lines(&[[1, 1], [50, 50], [10, 240]]).unwrap();
+    win.draw_points(&[[60, 60], [70, 70], [80, 90]]).unwrap();
+    win.draw_rects(&[[100, 100, 26, 15]]).unwrap();
+    win.fill_rects(&[[150, 150, 70, 70]]).unwrap();
 
     win.present();
   }

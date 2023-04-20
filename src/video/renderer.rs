@@ -267,6 +267,7 @@ impl RendererWindow {
   pub fn set_draw_blend_mode(&self, mode: BlendMode) -> Result<(), SdlError> {
     nz_is_err!(unsafe { SDL_SetRenderDrawBlendMode(self.rend.as_ptr(), mode.0) })
   }
+
   /// See [SDL_CreateTexture](https://wiki.libsdl.org/SDL2/SDL_CreateTexture)
   #[inline]
   pub fn create_texture_from_surface(&self, surface: &Surface) -> Result<Texture, SdlError> {
@@ -281,6 +282,13 @@ impl RendererWindow {
   pub fn set_draw_color(&self, r: u8, g: u8, b: u8, a: u8) -> Result<(), SdlError> {
     nz_is_err!(unsafe { SDL_SetRenderDrawColor(self.rend.as_ptr(), r, g, b, a) })
   }
+  /// `[x, y, w, h]`. See [SDL_RenderSetClipRect](https://wiki.libsdl.org/SDL2/SDL_RenderSetClipRect)
+  #[inline]
+  pub fn set_clip_rect(&self, rect: [c_int; 4]) -> Result<(), SdlError> {
+    nz_is_err!(unsafe {
+      SDL_RenderSetClipRect(self.rend.as_ptr(), rect.as_ptr().cast::<SDL_Rect>())
+    })
+  }
   /// See [SDL_RenderClear](https://wiki.libsdl.org/SDL2/SDL_RenderClear)
   #[inline]
   pub fn clear(&self) -> Result<(), SdlError> {
@@ -291,10 +299,69 @@ impl RendererWindow {
   pub fn present(&self) {
     unsafe { SDL_RenderPresent(self.rend.as_ptr()) }
   }
-  /// See [SDL_RenderDrawLine](https://wiki.libsdl.org/SDL2/SDL_RenderDrawLine)
+  /// Draws line segments using the points given.
+  ///
+  /// See [SDL_RenderDrawLines](https://wiki.libsdl.org/SDL2/SDL_RenderDrawLines)
   #[inline]
-  pub fn draw_line(&self, x1: i32, y1: i32, x2: i32, y2: i32) -> Result<(), SdlError> {
-    nz_is_err!(unsafe { SDL_RenderDrawLine(self.rend.as_ptr(), x1, y1, x2, y2) })
+  pub fn draw_lines(&self, points: &[[c_int; 2]]) -> Result<(), SdlError> {
+    nz_is_err!(unsafe {
+      SDL_RenderDrawLines(
+        self.rend.as_ptr(),
+        points.as_ptr().cast::<SDL_Point>(),
+        points.len().try_into().unwrap(),
+      )
+    })
+  }
+  /// Draws the points given.
+  ///
+  /// See [SDL_RenderDrawPoints](https://wiki.libsdl.org/SDL2/SDL_RenderDrawPoints)
+  #[inline]
+  pub fn draw_points(&self, points: &[[c_int; 2]]) -> Result<(), SdlError> {
+    nz_is_err!(unsafe {
+      SDL_RenderDrawPoints(
+        self.rend.as_ptr(),
+        points.as_ptr().cast::<SDL_Point>(),
+        points.len().try_into().unwrap(),
+      )
+    })
+  }
+  /// Draws each rectangle using the `[x, y, w, h]` values given.
+  ///
+  /// See [SDL_RenderDrawRects](https://wiki.libsdl.org/SDL2/SDL_RenderDrawRects)
+  #[inline]
+  pub fn draw_rects(&self, points: &[[c_int; 4]]) -> Result<(), SdlError> {
+    nz_is_err!(unsafe {
+      SDL_RenderDrawRects(
+        self.rend.as_ptr(),
+        points.as_ptr().cast::<SDL_Rect>(),
+        points.len().try_into().unwrap(),
+      )
+    })
+  }
+  /// Fills in each rectangle using the `[x, y, w, h]` values given.
+  ///
+  /// See [SDL_RenderFillRects](https://wiki.libsdl.org/SDL2/SDL_RenderFillRects)
+  #[inline]
+  pub fn fill_rects(&self, points: &[[c_int; 4]]) -> Result<(), SdlError> {
+    nz_is_err!(unsafe {
+      SDL_RenderFillRects(
+        self.rend.as_ptr(),
+        points.as_ptr().cast::<SDL_Rect>(),
+        points.len().try_into().unwrap(),
+      )
+    })
+  }
+  /// `[x, y, w, h]`. See [SDL_RenderCopy](https://wiki.libsdl.org/SDL2/SDL_RenderCopy)
+  #[inline]
+  pub fn copy(&self, t: &Texture, src: [c_int; 4], dst: [c_int; 4]) -> Result<(), SdlError> {
+    nz_is_err!(unsafe {
+      SDL_RenderCopy(
+        self.rend.as_ptr(),
+        t.tex.as_ptr(),
+        src.as_ptr().cast::<SDL_Rect>(),
+        dst.as_ptr().cast::<SDL_Rect>(),
+      )
+    })
   }
 }
 
@@ -335,6 +402,10 @@ pub enum TextureAccess {
   Target = SDL_TEXTUREACCESS_TARGET.0,
 }
 
+/// A texture within a renderer.
+///
+/// Make these with
+/// [`create_texture_from_surface`](RendererWindow::create_texture_from_surface).
 #[repr(C)]
 pub struct Texture {
   tex: NonNull<SDL_Texture>,
