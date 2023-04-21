@@ -197,4 +197,17 @@ impl GameController {
   pub fn get_type(&self) -> ControllerType {
     ControllerType::from(unsafe { SDL_GameControllerGetType(self.ctrl.as_ptr()) })
   }
+
+  #[inline]
+  pub fn get_mapping_string(&self) -> String {
+    let mut s = String::new();
+    let mut p = unsafe { SDL_GameControllerMapping(self.ctrl.as_ptr()) } as *const u8;
+    if !p.is_null() {
+      while unsafe { *p } != 0 {
+        s.push(unsafe { *p } as char);
+        p = unsafe { p.add(1) };
+      }
+    }
+    s
+  }
 }

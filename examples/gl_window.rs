@@ -40,9 +40,10 @@ fn main() {
         Event::ControllerAdded { index } => match sdl.open_game_controller(index) {
           Ok(controller) => {
             println!(
-              "Opened `{name}` (type: {type_:?})",
+              "Opened `{name}` (type: {type_:?}): {mapping}",
               name = controller.get_name(),
-              type_ = controller.get_type()
+              type_ = controller.get_type(),
+              mapping = controller.get_mapping_string(),
             );
             controllers.push(controller);
           }
