@@ -31,7 +31,7 @@ impl Sdl {
       return Err(SdlError::new("illegal input dimensions"));
     }
     let depth = 32;
-    let pitch = width;
+    let pitch = width * 4;
     const R_MASK: u32 = unsafe { core::mem::transmute(r8g8b8a8_Srgb { r: 255, g: 0, b: 0, a: 0 }) };
     const G_MASK: u32 = unsafe { core::mem::transmute(r8g8b8a8_Srgb { g: 255, r: 0, b: 0, a: 0 }) };
     const B_MASK: u32 = unsafe { core::mem::transmute(r8g8b8a8_Srgb { b: 255, g: 0, r: 0, a: 0 }) };
