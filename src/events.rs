@@ -26,6 +26,8 @@ impl Sdl {
   }
 }
 
+pub use fermium::prelude::{SDL_Keycode, SDL_Keymod, SDL_Scancode};
+
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 #[rustfmt::skip]
 pub enum Event {
