@@ -45,7 +45,7 @@ impl Sdl {
   ///
   /// In other words, this is what you'd use for an "FPS" style interface.
   #[inline]
-  pub fn set_relative_mouse_mode(b: bool) -> Result<(), ()> {
+  pub fn set_relative_mouse_mode(&self, b: bool) -> Result<(), ()> {
     if unsafe { SDL_SetRelativeMouseMode(b.into()) } == 0 {
       Ok(())
     } else {
