@@ -49,6 +49,7 @@ impl SdlInit {
       Ok(_) => {
         let ret = unsafe { SDL_Init(flags.0) };
         if ret == 0 {
+          #[allow(clippy::arc_with_non_send_sync)]
           Ok(Arc::new(Self(PhantomData)))
         } else {
           Err(get_error())
